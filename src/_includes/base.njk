@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% if title %}{{ title }} — {% endif %}{{ site.name }} · {{ site.tagline }}</title>
+<meta name="description" content="{{ description or site.description }}">
+<meta property="og:title" content="{{ title or site.name }}">
+<meta property="og:description" content="{{ description or site.description }}">
+<meta property="og:url" content="{{ site.url }}{{ page.url }}">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/assets/css/main.css">
+</head>
+<body>
+
+<nav>
+  <a href="/" class="logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 12 12" fill="none"><path d="M2 6C2 3.79 3.79 2 6 2s4 1.79 4 4-1.79 4-4 4" stroke="white" stroke-width="1.5" stroke-linecap="round"/><circle cx="6" cy="6" r="1.2" fill="white"/></svg>
+    </div>
+    {{ site.name }}
+  </a>
+  <ul class="nav-links">
+    {% for item in site.nav %}
+    <li><a href="{{ item.url }}">{{ item.label }}</a></li>
+    {% endfor %}
+  </ul>
+  <div class="nav-right">
+    <span class="nav-ai-badge">AI_FIRST</span>
+    <a href="https://app.prospektor.ai" class="nav-cta">Apply to work with us</a>
+  </div>
+</nav>
+
+{{ content | safe }}
+
+<footer>
+  <a href="/" class="footer-logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 12 12" fill="none"><path d="M2 6C2 3.79 3.79 2 6 2s4 1.79 4 4-1.79 4-4 4" stroke="white" stroke-width="1.5" stroke-linecap="round"/><circle cx="6" cy="6" r="1.2" fill="white"/></svg>
+    </div>
+    {{ site.name }}
+  </a>
+  <span class="footer-tagline">{{ site.tagline }}</span>
+  <span>{{ site.email }}</span>
+</footer>
+
+<script src="/assets/js/main.js"></script>
+</body>
+</html>

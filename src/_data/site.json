@@ -1,0 +1,12 @@
+{
+  "name": "Prospektor",
+  "tagline": "The AI-first GTM agency",
+  "url": "https://prospektor.ai",
+  "email": "hello@prospektor.ai",
+  "description": "We build the entire go-to-market infrastructure for funded startups — AI-powered, fully wired, generating pipeline from day one.",
+  "nav": [
+    { "label": "What we build", "url": "/#what" },
+    { "label": "How it works",  "url": "/#how" },
+    { "label": "Who we work with", "url": "/#who" }
+  ]
+}
