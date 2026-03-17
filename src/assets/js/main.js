@@ -153,4 +153,12 @@ function runStage() {
 
 // Start when card scrolls into view
 const cardObs = new IntersectionObserver(es => {
-  if (es[0].is
+  if (es[0].isIntersecting && !running) {
+    running = true;
+    runStage();
+    cardObs.disconnect();
+  }
+}, { threshold: 0.3 });
+
+const card = document.querySelector('.build-card');
+if (card) cardObs.observe(card);
