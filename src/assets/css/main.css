@@ -153,15 +153,18 @@ nav {
   padding: 0.2rem 0.4rem; white-space: nowrap; flex-shrink: 0;
 }
 
-/* Building status line */
+/* Building status line — zero layout impact */
 .building-status {
-  display: none; align-items: center; gap: 0.5rem;
-  font-family: var(--mono); font-size: 0.7rem; color: var(--accent);
-  margin-top: 0.5rem;
-  justify-content: center;
+  position: absolute;
+  bottom: -1.75rem; left: 50%; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 0.5rem;
+  font-family: var(--mono); font-size: 0.68rem; color: var(--accent);
+  white-space: nowrap;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.25s ease;
 }
 
-.building-status.active { display: flex; }
+.building-status.active { opacity: 1; }
 
 .building-dot {
   width: 6px; height: 6px; border-radius: 50%;
