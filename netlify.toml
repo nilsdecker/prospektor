@@ -4,6 +4,12 @@
   functions = "netlify/functions"
 
 [[redirects]]
+  from = "https://app.prospektor.ai/*"
+  to = "/app/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/*"
   to = "/404.html"
   status = 404
