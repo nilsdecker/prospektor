@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apply to work with Prospektor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --ink: #1A1A18;
+  --ink-mid: #52524E;
+  --ink-faint: #8F8F8A;
+  --white: #FFFFFF;
+  --off-white: #F7F5F0;
+  --stone: #EDEAE3;
+  --accent: #00B37E;
+  --accent-bg: #E6F7F2;
+  --accent-border: rgba(0,179,126,0.25);
+  --coral: #E8533A;
+  --coral-hover: #D04530;
+  --border: rgba(26,26,24,0.1);
+  --border-mid: rgba(26,26,24,0.18);
+  --font: 'Plus Jakarta Sans', -apple-system, sans-serif;
+  --mono: 'JetBrains Mono', monospace;
+}
+
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font);
+  background: var(--off-white);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── NAV ── */
+nav {
+  height: 56px;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 2rem;
+  background: rgba(247,245,240,0.95);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+  position: sticky; top: 0; z-index: 100;
+}
+
+.logo {
+  font-size: 0.92rem; font-weight: 800; color: var(--ink);
+  text-decoration: none; display: flex; align-items: center; gap: 7px;
+  letter-spacing: -0.02em;
+}
+
+.logo-mark {
+  width: 22px; height: 22px; border-radius: 6px;
+  background: var(--ink); display: flex; align-items: center; justify-content: center;
+}
+.logo-mark svg { width: 12px; height: 12px; }
+
+.nav-right {
+  font-family: var(--mono); font-size: 0.65rem; color: var(--ink-faint);
+  letter-spacing: 0.04em;
+}
+
+/* ── MAIN LAYOUT ── */
+.app-wrap {
+  flex: 1; display: flex; align-items: flex-start; justify-content: center;
+  padding: 3rem 1.5rem 5rem;
+}
+
+.app-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  width: 100%; max-width: 620px;
+  overflow: hidden;
+}
+
+/* ── PROGRESS BAR ── */
+.progress-bar {
+  height: 3px; background: var(--stone);
+}
+.progress-fill {
+  height: 100%; background: var(--accent);
+  transition: width 0.5s ease;
+  width: 0%;
+}
+
+/* ── CARD HEADER ── */
+.card-header {
+  padding: 1.75rem 2rem 0;
+}
+
+.step-label {
+  font-family: var(--mono); font-size: 0.62rem; font-weight: 500;
+  color: var(--ink-faint); letter-spacing: 0.06em; text-transform: uppercase;
+  margin-bottom: 1.25rem;
+}
+
+/* ── SCREENS ── */
+.screen { display: none; padding: 0 2rem 2rem; }
+.screen.active { display: block; }
+
+/* Welcome screen */
+.welcome-icon {
+  width: 48px; height: 48px; border-radius: 12px;
+  background: var(--accent-bg); border: 1px solid var(--accent-border);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 1.25rem; font-size: 22px;
+}
+
+.screen h1 {
+  font-size: 1.5rem; font-weight: 800; letter-spacing: -0.03em;
+  line-height: 1.2; margin-bottom: 0.75rem;
+}
+
+.screen-sub {
+  font-size: 0.88rem; color: var(--ink-mid); line-height: 1.65;
+  margin-bottom: 1.75rem;
+}
+
+/* Info list on welcome */
+.info-list {
+  list-style: none; display: flex; flex-direction: column; gap: 0;
+  margin-bottom: 2rem;
+  border: 1px solid var(--border); border-radius: 10px; overflow: hidden;
+}
+
+.info-item {
+  display: flex; align-items: center; gap: 0.75rem;
+  padding: 0.85rem 1rem; font-size: 0.83rem; color: var(--ink-mid);
+  border-bottom: 1px solid var(--border);
+}
+.info-item:last-child { border-bottom: none; }
+
+.info-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--accent); flex-shrink: 0;
+}
+
+/* ── IDENTITY SCREEN ── */
+.field-group { display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1.75rem; }
+
+.field label {
+  display: block; font-size: 0.75rem; font-weight: 700;
+  color: var(--ink-mid); margin-bottom: 0.4rem; letter-spacing: 0.01em;
+}
+
+.field input {
+  width: 100%; padding: 0.75rem 1rem;
+  border: 1.5px solid var(--border-mid); border-radius: 8px;
+  font-family: var(--font); font-size: 0.92rem; color: var(--ink);
+  background: var(--white); outline: none;
+  transition: border-color 0.15s;
+}
+
+.field input:focus { border-color: var(--accent); }
+.field input::placeholder { color: var(--ink-faint); }
+
+/* ── CONVERSATION SCREEN ── */
+.convo-area {
+  display: flex; flex-direction: column; gap: 1rem;
+  margin-bottom: 1.5rem;
+  min-height: 180px;
+}
+
+/* Prospektor message bubble */
+.msg-p {
+  display: flex; gap: 0.65rem; align-items: flex-start;
+}
+
+.msg-p-avatar {
+  width: 28px; height: 28px; border-radius: 7px;
+  background: var(--ink); display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 1px;
+}
+.msg-p-avatar svg { width: 14px; height: 14px; }
+
+.msg-p-bubble {
+  background: var(--stone); border-radius: 4px 12px 12px 12px;
+  padding: 0.85rem 1rem; font-size: 0.88rem; line-height: 1.6;
+  color: var(--ink); max-width: calc(100% - 40px);
+  opacity: 0; transform: translateY(6px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+.msg-p-bubble.show { opacity: 1; transform: none; }
+
+/* Typing indicator */
+.typing-dots {
+  display: flex; gap: 4px; align-items: center; padding: 0.85rem 1rem;
+  background: var(--stone); border-radius: 4px 12px 12px 12px;
+  max-width: 60px;
+}
+.typing-dot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--ink-faint);
+  animation: tdot 1.2s ease-in-out infinite;
+}
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes tdot { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-5px)} }
+
+/* User answer bubble */
+.msg-u {
+  display: flex; justify-content: flex-end;
+}
+
+.msg-u-bubble {
+  background: var(--accent); color: white;
+  border-radius: 12px 4px 12px 12px;
+  padding: 0.75rem 1rem; font-size: 0.88rem; line-height: 1.6;
+  max-width: 85%;
+  opacity: 0; transform: translateY(6px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.msg-u-bubble.show { opacity: 1; transform: none; }
+
+/* Input area */
+.input-area {
+  position: relative;
+}
+
+.answer-input {
+  width: 100%; padding: 0.85rem 3.5rem 0.85rem 1rem;
+  border: 1.5px solid var(--border-mid); border-radius: 10px;
+  font-family: var(--font); font-size: 0.88rem; color: var(--ink);
+  background: var(--white); outline: none; resize: none;
+  transition: border-color 0.15s; line-height: 1.5;
+  min-height: 52px; max-height: 140px; overflow-y: auto;
+}
+.answer-input:focus { border-color: var(--accent); }
+.answer-input::placeholder { color: var(--ink-faint); }
+
+.send-btn {
+  position: absolute; right: 0.65rem; bottom: 0.65rem;
+  width: 32px; height: 32px; border-radius: 8px;
+  background: var(--accent); border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s, transform 0.1s;
+}
+.send-btn:hover { background: #00956A; transform: scale(1.05); }
+.send-btn:disabled { background: var(--stone); cursor: not-allowed; transform: none; }
+.send-btn svg { width: 14px; height: 14px; }
+
+.input-hint {
+  font-size: 0.7rem; color: var(--ink-faint); margin-top: 0.4rem;
+  font-family: var(--mono);
+}
+
+/* ── DONE SCREEN ── */
+.done-icon {
+  width: 56px; height: 56px; border-radius: 14px;
+  background: var(--accent-bg); border: 1px solid var(--accent-border);
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 1.25rem; font-size: 26px;
+}
+
+.done-detail {
+  background: var(--stone); border-radius: 10px; padding: 1rem 1.25rem;
+  margin: 1.5rem 0;
+}
+
+.done-detail-row {
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 0.8rem; padding: 0.35rem 0;
+  border-bottom: 1px solid rgba(26,26,24,0.08);
+}
+.done-detail-row:last-child { border-bottom: none; }
+.done-detail-label { color: var(--ink-faint); font-family: var(--mono); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.done-detail-value { color: var(--ink); font-weight: 600; font-size: 0.82rem; }
+
+/* ── BUTTONS ── */
+.btn-primary {
+  width: 100%; padding: 0.85rem;
+  background: var(--coral); color: white; border: none;
+  border-radius: 100px; font-family: var(--font);
+  font-size: 0.9rem; font-weight: 700; cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+.btn-primary:hover { background: var(--coral-hover); transform: translateY(-1px); }
+
+.btn-secondary {
+  width: 100%; padding: 0.82rem;
+  background: transparent; color: var(--ink-mid);
+  border: 1.5px solid var(--border-mid); border-radius: 100px;
+  font-family: var(--font); font-size: 0.88rem; font-weight: 600;
+  cursor: pointer; transition: border-color 0.15s; margin-top: 0.75rem;
+  text-decoration: none; display: block; text-align: center;
+}
+.btn-secondary:hover { border-color: var(--ink-mid); }
+
+/* ── FOOTER ── */
+footer {
+  text-align: center; padding: 1.5rem;
+  font-size: 0.72rem; color: var(--ink-faint);
+  border-top: 1px solid var(--border);
+  background: var(--white);
+}
+
+footer a { color: var(--ink-faint); text-decoration: none; }
+footer a:hover { color: var(--ink); }
+
+@media (max-width: 640px) {
+  .app-wrap { padding: 1rem 0.75rem 4rem; }
+  .card-header { padding: 1.25rem 1.25rem 0; }
+  .screen { padding: 0 1.25rem 1.5rem; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="https://prospektor.ai" class="logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 12 12" fill="none"><path d="M2 6C2 3.79 3.79 2 6 2s4 1.79 4 4-1.79 4-4 4" stroke="white" stroke-width="1.5" stroke-linecap="round"/><circle cx="6" cy="6" r="1.2" fill="white"/></svg>
+    </div>
+    Prospektor
+  </a>
+  <span class="nav-right">Application · Confidential</span>
+</nav>
+
+<div class="app-wrap">
+  <div class="app-card">
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+    <div class="card-header">
+      <div class="step-label" id="stepLabel">Getting started</div>
+    </div>
+
+    <!-- SCREEN 0: Welcome -->
+    <div class="screen active" id="screen-welcome">
+      <div style="padding-top:1.5rem;">
+        <div class="welcome-icon">👋</div>
+        <h1>Let's see if we're a fit.</h1>
+        <p class="screen-sub">This takes about 10 minutes. We read every application personally and respond within 48 hours — no automated replies, no pitch calls until we've reviewed your brief.</p>
+        <ul class="info-list">
+          <li class="info-item"><span class="info-dot"></span>9 short questions about your business and goals</li>
+          <li class="info-item"><span class="info-dot"></span>No strategy advice here — that's what the discovery call is for</li>
+          <li class="info-item"><span class="info-dot"></span>We work with funded startups, seed to Series B+</li>
+          <li class="info-item"><span class="info-dot"></span>Build investment starts at $25k</li>
+        </ul>
+        <button class="btn-primary" onclick="goTo('identity')">Start my application →</button>
+      </div>
+    </div>
+
+    <!-- SCREEN 1: Identity -->
+    <div class="screen" id="screen-identity">
+      <div style="padding-top:1.5rem;">
+        <h1>First, who are you?</h1>
+        <p class="screen-sub">We'll address you by name throughout, and use your email to send you the outcome of your application.</p>
+        <div class="field-group">
+          <div class="field">
+            <label>Your name</label>
+            <input type="text" id="nameInput" placeholder="Alex Chen" autocomplete="name" />
+          </div>
+          <div class="field">
+            <label>Work email</label>
+            <input type="email" id="emailInput" placeholder="alex@acme.com" autocomplete="email" />
+          </div>
+          <div class="field">
+            <label>Company name</label>
+            <input type="text" id="companyInput" placeholder="Acme Corp" />
+          </div>
+        </div>
+        <button class="btn-primary" onclick="startConversation()">Continue →</button>
+      </div>
+    </div>
+
+    <!-- SCREEN 2: Conversation -->
+    <div class="screen" id="screen-convo">
+      <div style="padding-top:1.25rem;">
+        <div class="convo-area" id="convoArea"></div>
+        <div class="input-area" id="inputArea">
+          <textarea
+            class="answer-input"
+            id="answerInput"
+            placeholder="Type your answer..."
+            rows="1"
+            onkeydown="handleKey(event)"
+            oninput="autoResize(this)"
+          ></textarea>
+          <button class="send-btn" id="sendBtn" onclick="submitAnswer()">
+            <svg viewBox="0 0 16 16" fill="none"><path d="M2 8h12M10 4l4 4-4 4" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+        </div>
+        <p class="input-hint">↵ enter to send · shift+enter for new line</p>
+      </div>
+    </div>
+
+    <!-- SCREEN 3: Done -->
+    <div class="screen" id="screen-done">
+      <div style="padding-top:1.5rem;">
+        <div class="done-icon">✅</div>
+        <h1>Application received.</h1>
+        <p class="screen-sub">We'll review your brief personally and be in touch within 48 hours. If you're a fit, we'll schedule a discovery call to map out your exact GTM motion.</p>
+        <div class="done-detail" id="doneSummary"></div>
+        <a href="https://prospektor.ai" class="btn-secondary">← Back to prospektor.ai</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>
+  <a href="https://prospektor.ai">Prospektor</a> · The AI-first GTM agency · hello@prospektor.ai
+</footer>
+
+<script>
+// ── STATE ──
+let userName = '';
+let userEmail = '';
+let userCompany = '';
+let answers = [];
+let currentQ = 0;
+let waiting = false;
+
+// ── QUESTIONS ──
+// Each question is a function so we can personalise with name/company
+const questions = [
+  (n, c) => `What does ${c} do, and who do you sell to? Give us the one-liner you'd use with an investor.`,
+  (n, c) => `What stage are you at, and when did you last raise?`,
+  (n, c) => `What's your current ARR or monthly revenue — ballpark is fine.`,
+  (n, c) => `How are you generating pipeline right now? Walk us through what's actually happening.`,
+  (n, c) => `What tools are you using — CRM, email, enrichment, anything GTM-related?`,
+  (n, c) => `What's working, and what isn't? Be honest — that's what the discovery call is for anyway.`,
+  (n, c) => `What does success look like for ${c} in 90 days?`,
+  (n, c) => `What's your timeline, and is budget allocated for this?`,
+  (n, c) => `Last one — why now? What's changed that's making GTM a priority at this moment?`,
+];
+
+const progressSteps = [0, 10, 20, 30, 40, 55, 65, 75, 85, 95, 100];
+const stepLabels = [
+  'Getting started', 'About you', 'The conversation',
+  'Q1 of 9', 'Q2 of 9', 'Q3 of 9', 'Q4 of 9',
+  'Q5 of 9', 'Q6 of 9', 'Q7 of 9', 'Q8 of 9', 'Q9 of 9', 'Done'
+];
+
+// ── NAVIGATION ──
+function goTo(screenId) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + screenId).classList.add('active');
+}
+
+function setProgress(pct, label) {
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('stepLabel').textContent = label;
+}
+
+// ── IDENTITY → CONVERSATION ──
+function startConversation() {
+  userName = document.getElementById('nameInput').value.trim();
+  userEmail = document.getElementById('emailInput').value.trim();
+  userCompany = document.getElementById('companyInput').value.trim();
+
+  if (!userName || !userEmail || !userCompany) {
+    alert('Please fill in all three fields.');
+    return;
+  }
+  if (!userEmail.includes('@')) {
+    alert('Please enter a valid email address.');
+    return;
+  }
+
+  goTo('convo');
+  setProgress(20, 'Q1 of 9');
+  currentQ = 0;
+  answers = [];
+
+  // First message after short delay
+  setTimeout(() => askQuestion(0), 400);
+}
+
+// ── ASK A QUESTION ──
+function askQuestion(idx) {
+  const area = document.getElementById('convoArea');
+  waiting = true;
+  document.getElementById('sendBtn').disabled = true;
+
+  // Show typing indicator
+  const typingEl = document.createElement('div');
+  typingEl.className = 'msg-p';
+  typingEl.id = 'typing';
+  typingEl.innerHTML = `
+    <div class="msg-p-avatar">
+      <svg viewBox="0 0 12 12" fill="none"><path d="M2 6C2 3.79 3.79 2 6 2s4 1.79 4 4-1.79 4-4 4" stroke="white" stroke-width="1.5" stroke-linecap="round"/><circle cx="6" cy="6" r="1.2" fill="white"/></svg>
+    </div>
+    <div class="typing-dots">
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+      <div class="typing-dot"></div>
+    </div>`;
+  area.appendChild(typingEl);
+  scrollBottom();
+
+  setTimeout(() => {
+    // Remove typing, show question
+    typingEl.remove();
+
+    const q = questions[idx](userName.split(' ')[0], userCompany);
+    const msgEl = document.createElement('div');
+    msgEl.className = 'msg-p';
+    msgEl.innerHTML = `
+      <div class="msg-p-avatar">
+        <svg viewBox="0 0 12 12" fill="none"><path d="M2 6C2 3.79 3.79 2 6 2s4 1.79 4 4-1.79 4-4 4" stroke="white" stroke-width="1.5" stroke-linecap="round"/><circle cx="6" cy="6" r="1.2" fill="white"/></svg>
+      </div>
+      <div class="msg-p-bubble">${q}</div>`;
+    area.appendChild(msgEl);
+
+    // Animate in
+    setTimeout(() => msgEl.querySelector('.msg-p-bubble').classList.add('show'), 30);
+
+    waiting = false;
+    document.getElementById('sendBtn').disabled = false;
+    document.getElementById('answerInput').focus();
+    scrollBottom();
+  }, 900);
+}
+
+// ── SUBMIT ANSWER ──
+function submitAnswer() {
+  if (waiting) return;
+  const input = document.getElementById('answerInput');
+  const answer = input.value.trim();
+  if (!answer) return;
+
+  // Show user bubble
+  const area = document.getElementById('convoArea');
+  const userEl = document.createElement('div');
+  userEl.className = 'msg-u';
+  userEl.innerHTML = `<div class="msg-u-bubble">${escHtml(answer)}</div>`;
+  area.appendChild(userEl);
+  setTimeout(() => userEl.querySelector('.msg-u-bubble').classList.add('show'), 30);
+
+  answers.push({ q: questions[currentQ](userName.split(' ')[0], userCompany), a: answer });
+  input.value = '';
+  input.style.height = 'auto';
+  scrollBottom();
+
+  currentQ++;
+
+  if (currentQ < questions.length) {
+    const pct = progressSteps[currentQ + 1] || 90;
+    setProgress(pct, `Q${currentQ + 1} of 9`);
+    setTimeout(() => askQuestion(currentQ), 400);
+  } else {
+    // All done
+    setProgress(100, 'Submitting...');
+    setTimeout(() => submitBrief(), 600);
+  }
+}
+
+// ── SUBMIT BRIEF ──
+async function submitBrief() {
+  setProgress(100, 'Done');
+
+  // Build brief text
+  const briefLines = [
+    `PROSPEKTOR APPLICATION BRIEF`,
+    `=============================`,
+    `Name: ${userName}`,
+    `Email: ${userEmail}`,
+    `Company: ${userCompany}`,
+    `Submitted: ${new Date().toLocaleString()}`,
+    ``,
+    ...answers.map((item, i) => `Q${i+1}: ${item.q}\nA: ${item.a}\n`)
+  ];
+  const briefText = briefLines.join('\n');
+
+  // Send via Netlify Forms (no backend needed)
+  const formData = new FormData();
+  formData.append('form-name', 'prospektor-application');
+  formData.append('name', userName);
+  formData.append('email', userEmail);
+  formData.append('company', userCompany);
+  formData.append('brief', briefText);
+
+  try {
+    await fetch('/', { method: 'POST', body: formData });
+  } catch(e) {
+    console.log('Form submission error (non-critical):', e);
+  }
+
+  // Show done screen
+  showDone();
+}
+
+function showDone() {
+  // Build summary
+  const summary = document.getElementById('doneSummary');
+  summary.innerHTML = `
+    <div class="done-detail-row">
+      <span class="done-detail-label">Applicant</span>
+      <span class="done-detail-value">${escHtml(userName)}</span>
+    </div>
+    <div class="done-detail-row">
+      <span class="done-detail-label">Company</span>
+      <span class="done-detail-value">${escHtml(userCompany)}</span>
+    </div>
+    <div class="done-detail-row">
+      <span class="done-detail-label">Contact</span>
+      <span class="done-detail-value">${escHtml(userEmail)}</span>
+    </div>
+    <div class="done-detail-row">
+      <span class="done-detail-label">Questions answered</span>
+      <span class="done-detail-value">${answers.length} of 9</span>
+    </div>
+    <div class="done-detail-row">
+      <span class="done-detail-label">Response time</span>
+      <span class="done-detail-value">Within 48 hours</span>
+    </div>`;
+
+  goTo('done');
+  setProgress(100, 'Application complete');
+}
+
+// ── HELPERS ──
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    submitAnswer();
+  }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 140) + 'px';
+}
+
+function scrollBottom() {
+  const area = document.getElementById('convoArea');
+  area.scrollTop = area.scrollHeight;
+  window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+}
+
+function escHtml(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+
+<!-- Netlify Forms hidden form for detection -->
+<form name="prospektor-application" netlify netlify-honeypot="bot-field" hidden>
+  <input name="name" />
+  <input name="email" />
+  <input name="company" />
+  <textarea name="brief"></textarea>
+</form>
+
+</body>
+</html>
