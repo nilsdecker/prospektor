@@ -38,11 +38,12 @@ function typeWriter() {
   if (!deleting) {
     dynEl.textContent = phrase.slice(0, ++charIdx);
     if (charIdx === phrase.length) {
+      // Pause, flash enter key, then "build"
       setTimeout(() => {
         enterKey.style.background = 'var(--accent)';
         enterKey.style.color = 'white';
         building = true;
-        buildStatus.style.opacity = '1';
+        buildStatus.classList.add('active');
         buildMsgIdx = 0;
         buildMsg.textContent = buildMsgs[0];
 
@@ -53,7 +54,7 @@ function typeWriter() {
           } else {
             clearInterval(msgTimer);
             setTimeout(() => {
-              buildStatus.style.opacity = '0';
+              buildStatus.classList.remove('active');
               enterKey.style.background = '';
               enterKey.style.color = '';
               building = false;
@@ -113,6 +114,7 @@ function resetBuild() {
 
 function runStage() {
   if (stageIdx >= stages.length) {
+    // mark last stat done, then restart
     statIds.forEach(id => {
       const el = document.getElementById(id);
       el.className = 'bstat done';
@@ -126,6 +128,7 @@ function runStage() {
   bFill.style.width = stage.pct + '%';
   buildPct.textContent = stage.pct + '%';
 
+  // Mark previous stats done, current active
   for (let i = 0; i < statIds.length; i++) {
     const el = document.getElementById(statIds[i]);
     if (i < stage.stat) el.className = 'bstat done';
@@ -133,6 +136,7 @@ function runStage() {
     else el.className = 'bstat';
   }
 
+  // Reveal lines one by one
   function showNextLine() {
     if (lineIdx < stage.lines.length) {
       lines[stage.lines[lineIdx]].classList.add('show');
@@ -147,13 +151,6 @@ function runStage() {
   showNextLine();
 }
 
+// Start when card scrolls into view
 const cardObs = new IntersectionObserver(es => {
-  if (es[0].isIntersecting && !running) {
-    running = true;
-    runStage();
-    cardObs.disconnect();
-  }
-}, { threshold: 0.3 });
-
-const card = document.querySelector('.build-card');
-if (card) cardObs.observe(card);
+  if (es[0].is

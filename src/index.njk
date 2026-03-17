@@ -15,12 +15,11 @@ description: We build the entire go-to-market infrastructure for funded startups
       <span class="prompt-static">prospektor build me a&nbsp;</span><span class="prompt-dynamic" id="dynText"></span><span class="cursor" id="cur"></span>
     </span>
     <span class="prompt-enter" id="enterKey">↵ enter</span>
-  </div>
-
-  <!-- Building status (shown when "enter" is pressed) -->
-  <div class="building-status" id="buildStatus">
-    <div class="building-dot"></div>
-    <span id="buildMsg">Initializing AI brain...</span>
+    <!-- Building status overlays below the prompt, inside the container so it never shifts layout -->
+    <div class="building-status" id="buildStatus">
+      <div class="building-dot"></div>
+      <span id="buildMsg">Initializing AI brain...</span>
+    </div>
   </div>
 
   <h1>Your GTM motion,<br>built by <span class="accent">AI</span> in 90 days.</h1>
