@@ -38,12 +38,11 @@ function typeWriter() {
   if (!deleting) {
     dynEl.textContent = phrase.slice(0, ++charIdx);
     if (charIdx === phrase.length) {
-      // Pause, flash enter key, then "build"
       setTimeout(() => {
         enterKey.style.background = 'var(--accent)';
         enterKey.style.color = 'white';
         building = true;
-        buildStatus.classList.add('active');
+        buildStatus.style.opacity = '1';
         buildMsgIdx = 0;
         buildMsg.textContent = buildMsgs[0];
 
@@ -54,27 +53,27 @@ function typeWriter() {
           } else {
             clearInterval(msgTimer);
             setTimeout(() => {
-              buildStatus.classList.remove('active');
+              buildStatus.style.opacity = '0';
               enterKey.style.background = '';
               enterKey.style.color = '';
               building = false;
               deleting = true;
               phraseIdx = (phraseIdx + 1) % phrases.length;
-              setTimeout(typeWriter, 80);
-            }, 600);
+              setTimeout(typeWriter, 56);
+            }, 420);
           }
-        }, 500);
-      }, 600);
+        }, 350);
+      }, 420);
       return;
     }
-    setTimeout(typeWriter, 70);
+    setTimeout(typeWriter, 49);
   } else {
     dynEl.textContent = phrase.slice(0, --charIdx);
     if (charIdx === 0) {
       deleting = false;
-      setTimeout(typeWriter, 200);
+      setTimeout(typeWriter, 140);
     } else {
-      setTimeout(typeWriter, 38);
+      setTimeout(typeWriter, 27);
     }
   }
 }
@@ -114,7 +113,6 @@ function resetBuild() {
 
 function runStage() {
   if (stageIdx >= stages.length) {
-    // mark last stat done, then restart
     statIds.forEach(id => {
       const el = document.getElementById(id);
       el.className = 'bstat done';
@@ -128,7 +126,6 @@ function runStage() {
   bFill.style.width = stage.pct + '%';
   buildPct.textContent = stage.pct + '%';
 
-  // Mark previous stats done, current active
   for (let i = 0; i < statIds.length; i++) {
     const el = document.getElementById(statIds[i]);
     if (i < stage.stat) el.className = 'bstat done';
@@ -136,7 +133,6 @@ function runStage() {
     else el.className = 'bstat';
   }
 
-  // Reveal lines one by one
   function showNextLine() {
     if (lineIdx < stage.lines.length) {
       lines[stage.lines[lineIdx]].classList.add('show');
@@ -151,7 +147,6 @@ function runStage() {
   showNextLine();
 }
 
-// Start when card scrolls into view
 const cardObs = new IntersectionObserver(es => {
   if (es[0].isIntersecting && !running) {
     running = true;
