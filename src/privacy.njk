@@ -133,7 +133,7 @@ updated: 15 August 2026
           <li><code>pps_share</code> — 10 minutes, remembers which share link sent you to the sign-in page.</li>
         </ul>
         <p>The last two are cleared as soon as sign-in finishes.</p>
-        <p>One thing worth naming plainly: this website and the studio both load their fonts from Google Fonts, which means your browser fetches them from Google and Google sees your IP address. It's the only third-party request either page makes, and self-hosting the two fonts would remove it.</p>
+        <p>This website serves its fonts from its own server, so loading any page here makes no third-party request at all — nothing about your visit reaches anyone but us. The studio still loads its fonts from Google Fonts, which means your browser fetches them from Google and Google sees your IP address. That's the one remaining third-party request anywhere in the product, and the same fix is coming to the studio.</p>
 
         <h3 id="subprocessors">Providers who process data for us</h3>
         <div class="legal-table-wrap">
@@ -154,7 +154,7 @@ updated: 15 August 2026
               </tr>
               <tr>
                 <td>Google</td>
-                <td>Sign-in through OAuth. Separately, Google Fonts receives visitors' IP addresses.</td>
+                <td>Sign-in through OAuth. Separately, Google Fonts receives the IP address of anyone loading a studio page — not this website, which hosts its own fonts.</td>
                 <td>Authentication, typography</td>
               </tr>
             </tbody>
