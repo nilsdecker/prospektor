@@ -28,6 +28,42 @@ title: The AI-First GTM Agency
     <a href="#how" class="btn-ghost">See how it works →</a>
   </div>
   <p class="hero-note">Funded startups only · Seed to Series B+ · 48hr response</p>
+
+  <!-- SCAN — give me your URL -->
+  <div class="scan" id="scan">
+    <p class="scan-lede">Or see it work on <span class="accent">your</span> company first:</p>
+    <form class="scan-form" id="scanForm" novalidate>
+      <span class="scan-prefix">https://</span>
+      <input class="scan-input" id="scanInput" type="text" inputmode="url" autocomplete="url"
+             spellcheck="false" placeholder="yourcompany.com" aria-label="Your company website">
+      <button type="submit" class="scan-btn" id="scanBtn">Scan my site</button>
+    </form>
+    <p class="scan-error" id="scanError" hidden></p>
+    <div class="scan-status" id="scanStatus" hidden>
+      <span class="building-dot"></span>
+      <span id="scanStatusMsg"></span>
+    </div>
+
+    <div class="scan-result" id="scanResult" hidden>
+      <div class="scan-result-head">
+        <span class="scan-result-name" id="resName"></span>
+        <span class="scan-result-domain" id="resDomain"></span>
+      </div>
+      <p class="scan-summary" id="resSummary"></p>
+      <div class="scan-goal">
+        <span class="scan-goal-label">Looks like you're hunting:</span>
+        <p class="scan-goal-text" id="resGoal"></p>
+        <span class="scan-goal-note">Our guess — you'll confirm or correct it in the studio.</span>
+      </div>
+      <ul class="scan-signals" id="resSignals"></ul>
+    </div>
+
+    <div class="scan-cta" id="scanCta" hidden>
+      <button type="button" class="btn-cta" id="checkoutBtn">Get your studio →</button>
+      <p class="scan-cta-note">Use your work email at checkout so your team can get in.</p>
+      <p class="scan-error" id="checkoutError" hidden></p>
+    </div>
+  </div>
 </section>
 
 <!-- PROOF -->
@@ -179,3 +215,5 @@ title: The AI-First GTM Agency
   <a href="https://app.prospektor.ai" class="btn-cta reveal">Apply to work with us →</a>
   <p class="cta-note reveal">Takes 10 minutes · No pitch · No pressure</p>
 </section>
+
+<script src="/assets/js/scan.js" defer></script>

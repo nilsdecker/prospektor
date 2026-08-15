@@ -1,3 +1,10 @@
+# Server-side env vars the functions expect (set in the Netlify UI, never in code):
+#   SENDGRID_API_KEY         send-brief.js, stripe-webhook.js (welcome email)
+#   STRIPE_SECRET_KEY        create-checkout.js
+#   STRIPE_PRICE_ID          create-checkout.js
+#   STRIPE_CHECKOUT_MODE     create-checkout.js (optional; 'payment' default, or 'subscription')
+#   STRIPE_WEBHOOK_SECRET    stripe-webhook.js (endpoint: /.netlify/functions/stripe-webhook)
+#   STUDIO_PROVISION_SECRET  stripe-webhook.js — must match the studio's PROVISION_SECRET
 [build]
   command = "npm run build"
   publish = "_site"
