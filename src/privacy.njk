@@ -1,0 +1,227 @@
+---
+layout: base.njk
+title: Privacy
+description: What Prospektor collects, where it goes, who else sees it, and how long it stays. Written to be read, not to cover us.
+updated: 15 August 2026
+---
+
+<header class="legal-hero">
+  <div class="legal-inner">
+    <span class="tag">privacy</span>
+    <h1 class="legal-h1">What we do with data.</h1>
+    <p class="legal-lede">This covers two things: this website, and Prospektor Partner Studio — the tool where a sales team researches a target company and drafts the material to approach it. It's written to be read. Where the honest answer is unflattering, it's here anyway.</p>
+    <div class="legal-meta">
+      <span>Last updated {{ updated }}</span>
+      <span>·</span>
+      <span>Questions or requests: <a href="mailto:{{ site.privacyEmail }}">{{ site.privacyEmail }}</a></span>
+    </div>
+  </div>
+</header>
+
+<section class="legal">
+  <div class="legal-inner">
+
+    <div class="legal-toc">
+      <span class="legal-toc-label">Contents</span>
+      <a href="#who"><span class="legal-toc-n">01</span> Who we are</a>
+      <a href="#accounts"><span class="legal-toc-n">02</span> If you have a studio account</a>
+      <a href="#applicants"><span class="legal-toc-n">03</span> If you applied to work with us</a>
+      <a href="#research"><span class="legal-toc-n">04</span> If your name came up in research</a>
+      <a href="#viewers"><span class="legal-toc-n">05</span> If you opened a shared pitch</a>
+      <a href="#cookies"><span class="legal-toc-n">06</span> Cookies, tracking and providers</a>
+      <a href="#retention"><span class="legal-toc-n">07</span> How long we keep it</a>
+      <a href="#rights"><span class="legal-toc-n">08</span> Your rights, and how to use them</a>
+      <a href="#separation"><span class="legal-toc-n">09</span> Keeping workspaces apart</a>
+      <a href="#changes"><span class="legal-toc-n">10</span> Changes to this page</a>
+    </div>
+
+    <!-- 01 -->
+    <section class="legal-block" id="who">
+      <span class="legal-n">01</span>
+      <div>
+        <h2>Who we are</h2>
+        <p>Prospektor builds go-to-market infrastructure for funded startups. Part of that is Prospektor Partner Studio: a client's sales team enters a target company, the studio researches it, scores it as a partner, drafts sales material, and lists the people worth approaching there.</p>
+        <p>We decide how this website and the studio itself handle personal data, so for that we're the data controller. For the research and drafts produced inside a client's workspace, we're acting on that client's instructions — they choose which companies to research and what to do with the result. We're settling the formal split of responsibility with each client in writing; if you need to know where that stands for a particular workspace, ask us.</p>
+        <p>There's no data protection officer. <a href="mailto:{{ site.privacyEmail }}">{{ site.privacyEmail }}</a> reaches a person.</p>
+      </div>
+    </section>
+
+    <!-- 02 -->
+    <section class="legal-block" id="accounts">
+      <span class="legal-n">02</span>
+      <div>
+        <h2>If you have a studio account</h2>
+        <p>You sign in with Google. There's no password to set — we never see one — and there's no other way in. Google tells us your email address, your full name, your given and family name, and the URL of your profile picture. We link to that picture; we don't copy or re-host it.</p>
+        <p>Your email address is your account identifier, and it's written onto the records you create so the workspace can show who did what:</p>
+        <ul class="legal-list">
+          <li>who started each research run</li>
+          <li>who saved each edit</li>
+          <li>who created each share link — email and first name, because the link greets the reader by the sender's first name</li>
+          <li>who archived or deleted a pitch</li>
+        </ul>
+        <p>Everything else in a workspace is the work itself: the target company, the website, any notes typed in, a point of contact if someone entered one, the research result, the drafted material, the progress log and later edits.</p>
+      </div>
+    </section>
+
+    <!-- 03 -->
+    <section class="legal-block" id="applicants">
+      <span class="legal-n">03</span>
+      <div>
+        <h2>If you applied to work with us</h2>
+        <p>The application form at app.prospektor.ai asks for your name, work email and company, then nine questions about your business. Your answers are handled by Netlify's form service and reach us as an email. We read them to decide whether we're a fit and to reply to you — that's it.</p>
+        <p>We don't add you to a mailing list, because we don't run one. There's no automatic deletion here either: applications stay until someone removes them. Ask us and we'll delete yours.</p>
+      </div>
+    </section>
+
+    <!-- 04 -->
+    <section class="legal-block" id="research">
+      <span class="legal-n">04</span>
+      <div>
+        <h2>If your name came up in someone's research</h2>
+        <p>This section is for people who never signed up for anything. If you've been told, or suspect, that your name is in a Prospektor research result, this is the part that applies to you.</p>
+        <p>When a client researches a target company, the studio produces a list of the people worth approaching there. For each person it may hold:</p>
+        <ul class="legal-list">
+          <li>name</li>
+          <li>job role</li>
+          <li>a LinkedIn profile URL, where a source actually contained one</li>
+          <li>a sentence on why that person is the right one to approach now</li>
+          <li>a confidence rating, and the URL of the source the name came from</li>
+        </ul>
+
+        <h3>Where it comes from</h3>
+        <p>Publicly available web sources, found by an AI model running up to ten web searches during a single run. We don't buy contact lists and we don't take anything from behind a login. The studio is instructed never to invent a person: if it can't attach a credible source to a name, it returns the role with the name left blank.</p>
+        <p>The research itself doesn't collect personal email addresses or phone numbers. A user can type free-text notes into a run, though, so anything they choose to type is stored with it.</p>
+
+        <h3>Why we think we're allowed to</h3>
+        <p>We rely on legitimate interests — ours and our client's interest in working out who to approach about a business partnership. What we hold is professional information, published in a professional context, about your job rather than your private life, and limited to what's needed to decide whether to contact you. Weighed against that, we think the intrusion is small. You're entitled to disagree, and the balance is yours to challenge: see <a href="#rights">your rights</a>.</p>
+
+        <h3>How you'd know</h3>
+        <p>We don't write to people to tell them they've appeared in a run. We usually hold no way to reach them — no email address, no phone number — and doing it at the volume the studio produces would mean contacting far more people than any client ever approaches. This page is the notice instead. If you want to know whether you're in there, ask and we'll look.</p>
+
+        <h3>Who sees it</h3>
+        <p>The list is visible to the client's team inside their own workspace. It isn't sold, published, or shared with anyone else — except that a pitch containing it can be shared with a named person by link, which is covered in <a href="#viewers">section 05</a>. It's processed by the providers in <a href="#subprocessors">section 06</a>, and it isn't deleted on a schedule: see <a href="#retention">section 07</a>.</p>
+
+        <div class="legal-note">
+          <span class="legal-note-tag">object</span>
+          <p>If you'd rather not be in a decision-maker list, email <a href="mailto:{{ site.privacyEmail }}">{{ site.privacyEmail }}</a> with your name and employer and we'll remove you. We won't ask you to justify it.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05 -->
+    <section class="legal-block" id="viewers">
+      <span class="legal-n">05</span>
+      <div>
+        <h2>If you opened a pitch someone shared with you</h2>
+        <p>A finished pitch can be shared as a link. To read it you sign in with Google, so you end up with an account too — but you came for someone else's document, and this is the part you're least likely to expect:</p>
+        <p><strong>We record your email address, your name, when you first opened the link, when you last opened it, and how many times you've opened it. The team that sent the link can see all of that, listed under their shared links.</strong></p>
+        <p>So the sender can tell whether you read it once or five times, and when. If you'd rather they couldn't, don't open the link — or email us and we'll remove your row.</p>
+        <p>A share link shows one pitch and nothing else. Everything else in the studio refuses a share-link account, and an account created this way doesn't get a workspace of its own. A link can be revoked, which stops it working immediately for everyone including people who already read it — but the record of who opened it survives revocation.</p>
+      </div>
+    </section>
+
+    <!-- 06 -->
+    <section class="legal-block" id="cookies">
+      <span class="legal-n">06</span>
+      <div>
+        <h2>Cookies, tracking, and who else touches the data</h2>
+        <p>No analytics. No advertising. No third-party trackers, no session recording, no fingerprinting. There's no cookie banner because there's nothing to ask you to consent to.</p>
+        <p>The studio sets three cookies, all of them functional:</p>
+        <ul class="legal-list">
+          <li><code>pps_session</code> — signed, HttpOnly, Secure, SameSite=Lax, expires after 12 hours. Your name, email and picture URL sit inside the cookie itself; there's no session database behind it.</li>
+          <li><code>pps_oauth_state</code> — 10 minutes, protects the sign-in against cross-site request forgery.</li>
+          <li><code>pps_share</code> — 10 minutes, remembers which share link sent you to the sign-in page.</li>
+        </ul>
+        <p>The last two are cleared as soon as sign-in finishes.</p>
+        <p>One thing worth naming plainly: this website and the studio both load their fonts from Google Fonts, which means your browser fetches them from Google and Google sees your IP address. It's the only third-party request either page makes, and self-hosting the two fonts would remove it.</p>
+
+        <h3 id="subprocessors">Providers who process data for us</h3>
+        <div class="legal-table-wrap">
+          <table class="legal-table">
+            <thead>
+              <tr><th>Who</th><th>What reaches them</th><th>Why</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Anthropic</td>
+                <td>As prompts to the Claude API: the client's brief, the target company name and website, the user's notes, and any brand-voice examples. The model runs up to 10 web searches per run through Anthropic's search tool.</td>
+                <td>The research and the drafting</td>
+              </tr>
+              <tr>
+                <td>Netlify</td>
+                <td>Hosting, the code that runs the studio, all stored data, DNS for prospektor.ai, and the application form on this site.</td>
+                <td>Infrastructure</td>
+              </tr>
+              <tr>
+                <td>Google</td>
+                <td>Sign-in through OAuth. Separately, Google Fonts receives visitors' IP addresses.</td>
+                <td>Authentication, typography</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p>Not used, so you can rule them out: no payment processor, no CRM integration, no marketing email tool, no analytics or advertising vendor of any kind.</p>
+        <p>Anthropic and Netlify both process data outside the European Economic Area, mainly in the United States. That's an international transfer, and it needs a documented safeguard — we're working that through with both providers, and you're welcome to ask us where it stands.</p>
+      </div>
+    </section>
+
+    <!-- 07 -->
+    <section class="legal-block" id="retention">
+      <span class="legal-n">07</span>
+      <div>
+        <h2>How long we keep it — and what "delete" actually does</h2>
+        <p><strong>Nothing expires on its own.</strong> There is no automatic deletion and no retention limit in the product today. A run from January is still there in December unless somebody removed it.</p>
+        <p>What a user can do from inside the studio:</p>
+        <ul class="legal-list">
+          <li><strong>Archive a pitch</strong> — hidden from the list, fully recoverable.</li>
+          <li><strong>Delete a pitch</strong> — removed from storage.</li>
+          <li><strong>Revoke a share link</strong> — stops working immediately for everyone, including people who already opened it. The share record and its list of viewers are kept, stamped with the time of revocation.</li>
+        </ul>
+        <p>Two things that catch people out:</p>
+        <ul class="legal-list">
+          <li>Deleting a pitch doesn't delete everything derived from it. Drafts a user edited may have been kept as brand-voice examples so future runs sound like that team, and those examples outlive the pitch. It's deliberate — un-learning a writing style is its own decision — but it means "delete the pitch" is not "delete everything".</li>
+          <li>Share links can carry an expiry date in the underlying API, but nothing in the interface sets one. Every link created today stays open until someone revokes it.</li>
+        </ul>
+        <p>There is <strong>no self-service account deletion and no export button.</strong> Both exist only as a person doing it by hand, on request. We'd rather say that than imply a button that isn't there.</p>
+      </div>
+    </section>
+
+    <!-- 08 -->
+    <section class="legal-block" id="rights">
+      <span class="legal-n">08</span>
+      <div>
+        <h2>Your rights, and how to use them</h2>
+        <p>If you're in the UK or EU, you have the right to see what we hold about you, correct it, have it deleted, object to us holding it at all, get a copy in a portable form, and complain to your national data protection authority. We apply the same to everyone wherever they are, because running two standards is more work than running one.</p>
+        <p>To use any of them, email <a href="mailto:{{ site.privacyEmail }}">{{ site.privacyEmail }}</a>. Tell us what you want and enough to find you: for <a href="#research">section 04</a>, your name and employer; for <a href="#viewers">section 05</a> or an account, the email address you signed in with. If we can't identify you from that, we'll ask for more rather than refuse.</p>
+        <p>What then actually happens: a person goes and does it by hand. We'll confirm when it's done, and we'll come back to you within a month at the outside — normally much sooner. Where the data sits inside a client's workspace, we'll act on it and tell that client.</p>
+      </div>
+    </section>
+
+    <!-- 09 -->
+    <section class="legal-block" id="separation">
+      <span class="legal-n">09</span>
+      <div>
+        <h2>Keeping workspaces apart</h2>
+        <p>Every stored record is namespaced by client, and the workspace is resolved fresh from your signed-in email on every single request. One client's data isn't addressable from another client's session, and removing somebody from a client's allowlist takes effect immediately rather than at their next sign-in. That behaviour is covered by automated tests.</p>
+        <p>Signing in at all needs one of three things: being on a client's email allowlist, an invitation to create a workspace, or a live share link. A share link gets you sight of one pitch — every other part of the studio refuses it. Speaker notes, compliance findings and the internal progress log never leave the workspace they were made in.</p>
+        <p>No system is perfect, and we'd rather describe what we actually do than promise it can't be broken.</p>
+      </div>
+    </section>
+
+    <!-- 10 -->
+    <section class="legal-block" id="changes">
+      <span class="legal-n">10</span>
+      <div>
+        <h2>Changes to this page</h2>
+        <p>If we change what we collect, we change this page and move the date at the top. Where it's a material change for people with accounts, we'll say so in the studio rather than hope you re-read this.</p>
+      </div>
+    </section>
+
+    <div class="legal-end">
+      <span class="legal-end-label">Also</span>
+      <a href="/terms/">Terms of service →</a>
+      <a href="mailto:{{ site.privacyEmail }}">{{ site.privacyEmail }}</a>
+    </div>
+
+  </div>
+</section>
