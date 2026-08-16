@@ -19,7 +19,8 @@ layout: base.njk
 
     <div aria-live="polite">
       <div class="scan-status" id="scanStatus" hidden>
-        <span class="building-dot"></span><span id="scanStatusMsg"></span>
+        <div class="scan-progress"><div class="scan-progress-fill" id="scanBarFill"></div></div>
+        <div class="scan-status-line"><span class="building-dot"></span><span id="scanStatusMsg"></span></div>
       </div>
 
       <div class="scan-result" id="scanResult" hidden>

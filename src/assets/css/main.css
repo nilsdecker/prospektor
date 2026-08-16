@@ -223,10 +223,21 @@ nav {
   margin-top: 0.85rem;
 }
 
-.scan-status {
+.scan-status { margin-top: 1.1rem; }
+
+.scan-progress {
+  height: 2px; background: var(--stone); border-radius: 2px; overflow: hidden;
+  max-width: 420px; margin: 0 auto;
+}
+.scan-progress-fill {
+  height: 100%; width: 0%; background: var(--accent); border-radius: 2px;
+  transition: width .5s linear;
+}
+
+.scan-status-line {
   display: flex; align-items: center; justify-content: center; gap: 0.5rem;
   font-family: var(--mono); font-size: 0.72rem; color: var(--accent);
-  margin-top: 0.9rem;
+  margin-top: 0.75rem;
 }
 
 /* Focus mode: from the moment a scan starts, the rest of the hero recedes
@@ -581,6 +592,86 @@ nav {
   white-space: nowrap; padding-top: 0.1rem; font-weight: 500;
 }
 .who-not p { font-size: 0.81rem; color: var(--ink-mid); line-height: 1.6; }
+
+/* ── ONBOARDING (/checkout/) ── */
+.onboard {
+  min-height: 100vh; background: var(--off-white);
+  padding: 7.5rem 2rem 5rem;
+}
+.onboard-inner { max-width: 640px; margin: 0 auto; }
+
+.steps {
+  list-style: none; display: flex; align-items: center; gap: 1.5rem;
+  flex-wrap: wrap;
+  font-family: var(--mono); font-size: 0.7rem; font-weight: 500;
+  letter-spacing: 0.04em; text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 3rem;
+}
+.step { display: flex; align-items: center; gap: 0.5rem; }
+.step-n-badge {
+  width: 1.35rem; height: 1.35rem; border-radius: 50%;
+  border: 1px solid var(--border);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 0.62rem;
+}
+.step.done { color: var(--accent); }
+.step.done .step-n-badge { border-color: var(--accent); }
+.step.active { color: var(--ink); }
+.step.active .step-n-badge { border-color: var(--ink); background: var(--ink); color: var(--white); }
+
+.onboard-h1 {
+  font-size: clamp(1.6rem, 3.4vw, 2.3rem);
+  font-weight: 800; letter-spacing: -0.03em; line-height: 1.15;
+  margin: 0.75rem 0 0;
+}
+.onboard-sub {
+  font-size: 0.92rem; color: var(--ink-mid); line-height: 1.7;
+  margin-top: 0.9rem; max-width: 540px;
+}
+.onboard-sub a { color: var(--ink); border-bottom: 1px solid var(--accent); text-decoration: none; }
+
+.goal-input {
+  width: 100%; margin-top: 1.5rem;
+  font-family: var(--font); font-size: 1.05rem; font-weight: 600;
+  letter-spacing: -0.01em; line-height: 1.5; color: var(--ink);
+  background: var(--white); border: 1px solid var(--border); border-radius: 14px;
+  padding: 1.25rem 1.4rem; resize: vertical; outline: none;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+.goal-input:focus { border-color: var(--accent); }
+
+.onboard-actions {
+  margin-top: 1.75rem;
+  display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap;
+}
+.onboard-back {
+  font-family: var(--mono); font-size: 0.72rem; color: var(--ink-mid);
+  background: none; border: none; cursor: pointer; text-decoration: none;
+  padding: 0;
+}
+.onboard-back:hover { color: var(--ink); }
+
+.order-card {
+  margin-top: 1.5rem; padding: 1.75rem;
+  background: var(--white); border: 1px solid var(--border); border-radius: 14px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+.order-row {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 1rem;
+  padding-bottom: 1.1rem; border-bottom: 1px solid var(--border); margin-bottom: 1.1rem;
+}
+.order-name { font-size: 0.9rem; font-weight: 700; }
+.order-price { font-size: 1.5rem; font-weight: 800; letter-spacing: -0.03em; white-space: nowrap; }
+.order-per { font-family: var(--mono); font-size: 0.7rem; font-weight: 500; color: var(--ink-faint); margin-left: 0.15rem; }
+.order-card .pricing-list { margin-top: 0; }
+
+.onboard-note {
+  margin-top: 1.25rem; padding: 1.1rem 1.35rem;
+  border: 1px solid var(--border); border-radius: 10px; background: var(--white);
+}
+.onboard-note p { font-size: 0.85rem; color: var(--ink-mid); line-height: 1.65; }
+.onboard-note strong { color: var(--ink); }
 
 /* ── PRICING ── */
 .pricing { background: var(--white); border-bottom: 1px solid var(--border); }

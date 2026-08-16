@@ -17,6 +17,7 @@
   const errorEl = document.getElementById('scanError');
   const statusEl = document.getElementById('scanStatus');
   const statusMsg = document.getElementById('scanStatusMsg');
+  const barEl = document.getElementById('scanBarFill');
   const resultEl = document.getElementById('scanResult');
   const heroEl = document.querySelector('.hero');
   const resultMeta = document.getElementById('scanResultMeta');
@@ -61,20 +62,31 @@
     settle();
   }
 
+  // A live scan takes up to a minute or so. The bar climbs asymptotically
+  // toward ~92% on elapsed time (the status endpoint reports no stages) and
+  // the message advances so the wait reads as work, not a hang.
   function showStatus(domain, gen) {
-    const msgs = [
-      'reading ' + domain + '…',
-      'looking at what ' + domain + ' sells…',
-      'working out the targets we’d propose…',
+    const stages = [
+      [0,  'opening ' + domain + '…'],
+      [6,  'reading what you sell…'],
+      [20, 'checking who you sell to…'],
+      [38, 'looking one search beyond your site…'],
+      [55, 'drafting your proposal…'],
+      [75, 'almost there — tightening the wording…'],
     ];
-    let i = 0;
-    statusMsg.textContent = msgs[0];
+    const t0 = Date.now();
     statusEl.hidden = false;
-    statusTimer = setInterval(() => {
+    if (barEl) barEl.style.width = '2%';
+    const tick = () => {
       if (gen !== generation) { clearInterval(statusTimer); return; }
-      i = (i + 1) % msgs.length;
-      statusMsg.textContent = msgs[i];
-    }, 4000);
+      const elapsed = (Date.now() - t0) / 1000;
+      let msg = stages[0][1];
+      for (const [at, m] of stages) if (elapsed >= at) msg = m;
+      statusMsg.textContent = msg;
+      if (barEl) barEl.style.width = (92 * (1 - Math.exp(-elapsed / 30))).toFixed(1) + '%';
+    };
+    tick();
+    statusTimer = setInterval(tick, 500);
   }
 
   // Failed / timed out / at capacity: no scan panel, just the plain CTA.
@@ -96,13 +108,17 @@
 
   // The result renders under "Here's what Prospektor will find for you:", so
   // a goal phrased about them — "They most likely want to find X" — is
-  // reduced to X itself. A goal that doesn't match the pattern renders as-is.
+  // reduced to X itself. Stopgap until the scan returns the targets directly:
+  // if the remainder would start mid-phrase (a preposition — the verb before
+  // it wasn't one we account for), keep the original sentence; grammatical
+  // beats fragment.
   function toProposal(goal) {
     const stripped = goal.replace(
       /^they(?:\s+(?:most\s+likely|likely|probably))?(?:\s+(?:want|need|hope|aim|appear\s+to\s+want|seem\s+to\s+want|are\s+looking|are\s+hunting))?(?:\s+(?:to\s+)?(?:find|reach|meet|attract|connect\s+with|for))?\s*[:,–—-]?\s*/i,
       ''
     ).trim();
     if (stripped.length < 12 || stripped === goal) return goal;
+    if (/^(?:into|in|at|on|with|for|from|to|of|across|toward|towards|by|via|through|and|or|as)\b/i.test(stripped)) return goal;
     return stripped.charAt(0).toUpperCase() + stripped.slice(1);
   }
 
@@ -138,6 +154,14 @@
     });
     signalsEl.hidden = signalsEl.childElementCount === 0;
     ctaEl.href = checkoutUrl(domain, result.name);
+    // The checkout page picks the scan up from here so the buyer's target
+    // sentence survives the navigation without a backend.
+    try {
+      sessionStorage.setItem('prospektor.scan', JSON.stringify({
+        domain: domain, name: result.name || '', goal: guessEl.textContent,
+        facts: facts, signals: signals, at: Date.now(),
+      }));
+    } catch (e) { /* private mode — checkout falls back to URL params */ }
     resultEl.hidden = false;
     settle();
   }
