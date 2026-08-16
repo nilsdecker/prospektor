@@ -30,6 +30,47 @@ title: The AI-First GTM Agency
   <p class="hero-note">Funded startups only · Seed to Series B+ · 48hr response</p>
 </section>
 
+<!-- SCAN -->
+<section class="scan section" id="scan">
+  <div class="scan-inner">
+    <span class="tag reveal">live scan</span>
+    <h2 class="section-h2 reveal">Give us your URL.</h2>
+    <p class="scan-sub reveal d1">Prospektor reads your website and guesses what it should be hunting for you — before you've paid a cent.</p>
+
+    <form class="scan-form reveal d1" id="scanForm" novalidate>
+      <span class="scan-form-label">$&nbsp;scan</span>
+      <input class="scan-input" id="scanInput" type="text" inputmode="url" autocomplete="url"
+             spellcheck="false" placeholder="yourcompany.com" aria-label="Your company website">
+      <button class="scan-btn" type="submit" id="scanBtn">Scan</button>
+    </form>
+    <p class="scan-error" id="scanError" hidden></p>
+
+    <div aria-live="polite">
+      <div class="scan-status" id="scanStatus" hidden>
+        <span class="building-dot"></span><span id="scanStatusMsg"></span>
+      </div>
+
+      <div class="scan-result" id="scanResult" hidden>
+        <div class="scan-result-meta" id="scanResultMeta"></div>
+        <div class="scan-guess-label">Looks like you're hunting:</div>
+        <h3 class="scan-guess" id="scanGuess"></h3>
+        <p class="scan-summary" id="scanSummary"></p>
+        <ul class="scan-signals" id="scanSignals"></ul>
+        <div class="scan-cta-row">
+          <a class="btn-cta" id="scanCta" href="/checkout/">Start my studio →</a>
+          <p class="scan-cta-note">Wrong guess? You confirm or correct it right after checkout.</p>
+        </div>
+      </div>
+
+      <div class="scan-fallback" id="scanFallback" hidden>
+        <p class="scan-fallback-msg" id="scanFallbackMsg" hidden></p>
+        <a class="btn-cta" id="scanFallbackCta" href="/checkout/">Start my studio →</a>
+      </div>
+    </div>
+  </div>
+</section>
+<script src="/assets/js/scan.js"></script>
+
 <!-- PROOF -->
 <div class="proof reveal">
   <div class="proof-item"><span class="proof-num">$25k+</span><span class="proof-label">Build investment</span></div>

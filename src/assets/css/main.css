@@ -222,6 +222,123 @@ nav {
   opacity: 0; animation: fadeUp .6s ease forwards .8s;
 }
 
+/* ── SCAN ── */
+.scan { background: var(--white); border-bottom: 1px solid var(--border); }
+.scan [hidden] { display: none !important; }
+
+.scan-inner { max-width: 640px; margin: 0 auto; text-align: center; }
+
+.scan-sub {
+  font-size: 0.92rem; color: var(--ink-mid); line-height: 1.7;
+  max-width: 440px; margin: 1.1rem auto 0;
+}
+.scan .section-h2 { margin-left: auto; margin-right: auto; }
+
+.scan-form {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 0.6rem 0.6rem 0.6rem 1.25rem;
+  display: flex; align-items: center; gap: 0.75rem;
+  margin: 2rem auto 0;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  text-align: left;
+}
+.scan-form:focus-within { border-color: var(--accent); }
+
+.scan-form-label {
+  font-family: var(--mono); font-size: 0.72rem; font-weight: 500;
+  color: var(--ink-faint); white-space: nowrap; flex-shrink: 0;
+}
+
+.scan-input {
+  font-family: var(--mono); font-size: 0.9rem; font-weight: 500;
+  color: var(--ink); background: transparent;
+  border: none; outline: none;
+  flex: 1; min-width: 0;
+}
+.scan-input::placeholder { color: var(--ink-faint); }
+
+.scan-btn {
+  font-family: var(--font); font-size: 0.84rem; font-weight: 700;
+  color: white; background: var(--ink);
+  padding: 0.6rem 1.4rem; border-radius: 100px;
+  border: none; cursor: pointer; flex-shrink: 0;
+  transition: opacity .15s, transform .1s;
+}
+.scan-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+.scan-btn:disabled { opacity: 0.45; cursor: default; transform: none; }
+
+.scan-error {
+  font-size: 0.8rem; color: var(--coral);
+  margin-top: 0.85rem;
+}
+
+.scan-status {
+  display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+  font-family: var(--mono); font-size: 0.72rem; color: var(--accent);
+  margin-top: 1.25rem;
+}
+
+.scan-result {
+  margin-top: 2rem; padding: 2rem;
+  border: 1px solid var(--border); border-radius: 14px;
+  background: var(--off-white);
+  text-align: left;
+  animation: fadeUp .5s ease;
+}
+
+.scan-result-meta {
+  font-family: var(--mono); font-size: 0.65rem; font-weight: 500;
+  color: var(--ink-faint); letter-spacing: 0.02em;
+  margin-bottom: 1.25rem;
+}
+
+.scan-guess-label {
+  font-family: var(--mono); font-size: 0.62rem; font-weight: 500;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent);
+  margin-bottom: 0.5rem;
+}
+
+.scan-guess {
+  font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em;
+  line-height: 1.35; color: var(--ink);
+}
+
+.scan-summary {
+  font-size: 0.86rem; color: var(--ink-mid); line-height: 1.65;
+  margin-top: 0.85rem;
+}
+
+.scan-signals {
+  list-style: none; margin: 1.1rem 0 0;
+  display: flex; flex-direction: column; gap: 0.5rem;
+}
+.scan-signals li {
+  position: relative; padding-left: 1.15rem;
+  font-size: 0.83rem; color: var(--ink-mid); line-height: 1.6;
+}
+.scan-signals li::before {
+  content: ''; position: absolute; left: 0; top: 0.58em;
+  width: 5px; height: 5px; border-radius: 50%; background: var(--accent);
+}
+
+.scan-cta-row {
+  margin-top: 1.6rem; padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap;
+}
+.scan-cta-note {
+  font-size: 0.75rem; color: var(--ink-faint); line-height: 1.5;
+  max-width: 220px; text-align: left;
+}
+
+.scan-fallback { margin-top: 2rem; }
+.scan-fallback-msg {
+  font-family: var(--mono); font-size: 0.72rem; color: var(--ink-mid);
+  margin-bottom: 1.25rem;
+}
+
 /* ── PROOF ── */
 .proof {
   display: grid; grid-template-columns: repeat(4,1fr);
@@ -716,4 +833,10 @@ footer {
   .legal-toc { grid-template-columns: 1fr; }
   .legal-block { grid-template-columns: 1fr; }
   .legal-n { padding-top: 0; margin-bottom: 0.5rem; }
+}
+
+@media (max-width: 480px) {
+  .scan-form-label { display: none; }
+  .scan-form { padding-left: 1rem; }
+  .scan-result { padding: 1.5rem; }
 }
