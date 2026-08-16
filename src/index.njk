@@ -1,48 +1,20 @@
 ---
 layout: base.njk
-title: The AI-First GTM Agency
 ---
 
 <!-- HERO -->
 <section class="hero">
-  <div class="hero-ai-tag">Prospektor · The AI-first GTM agency</div>
+  <div class="hero-ai-tag">Prospektor · Partner Studio</div>
 
-  <!-- Typewriter prompt -->
-  <div class="prompt-container">
-    <span class="prompt-label">$&nbsp;</span>
-    <span class="prompt-text">
-      <span class="prompt-static">prospektor build me a&nbsp;</span><span class="prompt-dynamic" id="dynText"></span><span class="cursor" id="cur"></span>
-    </span>
-    <span class="prompt-enter" id="enterKey">↵ enter</span>
-    <!-- Building status overlays below the prompt, inside the container so it never shifts layout -->
-    <div class="building-status" id="buildStatus">
-      <div class="building-dot"></div>
-      <span id="buildMsg">Initializing AI brain...</span>
-    </div>
-  </div>
-
-  <h1>Your GTM motion,<br>built by <span class="accent">AI</span> in 90 days.</h1>
-  <p class="hero-sub">We're the first agency where Claude builds the entire infrastructure — every page, sequence, playbook, and integration. We orchestrate. You own the result.</p>
-  <div class="hero-actions">
-    <a href="https://app.prospektor.ai" class="btn-cta">Apply to work with us</a>
-    <a href="#how" class="btn-ghost">See how it works →</a>
-  </div>
-  <p class="hero-note">Funded startups only · Seed to Series B+ · 48hr response</p>
-</section>
-
-<!-- SCAN -->
-<section class="scan section" id="scan">
-  <div class="scan-inner">
-    <span class="tag reveal">live scan</span>
-    <h2 class="section-h2 reveal">Give us your URL.</h2>
-    <p class="scan-sub reveal d1">Prospektor reads your website and guesses what it should be hunting for you — before you've paid a cent.</p>
-
-    <form class="scan-form reveal d1" id="scanForm" novalidate>
+  <!-- The scan field: POST /api/scan, poll, render the proposal. scan.js drives it. -->
+  <div class="scan-hero" id="scan">
+    <form class="scan-form" id="scanForm" novalidate>
       <span class="scan-form-label">$&nbsp;scan</span>
       <input class="scan-input" id="scanInput" type="text" inputmode="url" autocomplete="url"
              spellcheck="false" placeholder="yourcompany.com" aria-label="Your company website">
       <button class="scan-btn" type="submit" id="scanBtn">Scan</button>
     </form>
+    <p class="scan-hint" id="scanHint">We read your site and propose the targets you should be hunting — free, ~30 seconds.</p>
     <p class="scan-error" id="scanError" hidden></p>
 
     <div aria-live="polite">
@@ -52,13 +24,12 @@ title: The AI-First GTM Agency
 
       <div class="scan-result" id="scanResult" hidden>
         <div class="scan-result-meta" id="scanResultMeta"></div>
-        <div class="scan-guess-label">Looks like you're hunting:</div>
+        <div class="scan-guess-label">Prospektor proposes:</div>
         <h3 class="scan-guess" id="scanGuess"></h3>
-        <p class="scan-summary" id="scanSummary"></p>
         <ul class="scan-signals" id="scanSignals"></ul>
         <div class="scan-cta-row">
           <a class="btn-cta" id="scanCta" href="/checkout/">Start my studio →</a>
-          <p class="scan-cta-note">Wrong guess? You confirm or correct it right after checkout.</p>
+          <p class="scan-cta-note">Off target? You confirm or sharpen it in one sentence after checkout.</p>
         </div>
       </div>
 
@@ -68,31 +39,38 @@ title: The AI-First GTM Agency
       </div>
     </div>
   </div>
+
+  <h1>Your GTM team,<br>in a <span class="accent">box</span>.</h1>
+  <p class="hero-sub">The studio finds companies worth pitching, reads who they actually are, and drafts the deck, one-pager, emails and proposal in your voice. Claude does the heavy work — you edit and hit send.</p>
+  <div class="hero-actions">
+    <a href="#how" class="btn-ghost">See how it works →</a>
+  </div>
+  <p class="hero-note">Free scan · No sign-up to try it · A pitch run takes minutes, not weeks</p>
 </section>
 <script src="/assets/js/scan.js"></script>
 
 <!-- PROOF -->
 <div class="proof reveal">
-  <div class="proof-item"><span class="proof-num">$25k+</span><span class="proof-label">Build investment</span></div>
-  <div class="proof-item"><span class="proof-num">90 days</span><span class="proof-label">To live pipeline</span></div>
-  <div class="proof-item"><span class="proof-num">Seed → B+</span><span class="proof-label">Funded startups only</span></div>
-  <div class="proof-item"><span class="proof-num">1 deal</span><span class="proof-label">Pays for the entire build</span></div>
+  <div class="proof-item"><span class="proof-num">Minutes</span><span class="proof-label">From company name to drafted pitch</span></div>
+  <div class="proof-item"><span class="proof-num">4</span><span class="proof-label">Deliverables: deck · one-pager · emails · proposal</span></div>
+  <div class="proof-item"><span class="proof-num">0</span><span class="proof-label">Invented facts — gaps become placeholders</span></div>
+  <div class="proof-item"><span class="proof-num">3</span><span class="proof-label">Researched prospects at first sign-in</span></div>
 </div>
 
-<!-- WHAT WE BUILD -->
+<!-- WHAT'S IN THE BOX -->
 <section class="what section" id="what">
   <div class="inner">
     <div class="what-layout">
       <div class="reveal">
-        <span class="tag">what we build</span>
-        <h2 class="section-h2">Not a strategy deck. A working machine.</h2>
-        <p class="what-desc">Every component built, tested, and wired before we hand over the keys. Pipeline — not deliverables.</p>
+        <span class="tag">what's in the box</span>
+        <h2 class="section-h2">Deal discovery to drafted pitch, one loop.</h2>
+        <p class="what-desc">Not a scraped lead list. The studio finds the companies worth your time, proves who they are, and writes what you'd actually send them.</p>
       </div>
       <div class="what-grid reveal d1">
-        <div class="wc"><div class="wc-n">01</div><h3>The AI brain</h3><p>Your product, ICP, positioning, and competitors ingested into a central knowledge base. Every asset draws from it automatically.</p></div>
-        <div class="wc"><div class="wc-n">02</div><h3>Marketing hub</h3><p>Every page your GTM needs — hero, services, comparisons, partner program, resource library — built and deployed.</p></div>
-        <div class="wc"><div class="wc-n">03</div><h3>Lead capture + email</h3><p>Forms wired to automated sequences. CRM integrated. Nurture, qualify, and book calls — zero manual work.</p></div>
-        <div class="wc"><div class="wc-n">04</div><h3>Outbound engine</h3><p>Targeted lead lists, cold sequences, sales playbooks. Built around your ICP and stage, not generic templates.</p></div>
+        <div class="wc"><div class="wc-n">01</div><h3>Deal discovery</h3><p>Type a company — or press "find more" on an empty box. The studio suggests lookalikes worth pitching and scores each one against what you told it to hunt.</p></div>
+        <div class="wc"><div class="wc-n">02</div><h3>Research that shows its work</h3><p>It reads the target's own website before anything else runs. Every pitch lists the pages it opened and the same-named companies it ruled out.</p></div>
+        <div class="wc"><div class="wc-n">03</div><h3>The pitch, drafted</h3><p>Pitch deck, one-pager, cold-email sequence and written proposal — on your brand, in your voice, every block editable in place.</p></div>
+        <div class="wc"><div class="wc-n">04</div><h3>People, sourced honestly</h3><p>Decision-makers are named only when a credible source backs the name — rated confirmed, likely or unverified. No source, no name.</p></div>
       </div>
     </div>
   </div>
@@ -104,56 +82,57 @@ title: The AI-First GTM Agency
     <div class="how-layout">
       <div>
         <span class="tag reveal">how it works</span>
-        <h2 class="section-h2 reveal">Four steps.<br>One working GTM motion.</h2>
+        <h2 class="section-h2 reveal">From your URL<br>to your first pitch.</h2>
         <div class="how-steps">
-          <div class="how-step reveal"><span class="step-n">01</span><div><h3>You apply</h3><p>10-minute brief — your business, ICP, stack, goals, budget. We review every application personally and respond in 48hrs.</p></div></div>
-          <div class="how-step reveal d1"><span class="step-n">02</span><div><h3>Discovery call</h3><p>We map your GTM motion, identify gaps, and show you what the hub looks like for your business. Strategy, no pitch.</p></div></div>
-          <div class="how-step reveal d2"><span class="step-n">03</span><div><h3>Claude builds it</h3><p>The AI builds every component from your brief. You get weekly updates. We QA and orchestrate. Nothing ships broken.</p></div></div>
-          <div class="how-step reveal d3"><span class="step-n">04</span><div><h3>Pipeline goes live</h3><p>Hub live, outbound running, CRM filling. Stay on retainer — or take the wheel with full documentation.</p></div></div>
+          <div class="how-step reveal"><span class="step-n">01</span><div><h3>Scan your site</h3><p>The field up top. The studio reads your website and proposes what it should hunt for you — that proposal is yours to confirm or sharpen.</p></div></div>
+          <div class="how-step reveal d1"><span class="step-n">02</span><div><h3>Check out</h3><p>The moment payment lands, your workspace is created and researched — the studio is reading your site while you're still on the receipt page.</p></div></div>
+          <div class="how-step reveal d2"><span class="step-n">03</span><div><h3>Sign in with Google</h3><p>You arrive in a studio already full of you: brief drafted, goal pre-filled, three researched prospects ready to run. Use your work email and your whole team gets in.</p></div></div>
+          <div class="how-step reveal d3"><span class="step-n">04</span><div><h3>Run pitches</h3><p>Thumbs-up a prospect; minutes later the research, deliverables and decision-makers are there. Your edits teach it your voice for next time.</p></div></div>
         </div>
       </div>
 
-      <!-- ANIMATED BUILD CARD -->
+      <!-- ANIMATED RUN CARD — mirrors the studio's own run view -->
       <div class="reveal d1">
         <div class="build-card">
           <div class="build-titlebar">
             <div class="ttdot" style="background:#f87171;"></div>
             <div class="ttdot" style="background:#fbbf24;"></div>
             <div class="ttdot" style="background:#4ade80;"></div>
-            <span class="build-filename">prospektor · acme-corp · live build</span>
+            <span class="build-filename">prospektor studio · pitch run · northwind.io</span>
           </div>
           <div class="build-body">
             <div class="code-lines" id="codeLines">
-              <div class="cl" id="cll1"><span class="ln">1</span><span class="cm">// AI brain initialized from intake brief</span></div>
-              <div class="cl" id="cll2"><span class="ln">2</span><span class="kw">const</span> <span class="tx">brain</span> <span class="pu">=</span> <span class="fn">buildBrain</span><span class="pu">(</span><span class="tx">intake</span><span class="pu">);</span></div>
-              <div class="cl" id="cll3"><span class="ln">3</span><span class="cm">// → ICP: VP Sales, 50-500 employees</span></div>
-              <div class="cl" id="cll4"><span class="ln">4</span><span class="cm">// → Tone: direct, no fluff</span></div>
+              <div class="cl" id="cll1"><span class="ln">1</span><span class="cm">// understand: who is northwind.io, actually?</span></div>
+              <div class="cl" id="cll2"><span class="ln">2</span><span class="ac">✓</span> <span class="tx">read 6 pages · ruled out 2 same-named companies</span></div>
+              <div class="cl" id="cll3"><span class="ln">3</span><span class="cm">// research + score against your brief</span></div>
+              <div class="cl" id="cll4"><span class="ln">4</span><span class="ac">✓</span> <span class="tx">fit thesis drafted — signals for and against</span></div>
               <div class="cl" id="cll5"><span class="ln">5</span>&nbsp;</div>
-              <div class="cl" id="cll6"><span class="ln">6</span><span class="cm">// Generating marketing hub pages...</span></div>
-              <div class="cl" id="cll7"><span class="ln">7</span><span class="fn">generatePages</span><span class="pu">(</span><span class="tx">brain</span><span class="pu">,</span> <span class="pu">[</span><span class="str">'hero'</span><span class="pu">,</span><span class="str">'services'</span><span class="pu">,</span><span class="str">'compare'</span><span class="pu">]);</span></div>
-              <div class="cl" id="cll8"><span class="ln">8</span><span class="ac">✓</span> <span class="tx">pages deployed → acme.prospektor.build</span></div>
+              <div class="cl" id="cll6"><span class="ln">6</span><span class="cm">// drafting deliverables in your voice</span></div>
+              <div class="cl" id="cll7"><span class="ln">7</span><span class="ac">✓</span> <span class="tx">deck · one-pager · cold emails · proposal</span></div>
+              <div class="cl" id="cll8"><span class="ln">8</span><span class="ac">✓</span> <span class="tx">no invented numbers — 1 placeholder flagged</span></div>
               <div class="cl" id="cll9"><span class="ln">9</span>&nbsp;</div>
-              <div class="cl" id="cll10"><span class="ln">10</span><span class="cm">// Wiring email sequences...</span></div>
-              <div class="cl" id="cll11"><span class="ln">11</span><span class="fn">wireEmailSequences</span><span class="pu">(</span><span class="tx">brain</span><span class="pu">,</span> <span class="tx">sendgrid</span><span class="pu">);</span></div>
-              <div class="cl" id="cll12"><span class="ln">12</span><span class="ac">✓</span> <span class="tx">4 sequences live · CRM synced</span></div>
+              <div class="cl" id="cll10"><span class="ln">10</span><span class="cm">// decision-makers — no fabricated people</span></div>
+              <div class="cl" id="cll11"><span class="ln">11</span><span class="ac">✓</span> <span class="tx">2 named with sources · 1 role left for enrichment</span></div>
+              <div class="cl" id="cll12"><span class="ln">12</span><span class="ac">✓</span> <span class="tx">4 lookalikes queued — "Run 3 pitches"</span></div>
               <div class="cl" id="cll13"><span class="ln">13</span>&nbsp;</div>
-              <div class="cl" id="cll14"><span class="ln">14</span><span class="cm">// Building outbound engine...</span></div>
-              <div class="cl" id="cll15"><span class="ln">15</span><span class="fn">buildOutbound</span><span class="pu">(</span><span class="tx">brain</span><span class="pu">);</span> <span class="cm">// lists + sequences</span></div>
-              <div class="cl" id="cll16"><span class="ln">16</span><span class="ac">✓</span> <span class="tx">Pipeline live. Done in 87 days.</span></div>
+              <div class="cl" id="cll14"><span class="ln">14</span><span class="cm">// compliance read-back</span></div>
+              <div class="cl" id="cll15"><span class="ln">15</span><span class="ac">✓</span> <span class="tx">0 banned terms · every claim sourced</span></div>
+              <div class="cl" id="cll16"><span class="ln">16</span><span class="ac">✓</span> <span class="tx">pitch ready to edit — minutes, not weeks</span></div>
             </div>
           </div>
           <div class="build-footer">
             <div class="build-progress-label">
-              <span id="buildLbl">Building...</span>
+              <span id="buildLbl">Running...</span>
               <span id="buildPct">0%</span>
             </div>
             <div class="build-bar"><div class="build-fill" id="bFill"></div></div>
             <div class="build-status-row">
-              <div class="bstat" id="bst1"><span class="bstat-dot"></span> brain</div>
-              <div class="bstat" id="bst2"><span class="bstat-dot"></span> pages</div>
-              <div class="bstat" id="bst3"><span class="bstat-dot"></span> email</div>
-              <div class="bstat" id="bst4"><span class="bstat-dot"></span> outbound</div>
-              <div class="bstat" id="bst5"><span class="bstat-dot"></span> live</div>
+              <div class="bstat" id="bst1"><span class="bstat-dot"></span> understand</div>
+              <div class="bstat" id="bst2"><span class="bstat-dot"></span> research</div>
+              <div class="bstat" id="bst3"><span class="bstat-dot"></span> score</div>
+              <div class="bstat" id="bst4"><span class="bstat-dot"></span> draft</div>
+              <div class="bstat" id="bst5"><span class="bstat-dot"></span> people</div>
+              <div class="bstat" id="bst6"><span class="bstat-dot"></span> check</div>
             </div>
           </div>
         </div>
@@ -163,31 +142,31 @@ title: The AI-First GTM Agency
   </div>
 </section>
 
-<!-- AI-FIRST -->
+<!-- NO BS -->
 <section class="ai section" id="ai">
   <div class="inner">
     <div class="ai-layout">
       <div class="reveal">
-        <span class="tag">ai-first</span>
-        <h2 class="section-h2">Claude builds it.<br>We orchestrate.<br>You own it.</h2>
+        <span class="tag">no bs</span>
+        <h2 class="section-h2">Claude does the heavy work.<br>You stay the closer.</h2>
         <div class="ai-points">
-          <div class="ai-pt"><span class="ai-pt-arrow">→</span><div><h4>Transparent by design</h4><p>We don't hide the AI. It's why we deliver in 90 days what agencies spend 12 months building — and why your competitors can't move this fast.</p></div></div>
-          <div class="ai-pt"><span class="ai-pt-arrow">→</span><div><h4>10× speed, not 10× cheaper</h4><p>The AI compresses the timeline and raises the quality ceiling. You're not paying less — you're getting more, faster.</p></div></div>
-          <div class="ai-pt"><span class="ai-pt-arrow">→</span><div><h4>Everything is yours at handoff</h4><p>Every prompt, system, and workflow is documented and handed over. You're buying infrastructure — not renting access to ours.</p></div></div>
+          <div class="ai-pt"><span class="ai-pt-arrow">→</span><div><h4>Real reading, not vibes</h4><p>Every run opens the target's website and settles who they are before a word is drafted. The pitch ships with what was read — and what was ruled out.</p></div></div>
+          <div class="ai-pt"><span class="ai-pt-arrow">→</span><div><h4>No invented facts</h4><p>Numbers come from your brief or a cited source; anything else becomes a bracketed placeholder, listed for you to fill. Drafts are checked against your banned terms before you see them.</p></div></div>
+          <div class="ai-pt"><span class="ai-pt-arrow">→</span><div><h4>It learns your voice</h4><p>Drafts you edit become voice examples for future runs — tone and structure only. One company's facts never end up in another's pitch.</p></div></div>
         </div>
       </div>
       <div class="reveal d2">
         <div class="slogan-card">
           <div>
-            <div style="font-family:var(--mono);font-size:0.65rem;color:var(--accent);margin-bottom:0.75rem;letter-spacing:0.06em;">PROSPEKTOR</div>
-            <div class="slogan-main">The <span>AI-first</span><br>GTM agency.</div>
+            <div style="font-family:var(--mono);font-size:0.65rem;color:var(--accent);margin-bottom:0.75rem;letter-spacing:0.06em;">PROSPEKTOR STUDIO</div>
+            <div class="slogan-main">Your <span>GTM team</span><br>in a box.</div>
           </div>
-          <div class="slogan-desc">We're not an agency that uses AI to write blog posts. Claude builds the entire infrastructure — from your first intake question to your hundredth booked meeting.</div>
+          <div class="slogan-desc">Discovery, research, drafting and compliance in one workspace. Claude runs the six stages; you approve what leaves the building.</div>
           <div class="slogan-stat-row">
-            <div class="slogan-stat"><span class="slogan-stat-num">$25k+</span><span class="slogan-stat-label">Build fee</span></div>
-            <div class="slogan-stat"><span class="slogan-stat-num">90d</span><span class="slogan-stat-label">To pipeline</span></div>
-            <div class="slogan-stat"><span class="slogan-stat-num">$3–5k</span><span class="slogan-stat-label">Monthly retainer</span></div>
-            <div class="slogan-stat"><span class="slogan-stat-num">1 deal</span><span class="slogan-stat-label">Pays for the build</span></div>
+            <div class="slogan-stat"><span class="slogan-stat-num">6</span><span class="slogan-stat-label">Stages per run</span></div>
+            <div class="slogan-stat"><span class="slogan-stat-num">1s</span><span class="slogan-stat-label">To a working workspace</span></div>
+            <div class="slogan-stat"><span class="slogan-stat-num">0</span><span class="slogan-stat-label">Invented facts</span></div>
+            <div class="slogan-stat"><span class="slogan-stat-num">1 click</span><span class="slogan-stat-label">To revoke a shared pitch</span></div>
           </div>
         </div>
       </div>
@@ -198,25 +177,25 @@ title: The AI-First GTM Agency
 <!-- WHO -->
 <section class="who section" id="who">
   <div class="inner">
-    <span class="tag reveal">who we work with</span>
-    <h2 class="section-h2 reveal">Built for funded startups<br>with something to prove.</h2>
+    <span class="tag reveal">who it's for</span>
+    <h2 class="section-h2 reveal">For teams that pitch<br>other companies.</h2>
     <div class="who-grid reveal d1">
-      <div class="who-card"><div class="who-stage">Seed stage</div><h3>Just closed your round</h3><p>Runway, a product, and investors asking about pipeline. You need a GTM motion built fast — not headcount without infrastructure.</p></div>
-      <div class="who-card"><div class="who-stage">Series A</div><h3>Time to scale what works</h3><p>You've found traction. Systematize it — outbound, nurture, enablement — so growth doesn't depend on a couple of rainmakers.</p></div>
-      <div class="who-card"><div class="who-stage">Series B+</div><h3>New market, new motion</h3><p>Expanding into a new segment or geography? We build the GTM motion for the new play without disrupting what's working.</p></div>
+      <div class="who-card"><div class="who-stage">Partnership leads</div><h3>Your motion, argued well</h3><p>Reseller, referral, integration — you pick the motion and the value angle in your own vocabulary, and the studio argues your case with it.</p></div>
+      <div class="who-card"><div class="who-stage">AE teams</div><h3>One shared machine</h3><p>A shared pitch library, a warning when a teammate already pitched a company, and share links you can revoke in one click.</p></div>
+      <div class="who-card"><div class="who-stage">Founders</div><h3>Founder-led, minus the blank page</h3><p>Your first three researched prospects are waiting the first time you sign in — confirm one sentence and run them.</p></div>
     </div>
     <div class="who-not reveal d2">
       <span class="who-not-tag">not a fit</span>
-      <p>Pre-product companies, bootstrapped businesses not ready to invest, or companies with a full in-house GTM team. Happy to point you somewhere better if that's you.</p>
+      <p>If you want ten thousand scraped emails, this isn't it. The studio goes deep on a shortlist of companies actually worth pitching — research you could defend in the meeting.</p>
     </div>
   </div>
 </section>
 
 <!-- CTA -->
-<section class="cta" id="apply">
-  <span class="tag reveal">ready to build?</span>
-  <h2 class="reveal">One deal closes<br>the <span class="accent">entire investment.</span></h2>
-  <p class="cta-sub reveal">Tell us about your business. We review every application personally and respond within 48 hours.</p>
-  <a href="https://app.prospektor.ai" class="btn-cta reveal">Apply to work with us →</a>
-  <p class="cta-note reveal">Takes 10 minutes · No pitch · No pressure</p>
+<section class="cta" id="try">
+  <span class="tag reveal">try it on yourself</span>
+  <h2 class="reveal">See what it'd <span class="accent">hunt</span> for you.</h2>
+  <p class="cta-sub reveal">Scan your site up top — the proposal is free and takes about thirty seconds. If it's off, you sharpen one sentence after checkout.</p>
+  <a href="#scan" class="btn-cta reveal">Scan your site ↑</a>
+  <p class="cta-note reveal">Sign in with Google · A work email brings your whole team</p>
 </section>

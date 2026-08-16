@@ -1,14 +1,14 @@
 {
   "name": "Prospektor",
-  "tagline": "The AI-first GTM agency",
+  "tagline": "Your GTM team in a box",
   "url": "https://prospektor.ai",
   "email": "hello@prospektor.ai",
   "privacyEmail": "privacy@prospektor.ai",
-  "description": "We build the entire go-to-market infrastructure for funded startups — AI-powered, fully wired, generating pipeline from day one.",
+  "description": "Prospektor Partner Studio finds companies worth pitching, researches who they actually are, and drafts the deck, emails and proposal in your voice. Claude does the heavy work — you edit and hit send.",
   "nav": [
-    { "label": "What we build", "url": "/#what" },
+    { "label": "What's in the box", "url": "/#what" },
     { "label": "How it works",  "url": "/#how" },
-    { "label": "Who we work with", "url": "/#who" }
+    { "label": "Who it's for", "url": "/#who" }
   ],
   "legal": [
     { "label": "Privacy", "url": "/privacy/" },

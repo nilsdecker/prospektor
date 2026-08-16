@@ -13,13 +13,13 @@
 
   const input = document.getElementById('scanInput');
   const btn = document.getElementById('scanBtn');
+  const hintEl = document.getElementById('scanHint');
   const errorEl = document.getElementById('scanError');
   const statusEl = document.getElementById('scanStatus');
   const statusMsg = document.getElementById('scanStatusMsg');
   const resultEl = document.getElementById('scanResult');
   const resultMeta = document.getElementById('scanResultMeta');
   const guessEl = document.getElementById('scanGuess');
-  const summaryEl = document.getElementById('scanSummary');
   const signalsEl = document.getElementById('scanSignals');
   const ctaEl = document.getElementById('scanCta');
   const fallbackEl = document.getElementById('scanFallback');
@@ -62,7 +62,7 @@
     const msgs = [
       'reading ' + domain + '…',
       'looking at what ' + domain + ' sells…',
-      'guessing what we’d hunt for you…',
+      'working out the targets we’d propose…',
     ];
     let i = 0;
     statusMsg.textContent = msgs[0];
@@ -85,14 +85,26 @@
     settle();
   }
 
+  // A field carrying tool-call markup means the scan came back malformed —
+  // treat it like a failed scan rather than render it.
+  const looksBroken = s => /<\/?\w+[^>]*>/.test(s);
+
   function renderResult(domain, result) {
+    const goal = (result.inferredGoal || '').trim();
+    const summary = (result.summary || '').trim();
+    const signals = (Array.isArray(result.signals) ? result.signals : [])
+      .map(s => String(s || '').trim()).filter(Boolean);
+    if (!goal || [goal, summary].concat(signals).some(looksBroken)) {
+      showFallback(domain);
+      return;
+    }
     hideAll();
     resultMeta.textContent = result.name ? domain + ' · ' + result.name : domain;
-    guessEl.textContent = result.inferredGoal || '';
-    summaryEl.textContent = result.summary || '';
-    summaryEl.hidden = !result.summary;
+    guessEl.textContent = goal;
     signalsEl.textContent = '';
-    (Array.isArray(result.signals) ? result.signals : []).forEach(s => {
+    // Everything under the headline is bullets: who they are first, then the
+    // observations that back the proposal.
+    (summary ? [summary] : []).concat(signals).forEach(s => {
       const li = document.createElement('li');
       li.textContent = s;
       signalsEl.appendChild(li);
@@ -128,6 +140,7 @@
 
     const gen = ++generation;
     hideAll();
+    if (hintEl) hintEl.hidden = true;
     btn.disabled = true;
 
     // Only for the status line — the server does the real parsing.

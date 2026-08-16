@@ -65,6 +65,14 @@ nav {
   letter-spacing: 0.02em;
 }
 
+.nav-right { display: flex; align-items: center; gap: 1rem; }
+
+.nav-signin {
+  font-size: 0.82rem; font-weight: 600; color: var(--ink-mid);
+  text-decoration: none; transition: color .15s;
+}
+.nav-signin:hover { color: var(--ink); }
+
 .nav-cta {
   font-size: 0.82rem; font-weight: 700;
   color: white; background: var(--coral);
@@ -105,66 +113,6 @@ nav {
   display: inline-block;
   opacity: 0; animation: fadeUp .5s ease forwards .1s;
 }
-
-/* Typewriter prompt area */
-.prompt-container {
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 1rem 1.5rem;
-  display: inline-flex; align-items: center; gap: 0.75rem;
-  margin-bottom: 2.5rem;
-  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
-  min-width: 480px; max-width: 680px;
-  opacity: 0; animation: fadeUp .5s ease forwards .2s;
-  position: relative;
-}
-
-.prompt-label {
-  font-family: var(--mono); font-size: 0.72rem; font-weight: 500;
-  color: var(--ink-faint); white-space: nowrap; flex-shrink: 0;
-}
-
-.prompt-text {
-  font-family: var(--mono); font-size: 0.9rem; font-weight: 500;
-  color: var(--ink); flex: 1; text-align: left;
-  display: flex; align-items: center; gap: 0;
-}
-
-.prompt-static { color: var(--ink-mid); }
-
-.prompt-dynamic {
-  color: var(--accent); font-weight: 600;
-  position: relative;
-}
-
-.cursor {
-  display: inline-block; width: 2px; height: 1em;
-  background: var(--accent); margin-left: 1px; vertical-align: middle;
-  animation: blink .9s step-end infinite;
-}
-
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
-
-.prompt-enter {
-  font-family: var(--mono); font-size: 0.65rem; font-weight: 500;
-  color: var(--ink-faint);
-  background: var(--stone); border-radius: 4px;
-  padding: 0.2rem 0.4rem; white-space: nowrap; flex-shrink: 0;
-}
-
-/* Building status line — absolutely positioned under prompt, zero layout impact */
-.building-status {
-  position: absolute;
-  bottom: -1.75rem; left: 50%; transform: translateX(-50%);
-  display: flex; align-items: center; gap: 0.5rem;
-  font-family: var(--mono); font-size: 0.68rem; color: var(--accent);
-  white-space: nowrap;
-  opacity: 0; pointer-events: none;
-  transition: opacity 0.25s ease;
-}
-
-.building-status.active { opacity: 1; }
 
 .building-dot {
   width: 6px; height: 6px; border-radius: 50%;
@@ -222,17 +170,14 @@ nav {
   opacity: 0; animation: fadeUp .6s ease forwards .8s;
 }
 
-/* ── SCAN ── */
-.scan { background: var(--white); border-bottom: 1px solid var(--border); }
-.scan [hidden] { display: none !important; }
-
-.scan-inner { max-width: 640px; margin: 0 auto; text-align: center; }
-
-.scan-sub {
-  font-size: 0.92rem; color: var(--ink-mid); line-height: 1.7;
-  max-width: 440px; margin: 1.1rem auto 0;
+/* ── SCAN (hero) ── */
+.scan-hero {
+  width: 100%; max-width: 680px;
+  margin: 0 auto 2.5rem;
+  position: relative; z-index: 1;
+  opacity: 0; animation: fadeUp .5s ease forwards .2s;
 }
-.scan .section-h2 { margin-left: auto; margin-right: auto; }
+.scan-hero [hidden] { display: none !important; }
 
 .scan-form {
   background: var(--white);
@@ -240,7 +185,6 @@ nav {
   border-radius: 14px;
   padding: 0.6rem 0.6rem 0.6rem 1.25rem;
   display: flex; align-items: center; gap: 0.75rem;
-  margin: 2rem auto 0;
   box-shadow: 0 2px 12px rgba(0,0,0,0.06);
   text-align: left;
 }
@@ -269,6 +213,11 @@ nav {
 .scan-btn:hover { opacity: 0.85; transform: translateY(-1px); }
 .scan-btn:disabled { opacity: 0.45; cursor: default; transform: none; }
 
+.scan-hint {
+  font-family: var(--mono); font-size: 0.68rem; color: var(--ink-faint);
+  margin-top: 0.8rem;
+}
+
 .scan-error {
   font-size: 0.8rem; color: var(--coral);
   margin-top: 0.85rem;
@@ -277,13 +226,14 @@ nav {
 .scan-status {
   display: flex; align-items: center; justify-content: center; gap: 0.5rem;
   font-family: var(--mono); font-size: 0.72rem; color: var(--accent);
-  margin-top: 1.25rem;
+  margin-top: 0.9rem;
 }
 
 .scan-result {
-  margin-top: 2rem; padding: 2rem;
+  margin-top: 1.25rem; padding: 2rem;
   border: 1px solid var(--border); border-radius: 14px;
-  background: var(--off-white);
+  background: var(--white);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
   text-align: left;
   animation: fadeUp .5s ease;
 }
@@ -303,11 +253,6 @@ nav {
 .scan-guess {
   font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em;
   line-height: 1.35; color: var(--ink);
-}
-
-.scan-summary {
-  font-size: 0.86rem; color: var(--ink-mid); line-height: 1.65;
-  margin-top: 0.85rem;
 }
 
 .scan-signals {
@@ -333,7 +278,7 @@ nav {
   max-width: 220px; text-align: left;
 }
 
-.scan-fallback { margin-top: 2rem; }
+.scan-fallback { margin-top: 1.25rem; }
 .scan-fallback-msg {
   font-family: var(--mono); font-size: 0.72rem; color: var(--ink-mid);
   margin-bottom: 1.25rem;
@@ -819,7 +764,7 @@ footer {
   nav { padding: 0 1.25rem; }
   .nav-links, .nav-ai-badge { display: none; }
   .hero { padding: 5rem 1.25rem 4rem; }
-  .prompt-container { min-width: unset; width: 100%; }
+  .scan-hero { max-width: 100%; }
   .section { padding: 4rem 1.25rem; }
   .what-layout, .how-layout, .ai-layout { grid-template-columns: 1fr; gap: 2.5rem; }
   .what-grid { grid-template-columns: 1fr; }
