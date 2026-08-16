@@ -42,10 +42,16 @@ permalink: /checkout/
         </ul>
       </div>
       <div class="onboard-note">
-        <p><strong>Checkout isn't open yet — days, not weeks.</strong> Your target sentence is saved in this browser and your scan stays cached on our side, so when it opens this step takes two minutes. Want a founding spot held, or a founding rate? One email is enough.</p>
+        <p><strong>Checkout isn't open yet — days, not weeks.</strong> Leave your email and we'll hold a founding spot; you'll get one message when checkout opens, nothing else. Your target sentence rides along so your studio starts from it.</p>
       </div>
+      <form class="reserve-form" id="reserveForm" novalidate>
+        <input class="reserve-input" id="reserveEmail" type="email" autocomplete="email"
+               placeholder="you@yourcompany.com" aria-label="Your work email">
+        <input type="text" name="hp" id="reserveHp" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;" aria-hidden="true">
+        <button class="btn-cta" type="submit" id="reserveBtn">Hold my founding spot</button>
+      </form>
+      <p class="reserve-msg" id="reserveMsg" hidden></p>
       <div class="onboard-actions">
-        <a class="btn-cta" id="holdBtn" href="mailto:hello@prospektor.ai?subject=Hold%20my%20founding%20spot">Hold my founding spot</a>
         <button class="onboard-back" id="toSigninBtn">what happens after payment →</button>
       </div>
     </div>

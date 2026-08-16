@@ -56,4 +56,57 @@
   });
   document.getElementById('toSigninBtn').addEventListener('click', () => show('signin'));
   document.getElementById('backToPayBtn').addEventListener('click', () => show('pay'));
+
+  // Founding-spot capture: one POST to the site's own function. If the send
+  // fails for any reason, fall back to a plain mailto so no one is stranded.
+  const reserveForm = document.getElementById('reserveForm');
+  const reserveEmail = document.getElementById('reserveEmail');
+  const reserveBtn = document.getElementById('reserveBtn');
+  const reserveMsg = document.getElementById('reserveMsg');
+
+  function reserveNote(text, isError) {
+    reserveMsg.textContent = '';
+    reserveMsg.append(text);
+    if (isError) {
+      const a = document.createElement('a');
+      a.href = 'mailto:hello@prospektor.ai?subject=' + encodeURIComponent('Hold my founding spot');
+      a.textContent = 'hello@prospektor.ai';
+      reserveMsg.append(' ', a);
+    }
+    reserveMsg.classList.toggle('is-error', !!isError);
+    reserveMsg.hidden = false;
+  }
+
+  reserveForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    const email = reserveEmail.value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      reserveNote('That doesn’t look like an email address — try your work email.');
+      return;
+    }
+    reserveBtn.disabled = true;
+    reserveMsg.hidden = true;
+    let goal = goalInput.value.trim();
+    try { goal = sessionStorage.getItem('prospektor.goal') || goal; } catch (err) {}
+    try {
+      const r = await fetch('/.netlify/functions/reserve-spot', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          email: email, domain: domain, company: company, goal: goal,
+          hp: document.getElementById('reserveHp').value,
+        }),
+      });
+      if (r.ok) {
+        reserveForm.hidden = true;
+        reserveNote('✓ Spot held. One email when checkout opens — nothing else.');
+      } else {
+        reserveBtn.disabled = false;
+        reserveNote('That didn’t send. Email us instead:', true);
+      }
+    } catch (err) {
+      reserveBtn.disabled = false;
+      reserveNote('That didn’t send. Email us instead:', true);
+    }
+  });
 })();
