@@ -50,6 +50,15 @@ permalink: /checkout/
         <input type="text" name="hp" id="reserveHp" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;" aria-hidden="true">
         <button class="btn-cta" type="submit" id="reserveBtn">Hold my founding spot</button>
       </form>
+      <!-- Static twin of the capture form so Netlify registers it at deploy
+           time; checkout.js posts to it when the email function fails. -->
+      <form name="founding-spot" netlify netlify-honeypot="hp" hidden>
+        <input type="email" name="email">
+        <input type="text" name="domain">
+        <input type="text" name="company">
+        <textarea name="goal"></textarea>
+        <input type="text" name="hp">
+      </form>
       <p class="reserve-msg" id="reserveMsg" hidden></p>
       <div class="onboard-actions">
         <button class="onboard-back" id="toSigninBtn">what happens after payment →</button>

@@ -88,23 +88,38 @@
     reserveMsg.hidden = true;
     let goal = goalInput.value.trim();
     try { goal = sessionStorage.getItem('prospektor.goal') || goal; } catch (err) {}
+    const payload = {
+      email: email, domain: domain, company: company, goal: goal,
+      hp: document.getElementById('reserveHp').value,
+    };
+
+    // Two independent channels, tried in order: the email function
+    // (SendGrid), then Netlify Forms (submissions in the Netlify
+    // dashboard). Either one landing is a held spot.
+    let sent = false;
     try {
       const r = await fetch('/.netlify/functions/reserve-spot', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
-          email: email, domain: domain, company: company, goal: goal,
-          hp: document.getElementById('reserveHp').value,
-        }),
+        body: JSON.stringify(payload),
       });
-      if (r.ok) {
-        reserveForm.hidden = true;
-        reserveNote('✓ Spot held. One email when checkout opens — nothing else.');
-      } else {
-        reserveBtn.disabled = false;
-        reserveNote('That didn’t send. Email us instead:', true);
-      }
-    } catch (err) {
+      sent = r.ok;
+    } catch (err) { /* fall through to the form channel */ }
+    if (!sent) {
+      try {
+        const r = await fetch('/', {
+          method: 'POST',
+          headers: { 'content-type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams(Object.assign({ 'form-name': 'founding-spot' }, payload)).toString(),
+        });
+        sent = r.ok;
+      } catch (err) { /* fall through to mailto */ }
+    }
+
+    if (sent) {
+      reserveForm.hidden = true;
+      reserveNote('✓ Spot held. One email when checkout opens — nothing else.');
+    } else {
       reserveBtn.disabled = false;
       reserveNote('That didn’t send. Email us instead:', true);
     }
