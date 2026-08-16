@@ -24,12 +24,13 @@ layout: base.njk
 
       <div class="scan-result" id="scanResult" hidden>
         <div class="scan-result-meta" id="scanResultMeta"></div>
-        <div class="scan-guess-label">Prospektor proposes:</div>
+        <div class="scan-facts" id="scanFacts" hidden></div>
+        <p class="scan-lead">Here's what Prospektor will find for you:</p>
         <h3 class="scan-guess" id="scanGuess"></h3>
         <ul class="scan-signals" id="scanSignals"></ul>
         <div class="scan-cta-row">
           <a class="btn-cta" id="scanCta" href="/checkout/">Start my studio →</a>
-          <p class="scan-cta-note">Off target? You confirm or sharpen it in one sentence after checkout.</p>
+          <p class="scan-cta-note">Off target? Sharpen it in one sentence after checkout.</p>
         </div>
       </div>
 
@@ -40,12 +41,14 @@ layout: base.njk
     </div>
   </div>
 
-  <h1>Your GTM team,<br>in a <span class="accent">box</span>.</h1>
-  <p class="hero-sub">The studio finds companies worth pitching, reads who they actually are, and drafts the deck, one-pager, emails and proposal in your voice. Claude does the heavy work — you edit and hit send.</p>
-  <div class="hero-actions">
-    <a href="#how" class="btn-ghost">See how it works →</a>
+  <div class="hero-rest" id="heroRest">
+    <h1>Your GTM team,<br>in a <span class="accent">box</span>.</h1>
+    <p class="hero-sub">The studio finds companies worth pitching, reads who they actually are, and drafts the deck, one-pager, emails and proposal in your voice. Claude does the heavy work — you edit and hit send.</p>
+    <div class="hero-actions">
+      <a href="#how" class="btn-ghost">See how it works →</a>
+    </div>
+    <p class="hero-note">Free scan · No sign-up to try it · A pitch run takes minutes, not weeks</p>
   </div>
-  <p class="hero-note">Free scan · No sign-up to try it · A pitch run takes minutes, not weeks</p>
 </section>
 <script src="/assets/js/scan.js"></script>
 

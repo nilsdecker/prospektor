@@ -18,7 +18,9 @@
   const statusEl = document.getElementById('scanStatus');
   const statusMsg = document.getElementById('scanStatusMsg');
   const resultEl = document.getElementById('scanResult');
+  const heroEl = document.querySelector('.hero');
   const resultMeta = document.getElementById('scanResultMeta');
+  const factsEl = document.getElementById('scanFacts');
   const guessEl = document.getElementById('scanGuess');
   const signalsEl = document.getElementById('scanSignals');
   const ctaEl = document.getElementById('scanCta');
@@ -53,6 +55,7 @@
 
   function showError(msg) {
     hideAll();
+    if (heroEl) heroEl.classList.remove('scan-focus');
     errorEl.textContent = msg;
     errorEl.hidden = false;
     settle();
@@ -79,6 +82,8 @@
   // an apology.
   function showFallback(domain, message) {
     hideAll();
+    // No scan panel to hold the stage — bring the page back behind the CTA.
+    if (heroEl) heroEl.classList.remove('scan-focus');
     if (message) { fallbackMsg.textContent = message; fallbackMsg.hidden = false; }
     fallbackCta.href = checkoutUrl(domain);
     fallbackEl.hidden = false;
@@ -88,6 +93,18 @@
   // A field carrying tool-call markup means the scan came back malformed —
   // treat it like a failed scan rather than render it.
   const looksBroken = s => /<\/?\w+[^>]*>/.test(s);
+
+  // The result renders under "Here's what Prospektor will find for you:", so
+  // a goal phrased about them — "They most likely want to find X" — is
+  // reduced to X itself. A goal that doesn't match the pattern renders as-is.
+  function toProposal(goal) {
+    const stripped = goal.replace(
+      /^they(?:\s+(?:most\s+likely|likely|probably))?(?:\s+(?:want|need|hope|aim|appear\s+to\s+want|seem\s+to\s+want|are\s+looking|are\s+hunting))?(?:\s+(?:to\s+)?(?:find|reach|meet|attract|connect\s+with|for))?\s*[:,–—-]?\s*/i,
+      ''
+    ).trim();
+    if (stripped.length < 12 || stripped === goal) return goal;
+    return stripped.charAt(0).toUpperCase() + stripped.slice(1);
+  }
 
   function renderResult(domain, result) {
     const goal = (result.inferredGoal || '').trim();
@@ -100,11 +117,21 @@
     }
     hideAll();
     resultMeta.textContent = result.name ? domain + ' · ' + result.name : domain;
-    guessEl.textContent = goal;
+    // Short fact fragments (a future scan field) render as a stat strip —
+    // they know who they are; the strip only shows we do too. Until the
+    // studio returns them, the prose summary stays off the page.
+    const facts = (Array.isArray(result.facts) ? result.facts : [])
+      .map(f => String(f || '').trim()).filter(f => f && !looksBroken(f)).slice(0, 4);
+    factsEl.textContent = '';
+    facts.forEach(f => {
+      const span = document.createElement('span');
+      span.textContent = f;
+      factsEl.appendChild(span);
+    });
+    factsEl.hidden = facts.length === 0;
+    guessEl.textContent = toProposal(goal);
     signalsEl.textContent = '';
-    // Everything under the headline is bullets: who they are first, then the
-    // observations that back the proposal.
-    (summary ? [summary] : []).concat(signals).forEach(s => {
+    signals.forEach(s => {
       const li = document.createElement('li');
       li.textContent = s;
       signalsEl.appendChild(li);
@@ -141,6 +168,8 @@
     const gen = ++generation;
     hideAll();
     if (hintEl) hintEl.hidden = true;
+    // Focus mode: the scan is the page now; the pitch copy steps back.
+    if (heroEl) heroEl.classList.add('scan-focus');
     btn.disabled = true;
 
     // Only for the status line — the server does the real parsing.
