@@ -45,10 +45,12 @@ permalink: /checkout/
            Stripe keys exist. Until then the founding-spot capture below is
            the payment step, exactly as before. -->
       <div id="stripePay" hidden>
-        <div class="onboard-actions">
-          <button class="btn-cta" id="stripeBtn">Continue to secure checkout →</button>
-        </div>
-        <p class="onboard-sub">Payment and email are handled by Stripe. Use your work email so your whole team can get in — and if you have a promotion code, there's a field for it at checkout.</p>
+        <form class="reserve-form" id="stripeForm" novalidate>
+          <input class="reserve-input" id="payEmail" type="email" autocomplete="email"
+                 placeholder="you@yourcompany.com" aria-label="Your work email">
+          <button class="btn-cta" type="submit" id="stripeBtn">Continue to secure checkout →</button>
+        </form>
+        <p class="onboard-sub">This address becomes your studio's sign-in. Use your work email so your whole team can get in — and if you have a promotion code, there's a field for it at checkout.</p>
         <p class="reserve-msg is-error" id="stripeMsg" hidden></p>
       </div>
       <div class="onboard-note" id="payFallbackNote">

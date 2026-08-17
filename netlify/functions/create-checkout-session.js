@@ -44,6 +44,10 @@ exports.handler = async function(event) {
   const domain = meta(data.domain);
   const company = meta(data.company);
   const goal = meta(data.goal);
+  // The payment step collects the email before redirecting (so the
+  // ownership check can run pre-payment); passing it locks the field at
+  // Stripe, which is what keeps that check meaningful.
+  const email = String(data.email || '').trim().toLowerCase();
 
   const site = process.env.URL || 'https://prospektor.ai';
 
@@ -63,6 +67,9 @@ exports.handler = async function(event) {
       params.set('metadata[' + k + ']', v);
       params.set('subscription_data[metadata][' + k + ']', v);
     }
+  }
+  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    params.set('customer_email', email);
   }
 
   let response, session;

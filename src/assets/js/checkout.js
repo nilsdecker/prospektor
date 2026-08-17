@@ -83,17 +83,53 @@
     .then(r => { if (r.ok) showStripe(); })
     .catch(() => {});
 
-  stripeBtn.addEventListener('click', async () => {
+  function stripeNote(text, withSignin) {
+    stripeMsg.textContent = '';
+    stripeMsg.append(text);
+    if (withSignin) {
+      const a = document.createElement('a');
+      a.href = 'https://studio.prospektor.ai';
+      a.textContent = 'Sign in instead';
+      stripeMsg.append(' ', a, '.');
+    }
+    stripeMsg.hidden = false;
+  }
+
+  document.getElementById('stripeForm').addEventListener('submit', async e => {
+    e.preventDefault();
+    const email = document.getElementById('payEmail').value.trim();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      stripeNote('That doesn’t look like an email address — this one becomes your studio’s sign-in.');
+      return;
+    }
     stripeBtn.disabled = true;
     stripeBtn.textContent = 'Opening secure checkout…';
     stripeMsg.hidden = true;
     let goal = goalInput.value.trim();
-    try { goal = sessionStorage.getItem('prospektor.goal') || goal; } catch (e) {}
+    try { goal = sessionStorage.getItem('prospektor.goal') || goal; } catch (e2) {}
     try {
+      // One email, one studio: stop the buyer before payment if this
+      // address already owns a workspace. The server fails open while the
+      // studio-side check doesn't exist yet.
+      try {
+        const chk = await fetch('/.netlify/functions/check-email', {
+          method: 'POST',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ email: email }),
+        });
+        const owns = await chk.json().catch(() => null);
+        if (owns && owns.taken) {
+          stripeBtn.disabled = false;
+          stripeBtn.textContent = stripeBtnLabel;
+          stripeNote('This email already has a studio — signing in will take you to it, or use a different address to start a new one.', true);
+          return;
+        }
+      } catch (e2) { /* fail open — never block a sale on a hiccup */ }
+
       const r = await fetch('/.netlify/functions/create-checkout-session', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ domain: domain, company: company, goal: goal }),
+        body: JSON.stringify({ domain: domain, company: company, goal: goal, email: email }),
       });
       if (r.status === 503) { showFallback(); return; } // keys pulled since the probe
       const data = await r.json().catch(() => null);
@@ -102,8 +138,7 @@
     } catch (err) {
       stripeBtn.disabled = false;
       stripeBtn.textContent = stripeBtnLabel;
-      stripeMsg.textContent = 'That didn’t open. Try again — or email hello@prospektor.ai and we’ll sort it by hand.';
-      stripeMsg.hidden = false;
+      stripeNote('That didn’t open. Try again — or email hello@prospektor.ai and we’ll sort it by hand.');
     }
   });
 
