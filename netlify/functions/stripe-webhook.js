@@ -72,11 +72,109 @@ async function callProvision({ email, company, website, goal, secret }) {
   }
 }
 
-async function sendWelcomeEmail(email) {
-  const token = process.env.POSTMARK_SERVER_TOKEN;
-  if (!token) return; // scaffold: silent until Postmark is set up
-
+// One transport for operator/system mail: Postmark when its token exists,
+// else the SendGrid key that already serves reserve-spot. Returns true when
+// a channel accepted the message; failures are logged, never thrown.
+async function sendMail({ to, subject, textBody, htmlBody, replyTo }) {
+  const postmarkToken = process.env.POSTMARK_SERVER_TOKEN;
   const from = process.env.POSTMARK_FROM || 'hello@prospektor.ai';
+  if (postmarkToken) {
+    try {
+      const response = await fetch('https://api.postmarkapp.com/email', {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'X-Postmark-Server-Token': postmarkToken,
+        },
+        body: JSON.stringify({
+          From: `Prospektor <${from}>`,
+          To: to,
+          ReplyTo: replyTo || undefined,
+          Subject: subject,
+          TextBody: textBody,
+          HtmlBody: htmlBody,
+          MessageStream: 'outbound',
+        }),
+      });
+      if (response.ok) return true;
+      console.error('Postmark send failed:', response.status, (await response.text()).slice(0, 300));
+    } catch (e) {
+      console.error('Postmark unreachable:', e.message);
+    }
+    return false;
+  }
+  const sendgridKey = process.env.SENDGRID_API_KEY;
+  if (!sendgridKey) return false;
+  try {
+    const response = await fetch('https://api.sendgrid.com/v3/mail/send', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${sendgridKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        personalizations: [{ to: [{ email: to }] }],
+        from: { email: from, name: 'Prospektor' },
+        reply_to: replyTo ? { email: replyTo } : undefined,
+        subject,
+        content: [{ type: 'text/plain', value: textBody }, { type: 'text/html', value: htmlBody }],
+      }),
+    });
+    if (response.status === 202) return true;
+    console.error('SendGrid send failed:', response.status, (await response.text()).slice(0, 300));
+  } catch (e) {
+    console.error('SendGrid unreachable:', e.message);
+  }
+  return false;
+}
+
+// The seller's side of the sale: one notice per successful provision. The
+// existing:true case gets a louder subject — the buyer paid for a new studio
+// but their address already owned one, so a human has to look (the studio
+// has no pre-checkout ownership check yet; request filed 17 Aug 2026).
+async function sendOperatorNotice({ email, company, website, goal, clientId, existing }) {
+  const operator = process.env.OPERATOR_EMAIL || 'hello@prospektor.ai';
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const subject = existing
+    ? `⚠️ Order needs attention: ${email} paid but already had a studio`
+    : `New order: ${email}${company ? ' — ' + company : website ? ' — ' + website : ''}`;
+  const lines = [
+    ['Buyer email', email],
+    ['Company', company],
+    ['Domain', website],
+    ['Their target', goal],
+    ['Workspace', clientId ? `${clientId} (${existing ? 'EXISTING — no new workspace was created' : 'newly created'})` : ''],
+  ];
+  const textBody = [
+    existing
+      ? 'A buyer completed checkout, but their email already had a workspace — the studio returned the existing one and did NOT create a workspace for what they just bought. Reach out and sort it by hand.'
+      : 'A buyer completed checkout and their studio was provisioned.',
+    '',
+    ...lines.filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`),
+  ].join('\n');
+  const htmlBody = `
+<body style="margin:0;padding:24px;background:#f7f5f0;font-family:system-ui,sans-serif;">
+  <div style="max-width:560px;margin:0 auto;background:#ffffff;border:1px solid #edeae3;border-radius:12px;padding:24px;">
+    <p style="font-size:16px;font-weight:700;color:#1a1a18;margin:0 0 16px;">${existing ? '⚠️ Order needs attention' : 'New order'}</p>
+    ${existing ? '<p style="font-size:13px;color:#1a1a18;line-height:1.6;margin:0 0 16px;">The buyer paid, but this email already had a workspace — the studio returned the existing one and <strong>did not create a workspace for what they just bought</strong>. Reach out and sort it by hand.</p>' : ''}
+    <table style="width:100%;border-collapse:collapse;">
+      ${lines.filter(([, v]) => v).map(([k, v]) => `<tr><td style="padding:8px 12px;font-family:monospace;font-size:11px;color:#8f8f8a;text-transform:uppercase;vertical-align:top;">${k}</td><td style="padding:8px 12px;font-size:14px;color:#1a1a18;">${esc(v)}</td></tr>`).join('')}
+    </table>
+    <p style="font-size:12px;color:#8f8f8a;margin:16px 0 0;">Sent by the Stripe webhook on prospektor.ai. Reply goes to the buyer.</p>
+  </div>
+</body>`;
+  const sent = await sendMail({ to: operator, subject, textBody, htmlBody, replyTo: email });
+  if (!sent) console.error('Operator notice could not be sent for', email, existing ? '(EXISTING-workspace collision!)' : '');
+}
+
+// Buyer-facing, so Postmark only (deliverability is the point of that choice)
+// — silent until the token is set. Sent only when a workspace was actually
+// created: on existing:true the promise "your studio is ready" would be
+// false, and a webhook double-fire would mail the same buyer twice.
+async function sendWelcomeEmail(email) {
+  if (!process.env.POSTMARK_SERVER_TOKEN) return;
+
   const textBody = [
     'Your Prospektor Partner Studio is ready.',
     '',
@@ -110,29 +208,7 @@ async function sendWelcomeEmail(email) {
   </div>
 </body>`;
 
-  try {
-    const response = await fetch('https://api.postmarkapp.com/email', {
-      method: 'POST',
-      headers: {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json',
-        'X-Postmark-Server-Token': token,
-      },
-      body: JSON.stringify({
-        From: `Prospektor <${from}>`,
-        To: email,
-        Subject: 'Your studio is ready — sign in',
-        TextBody: textBody,
-        HtmlBody: htmlBody,
-        MessageStream: 'outbound',
-      }),
-    });
-    if (!response.ok) {
-      console.error('Postmark send failed:', response.status, (await response.text()).slice(0, 300));
-    }
-  } catch (e) {
-    console.error('Postmark unreachable:', e.message);
-  }
+  await sendMail({ to: email, subject: 'Your studio is ready — sign in', textBody, htmlBody });
 }
 
 exports.handler = async function(event) {
@@ -208,9 +284,11 @@ exports.handler = async function(event) {
   }
 
   const clientId = provision.data && provision.data.client && provision.data.client.id;
-  console.log('Provisioned', email, '→', clientId, provision.data && provision.data.existing ? '(existing)' : '(new)');
+  const existing = !!(provision.data && provision.data.existing);
+  console.log('Provisioned', email, '→', clientId, existing ? '(existing)' : '(new)');
 
-  await sendWelcomeEmail(email);
+  await sendOperatorNotice({ email, company, website, goal, clientId, existing });
+  if (!existing) await sendWelcomeEmail(email);
 
   return { statusCode: 200, body: JSON.stringify({ received: true }) };
 };
