@@ -23,6 +23,33 @@ const crypto = require('node:crypto');
 const PROVISION_URL = 'https://studio.prospektor.ai/api/provision';
 const SIGNATURE_TOLERANCE_SECONDS = 300;
 
+// The site's brand, inlined for email clients (no webfonts, no remote
+// images — nothing an email client can block or break).
+const BRAND = {
+  ink: '#1A1A18',
+  inkMid: '#52524E',
+  inkFaint: '#8F8F8A',
+  offWhite: '#F7F5F0',
+  stone: '#EDEAE3',
+  accent: '#00B37E',
+  coral: '#E8533A',
+  font: "'Plus Jakarta Sans', -apple-system, 'Segoe UI', sans-serif",
+};
+
+// Shared shell: off-white ground, white card, wordmark header, footer line.
+function emailShell(inner, footnote) {
+  return `
+<body style="margin:0;padding:32px 16px;background:${BRAND.offWhite};font-family:${BRAND.font};">
+  <div style="max-width:560px;margin:0 auto;">
+    <p style="font-size:18px;font-weight:800;letter-spacing:-0.02em;color:${BRAND.ink};margin:0 0 14px 4px;">Prospektor<span style="color:${BRAND.accent};">.</span></p>
+    <div style="background:#ffffff;border:1px solid ${BRAND.stone};border-radius:14px;padding:32px;">
+      ${inner}
+    </div>
+    <p style="font-size:12px;color:${BRAND.inkFaint};line-height:1.6;margin:16px 4px 0;">${footnote}</p>
+  </div>
+</body>`;
+}
+
 // Stripe-Signature: t=<unix>,v1=<hex>[,v1=<hex>…] over `${t}.${rawBody}`.
 function verifyStripeSignature(payload, header, secret) {
   if (!header || !secret) return false;
@@ -153,17 +180,13 @@ async function sendOperatorNotice({ email, company, website, goal, clientId, exi
     '',
     ...lines.filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`),
   ].join('\n');
-  const htmlBody = `
-<body style="margin:0;padding:24px;background:#f7f5f0;font-family:system-ui,sans-serif;">
-  <div style="max-width:560px;margin:0 auto;background:#ffffff;border:1px solid #edeae3;border-radius:12px;padding:24px;">
-    <p style="font-size:16px;font-weight:700;color:#1a1a18;margin:0 0 16px;">${existing ? '⚠️ Order needs attention' : 'New order'}</p>
-    ${existing ? '<p style="font-size:13px;color:#1a1a18;line-height:1.6;margin:0 0 16px;">The buyer paid, but this email already had a workspace — the studio returned the existing one and <strong>did not create a workspace for what they just bought</strong>. Reach out and sort it by hand.</p>' : ''}
+  const htmlBody = emailShell(`
+    <p style="font-size:17px;font-weight:800;letter-spacing:-0.01em;color:${existing ? BRAND.coral : BRAND.ink};margin:0 0 16px;">${existing ? '⚠️ Order needs attention' : 'New order'}</p>
+    ${existing ? `<p style="font-size:13px;color:${BRAND.ink};line-height:1.65;margin:0 0 16px;">The buyer paid, but this email already had a workspace — the studio returned the existing one and <strong>did not create a workspace for what they just bought</strong>. Reach out and sort it by hand.</p>` : ''}
     <table style="width:100%;border-collapse:collapse;">
-      ${lines.filter(([, v]) => v).map(([k, v]) => `<tr><td style="padding:8px 12px;font-family:monospace;font-size:11px;color:#8f8f8a;text-transform:uppercase;vertical-align:top;">${k}</td><td style="padding:8px 12px;font-size:14px;color:#1a1a18;">${esc(v)}</td></tr>`).join('')}
-    </table>
-    <p style="font-size:12px;color:#8f8f8a;margin:16px 0 0;">Sent by the Stripe webhook on prospektor.ai. Reply goes to the buyer.</p>
-  </div>
-</body>`;
+      ${lines.filter(([, v]) => v).map(([k, v]) => `<tr><td style="padding:8px 12px 8px 0;font-family:monospace;font-size:11px;color:${BRAND.inkFaint};text-transform:uppercase;vertical-align:top;white-space:nowrap;">${k}</td><td style="padding:8px 0;font-size:14px;color:${BRAND.ink};line-height:1.5;">${esc(v)}</td></tr>`).join('')}
+    </table>`,
+    'Sent by the Stripe webhook on prospektor.ai. Reply goes to the buyer.');
   const sent = await sendMail({ to: operator, subject, textBody, htmlBody, replyTo: email });
   if (!sent) console.error('Operator notice could not be sent for', email, existing ? '(EXISTING-workspace collision!)' : '');
 }
@@ -189,24 +212,26 @@ async function sendWelcomeEmail(email) {
     '',
     '— Prospektor',
   ].join('\n');
-  const htmlBody = `
-<body style="margin:0;padding:24px;background:#f7f5f0;font-family:system-ui,sans-serif;">
-  <div style="max-width:560px;margin:0 auto;background:#ffffff;border:1px solid #edeae3;border-radius:12px;padding:28px;">
-    <p style="font-size:17px;font-weight:700;color:#1a1a18;margin:0 0 14px;">Your Prospektor Partner Studio is ready.</p>
-    <p style="font-size:14px;color:#1a1a18;line-height:1.65;margin:0 0 18px;">
-      Sign in at <a href="https://studio.prospektor.ai" style="color:#1a1a18;">studio.prospektor.ai</a> —
-      <strong>with Google, using this address</strong> (the one you paid with). That&#39;s the whole setup.
+  const htmlBody = emailShell(`
+    <p style="font-size:22px;font-weight:800;letter-spacing:-0.02em;color:${BRAND.ink};line-height:1.25;margin:0 0 14px;">Your studio is ready.</p>
+    <p style="font-size:14px;color:${BRAND.ink};line-height:1.7;margin:0 0 22px;">
+      Sign in at <a href="https://studio.prospektor.ai" style="color:${BRAND.ink};border-bottom:1px solid ${BRAND.accent};text-decoration:none;">studio.prospektor.ai</a> —
+      <strong>with Google, using this address</strong> (the one you paid with). That&#39;s the whole setup: no token, no wizard.
     </p>
-    <ul style="font-size:14px;color:#1a1a18;line-height:1.75;margin:0 0 18px;padding-left:20px;">
-      <li>While you were paying, your studio read your site and drafted your brief.</li>
-      <li>First thing you&#39;ll do is confirm your target sentence — one line, your words.</li>
-      <li>Three researched prospects are waiting to run your first pitches.</li>
-    </ul>
-    <p style="font-size:13px;color:#8f8f8a;line-height:1.65;margin:0;">
+    <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 26px;"><tr><td style="border-radius:100px;background:${BRAND.coral};">
+      <a href="https://studio.prospektor.ai" style="display:inline-block;padding:13px 28px;font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:100px;">Sign in with Google &rarr;</a>
+    </td></tr></table>
+    <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;">
+      ${[
+        'While you were paying, your studio read your site and drafted your brief.',
+        'First thing you&#39;ll do is confirm your target sentence — one line, your words.',
+        'Three researched prospects are waiting to run your first pitches.',
+      ].map(li => `<tr><td style="width:16px;vertical-align:top;padding:5px 0;"><span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:${BRAND.accent};margin-bottom:2px;"></span></td><td style="font-size:14px;color:${BRAND.ink};line-height:1.6;padding:3px 0;">${li}</td></tr>`).join('')}
+    </table>
+    <p style="font-size:13px;color:${BRAND.inkFaint};line-height:1.65;margin:20px 0 0;">
       Paid with your work email? Every colleague on your domain can sign in the same way.
-    </p>
-  </div>
-</body>`;
+    </p>`,
+    'You&#39;re getting this one email because you started a Prospektor Partner Studio. Questions? Just reply — it reaches a human at hello@prospektor.ai.');
 
   await sendMail({ to: email, subject: 'Your studio is ready — sign in', textBody, htmlBody });
 }
