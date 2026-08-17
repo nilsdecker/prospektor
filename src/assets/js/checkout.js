@@ -19,18 +19,25 @@
   let scan = null;
   try { scan = JSON.parse(sessionStorage.getItem('prospektor.scan') || 'null'); } catch (e) {}
 
-  const domain = params.get('domain') || (scan && scan.domain) || '';
+  let domain = params.get('domain') || (scan && scan.domain) || '';
   const company = params.get('company') || (scan && scan.name) || '';
 
   metaEl.textContent = domain ? (company ? domain + ' · ' + company : domain) : '';
   metaEl.hidden = !domain;
-  if (!domain) {
-    // No scan reached this page — the flow starts at the field on the
-    // landing page, so say so instead of presenting an empty step.
-    const back = document.createElement('p');
-    back.className = 'onboard-sub';
-    back.innerHTML = 'Start with the scan — <a href="/#scan">give us your URL</a> and this page fills itself in.';
-    metaEl.after(back);
+
+  // The direct path: no scan preceded this visit (pricing CTA, a link the
+  // operator hands out). The studio researches the buyer from their site,
+  // so ask for the one thing provisioning must have — their address.
+  const siteAsk = document.getElementById('siteAsk');
+  const siteInput = document.getElementById('siteInput');
+  const siteMsg = document.getElementById('siteMsg');
+  siteAsk.hidden = !!domain;
+
+  function cleanDomain(raw) {
+    let s = String(raw || '').trim().toLowerCase();
+    s = s.replace(/^[a-z]+:\/\//, '').replace(/^www\./, '');
+    s = s.split(/[/?#\s]/)[0];
+    return /^[a-z0-9][a-z0-9.-]*\.[a-z]{2,}$/.test(s) ? s : '';
   }
 
   try {
@@ -51,6 +58,21 @@
   }
 
   document.getElementById('toPayBtn').addEventListener('click', () => {
+    if (!domain) {
+      const typed = cleanDomain(siteInput.value);
+      if (!typed) {
+        siteMsg.textContent = 'That doesn’t look like a web address — just the domain is fine, like acme.com.';
+        siteMsg.hidden = false;
+        return;
+      }
+      siteMsg.hidden = true;
+      domain = typed;
+      metaEl.textContent = domain;
+      metaEl.hidden = false;
+      siteAsk.hidden = true;
+      // Persist like a scan would, so a refresh or the payment step sees it.
+      try { sessionStorage.setItem('prospektor.scan', JSON.stringify({ domain: domain, name: '', goal: '', at: Date.now() })); } catch (e) {}
+    }
     try { sessionStorage.setItem('prospektor.goal', goalInput.value.trim()); } catch (e) {}
     show('pay');
   });

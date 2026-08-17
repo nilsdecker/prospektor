@@ -19,6 +19,14 @@ permalink: /checkout/
       <div class="scan-result-meta" id="obMeta"></div>
       <h1 class="onboard-h1">Here's what Prospektor will hunt for you.</h1>
       <p class="onboard-sub">Read it, sharpen it, or rewrite it in your own words — this sentence seeds your studio's brief, and you stay its author.</p>
+      <!-- Direct path (no scan): the studio researches the buyer from their
+           site, so the one thing we must have is their address. -->
+      <div id="siteAsk" hidden>
+        <p class="onboard-sub">Came here directly? All we need is your website — your studio researches you from it. (Or <a href="/#scan">scan it first</a> to see what it finds, free.)</p>
+        <input class="reserve-input" id="siteInput" type="text" inputmode="url" autocomplete="url"
+               placeholder="yourcompany.com" aria-label="Your website">
+        <p class="reserve-msg is-error" id="siteMsg" hidden></p>
+      </div>
       <textarea class="goal-input" id="goalInput" rows="4" placeholder="What should Prospektor find for you? e.g. Mid-size property managers in the DACH region who still screen tenants manually."></textarea>
       <div class="onboard-actions">
         <button class="btn-cta" id="toPayBtn">Looks right — continue →</button>
