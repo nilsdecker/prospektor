@@ -57,6 +57,56 @@
   document.getElementById('toSigninBtn').addEventListener('click', () => show('signin'));
   document.getElementById('backToPayBtn').addEventListener('click', () => show('pay'));
 
+  // ── Live checkout, env-gated server-side ──
+  // The page ships with the founding-spot capture as the only visible payment
+  // UI. On load it asks the checkout function (GET probe) whether Stripe keys
+  // exist on the server; only a 200 swaps in the real pay button. A 503 or a
+  // network failure changes nothing — today's page, untouched.
+  const stripePay = document.getElementById('stripePay');
+  const stripeBtn = document.getElementById('stripeBtn');
+  const stripeMsg = document.getElementById('stripeMsg');
+  const payFallbackNote = document.getElementById('payFallbackNote');
+  const stripeBtnLabel = stripeBtn.textContent;
+
+  function showStripe() {
+    payFallbackNote.hidden = true;
+    reserveForm.hidden = true;
+    stripePay.hidden = false;
+  }
+  function showFallback() {
+    stripePay.hidden = true;
+    payFallbackNote.hidden = false;
+    reserveForm.hidden = false;
+  }
+
+  fetch('/.netlify/functions/create-checkout-session')
+    .then(r => { if (r.ok) showStripe(); })
+    .catch(() => {});
+
+  stripeBtn.addEventListener('click', async () => {
+    stripeBtn.disabled = true;
+    stripeBtn.textContent = 'Opening secure checkout…';
+    stripeMsg.hidden = true;
+    let goal = goalInput.value.trim();
+    try { goal = sessionStorage.getItem('prospektor.goal') || goal; } catch (e) {}
+    try {
+      const r = await fetch('/.netlify/functions/create-checkout-session', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ domain: domain, company: company, goal: goal }),
+      });
+      if (r.status === 503) { showFallback(); return; } // keys pulled since the probe
+      const data = await r.json().catch(() => null);
+      if (!r.ok || !data || !data.url) throw new Error('no session url');
+      location.assign(data.url);
+    } catch (err) {
+      stripeBtn.disabled = false;
+      stripeBtn.textContent = stripeBtnLabel;
+      stripeMsg.textContent = 'That didn’t open. Try again — or email hello@prospektor.ai and we’ll sort it by hand.';
+      stripeMsg.hidden = false;
+    }
+  });
+
   // Founding-spot capture: one POST to the site's own function. If the send
   // fails for any reason, fall back to a plain mailto so no one is stranded.
   const reserveForm = document.getElementById('reserveForm');

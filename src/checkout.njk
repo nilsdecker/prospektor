@@ -41,7 +41,17 @@ permalink: /checkout/
           <li>Your whole team in via your work-email domain</li>
         </ul>
       </div>
-      <div class="onboard-note">
+      <!-- Live checkout, revealed by checkout.js only when the server says
+           Stripe keys exist. Until then the founding-spot capture below is
+           the payment step, exactly as before. -->
+      <div id="stripePay" hidden>
+        <div class="onboard-actions">
+          <button class="btn-cta" id="stripeBtn">Continue to secure checkout →</button>
+        </div>
+        <p class="onboard-sub">Payment and email are handled by Stripe. Use your work email so your whole team can get in — and if you have a promotion code, there's a field for it at checkout.</p>
+        <p class="reserve-msg is-error" id="stripeMsg" hidden></p>
+      </div>
+      <div class="onboard-note" id="payFallbackNote">
         <p><strong>Checkout isn't open yet — days, not weeks.</strong> Leave your email and we'll hold a founding spot; you'll get one message when checkout opens, nothing else. Your target sentence rides along so your studio starts from it.</p>
       </div>
       <form class="reserve-form" id="reserveForm" novalidate>

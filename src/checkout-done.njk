@@ -1,0 +1,45 @@
+---
+layout: base.njk
+title: Your studio is ready
+permalink: /checkout/done/
+---
+
+{# Stripe Checkout's success_url. Content per the handover's §3: the link is
+   plainly studio.prospektor.ai, Google sign-in with the paying address is the
+   only door, and expectations stay honest — drafted brief, one sentence to
+   confirm, three prospects waiting. #}
+<section class="onboard">
+  <div class="onboard-inner">
+
+    <ol class="steps">
+      <li class="step done"><span class="step-n-badge">✓</span>Scan</li>
+      <li class="step done"><span class="step-n-badge">✓</span>Your target</li>
+      <li class="step done"><span class="step-n-badge">✓</span>Payment</li>
+      <li class="step active"><span class="step-n-badge">4</span>Sign in</li>
+    </ol>
+
+    <div class="onboard-panel">
+      <h1 class="onboard-h1">Paid. Your studio is already working.</h1>
+      <p class="onboard-sub">Sign in with Google at <a href="https://studio.prospektor.ai">studio.prospektor.ai</a>, using the address you just paid with. That's the whole setup — no token, no wizard.</p>
+      <ul class="pricing-list">
+        <li>While you paid, your studio read your site and drafted your brief</li>
+        <li>You confirm your target sentence once — one line, your words</li>
+        <li>Three researched prospects are lined up for your first pitch runs</li>
+        <li>Paid with your work email? Every colleague on your domain signs in the same way</li>
+      </ul>
+      <div class="onboard-actions">
+        <a class="btn-cta" href="https://studio.prospektor.ai">Sign in with Google →</a>
+      </div>
+      <p class="onboard-sub">If you arrive before the research lands, give it a minute — your studio is reading your site right now.</p>
+    </div>
+
+  </div>
+</section>
+<script>
+  // The scan and goal have done their job — a later visit to /checkout/
+  // should start fresh, not from a paid-for session.
+  try {
+    sessionStorage.removeItem('prospektor.goal');
+    sessionStorage.removeItem('prospektor.scan');
+  } catch (e) {}
+</script>
