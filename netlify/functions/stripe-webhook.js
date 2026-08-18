@@ -159,35 +159,63 @@ async function sendMail({ to, subject, textBody, htmlBody, replyTo }) {
   return false;
 }
 
-// The seller's side of the sale: one notice per successful provision. The
-// existing:true case gets a louder subject — the buyer paid for a new studio
-// but their address already owned one, so a human has to look (the studio
-// has no pre-checkout ownership check yet; request filed 17 Aug 2026).
-async function sendOperatorNotice({ email, company, website, goal, clientId, existing }) {
+// The seller's side of the sale: one notice per successful provision, written
+// so the whole funnel can be checked from an inbox rather than from logs.
+//
+// Two things get a louder subject. `existing: true` — the buyer paid for a new
+// studio but their address already owned one, so a human has to look. And a
+// target sentence that was sent but not recorded: /api/provision answers with
+// `goal: true` when a usable sentence arrived, so comparing what we sent with
+// what it reports turns a silently-ignored field into a line in an email.
+//
+// That comparison is three-state, not a boolean, because the pricing tile's
+// direct path deliberately sends no sentence at all — the studio infers one
+// and asks the buyer to confirm it on first sign-in. Treating that as a
+// failure would fire a warning on every direct purchase, which is the fastest
+// way to teach someone to ignore the warning.
+async function sendOperatorNotice({ email, company, website, goal, clientId, existing, goalRecorded }) {
   const operator = process.env.OPERATOR_EMAIL || 'hello@prospektor.ai';
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  // Sent a sentence and the studio did not record it — the one case worth
+  // shouting about, because the buyer typed something and it went nowhere.
+  const goalDropped = !!goal && goalRecorded === false;
+  const who = company ? ' — ' + company : website ? ' — ' + website : '';
   const subject = existing
     ? `⚠️ Order needs attention: ${email} paid but already had a studio`
-    : `New order: ${email}${company ? ' — ' + company : website ? ' — ' + website : ''}`;
+    : goalDropped
+      ? `⚠️ Order fine, target sentence dropped: ${email}${who}`
+      : `New order: ${email}${who}`;
+
+  const targetLine = goal
+    ? (goalRecorded === true
+        ? `${goal}\n(recorded — it seeds their brief and they are not asked again)`
+        : goalRecorded === false
+          ? `${goal}\n⚠️ SENT BUT NOT RECORDED — the studio will infer a goal and ask them to confirm it instead`
+          : goal)
+    : 'none sent — bought straight from the pricing tile, so the studio infers one and asks them to confirm it';
+
   const lines = [
     ['Buyer email', email],
     ['Company', company],
     ['Domain', website],
-    ['Their target', goal],
+    ['Their target', targetLine],
     ['Workspace', clientId ? `${clientId} (${existing ? 'EXISTING — no new workspace was created' : 'newly created'})` : ''],
   ];
   const textBody = [
     existing
       ? 'A buyer completed checkout, but their email already had a workspace — the studio returned the existing one and did NOT create a workspace for what they just bought. Reach out and sort it by hand.'
-      : 'A buyer completed checkout and their studio was provisioned.',
+      : goalDropped
+        ? 'A buyer completed checkout and their studio was provisioned — but the target sentence they typed was not recorded against it. They will be asked to confirm an inferred goal instead, so nothing is broken for them; something is broken for us.'
+        : 'A buyer completed checkout and their studio was provisioned.',
     '',
     ...lines.filter(([, v]) => v).map(([k, v]) => `${k}: ${v}`),
   ].join('\n');
   const htmlBody = emailShell(`
-    <p style="font-size:17px;font-weight:800;letter-spacing:-0.01em;color:${existing ? BRAND.coral : BRAND.ink};margin:0 0 16px;">${existing ? '⚠️ Order needs attention' : 'New order'}</p>
+    <p style="font-size:17px;font-weight:800;letter-spacing:-0.01em;color:${existing || goalDropped ? BRAND.coral : BRAND.ink};margin:0 0 16px;">${existing ? '⚠️ Order needs attention' : goalDropped ? '⚠️ Order fine, target sentence dropped' : 'New order'}</p>
     ${existing ? `<p style="font-size:13px;color:${BRAND.ink};line-height:1.65;margin:0 0 16px;">The buyer paid, but this email already had a workspace — the studio returned the existing one and <strong>did not create a workspace for what they just bought</strong>. Reach out and sort it by hand.</p>` : ''}
+    ${goalDropped ? `<p style="font-size:13px;color:${BRAND.ink};line-height:1.65;margin:0 0 16px;">The workspace was created, but the sentence this buyer typed <strong>was not recorded against it</strong> — <code>/api/provision</code> answered <code>goal:false</code> for a sentence we did send. They will be asked to confirm an inferred goal instead, so their experience is intact; the field is what is broken.</p>` : ''}
     <table style="width:100%;border-collapse:collapse;">
-      ${lines.filter(([, v]) => v).map(([k, v]) => `<tr><td style="padding:8px 12px 8px 0;font-family:monospace;font-size:11px;color:${BRAND.inkFaint};text-transform:uppercase;vertical-align:top;white-space:nowrap;">${k}</td><td style="padding:8px 0;font-size:14px;color:${BRAND.ink};line-height:1.5;">${esc(v)}</td></tr>`).join('')}
+      ${lines.filter(([, v]) => v).map(([k, v]) => `<tr><td style="padding:8px 12px 8px 0;font-family:monospace;font-size:11px;color:${BRAND.inkFaint};text-transform:uppercase;vertical-align:top;white-space:nowrap;">${k}</td><td style="padding:8px 0;font-size:14px;color:${BRAND.ink};line-height:1.5;">${esc(v).replace(/\n/g, '<br>')}</td></tr>`).join('')}
     </table>`,
     'Sent by the Stripe webhook on prospektor.ai. Reply goes to the buyer.');
   const sent = await sendMail({ to: operator, subject, textBody, htmlBody, replyTo: email });
@@ -315,7 +343,13 @@ exports.handler = async function(event) {
   const existing = !!(provision.data && provision.data.existing);
   console.log('Provisioned', email, '→', clientId, existing ? '(existing)' : '(new)');
 
-  await sendOperatorNotice({ email, company, website, goal, clientId, existing });
+  // `goal` on the response reports whether a usable sentence reached the brief.
+  // undefined means an older studio that does not report it — distinct from
+  // false, and not something to warn about.
+  const goalRecorded = provision.data && typeof provision.data.goal === 'boolean'
+    ? provision.data.goal
+    : undefined;
+  await sendOperatorNotice({ email, company, website, goal, clientId, existing, goalRecorded });
   if (!existing) await sendWelcomeEmail(email);
 
   return { statusCode: 200, body: JSON.stringify({ received: true }) };
