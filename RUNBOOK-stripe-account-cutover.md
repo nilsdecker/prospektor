@@ -33,6 +33,31 @@ Checked in the code rather than assumed:
 
 ---
 
+## 0. Payouts must be enabled first, or none of this matters
+
+Adding the **US** Wise account (Community Federal Savings Bank, routing
+`026073150`) made Stripe request **US tax documentation** — a Form W-8BEN-E —
+and it says payouts may be paused without it. Clear that before cutting the
+funnel over, or the first real payment has nowhere to go.
+
+The answers, recorded because they are not obvious:
+
+| Question | Answer | Why |
+|---|---|---|
+| Is the business a U.S. Person? | **No** | The B.V. is Dutch-incorporated |
+| Tax classification | **Corporation** | A foreign eligible entity whose members all have limited liability **defaults to corporation** under the US check-the-box rules. The IRS has said this specifically of Dutch BVs. "Disregarded entity" would need an affirmative Form 8832 election, which has not been made — and would be undesirable anyway, since it pushes the company's income through to the owner personally for US purposes |
+| Business name / disregarded entity name | Stripe pre-fills the **trading name** | On a W-8BEN-E that line means *name of a disregarded entity receiving the payment*. There is no disregarded entity, so blank is strictly more accurate than "Prospektor" — Stripe's label is a combined one and this is cosmetic |
+| FATCA / chapter 4 status, if asked | *ask the accountant* | Usually **Active NFFE** for an operating company, but it turns on the passive-income ratio, and a holding B.V. that has just started trading is the ambiguous case |
+
+**The trade-off behind all of it.** The W-8 request and the **1% settlement fee**
+on the USD payout row have the same cause: a Netherlands Stripe account paying
+out to a US bank. The EUR row (Transferwise Europe, SEPA) is free and triggers
+no US paperwork. Keeping USD is defensible — revenue is USD and so are the
+costs (Anthropic, Netlify, Postmark, Stripe), so currency-matching avoids a
+round trip — but it should be a decision, not a default.
+
+---
+
 ## 1. The Stripe dashboard, on the B.V. account
 
 Everything below is on `acct_1PXoNrEx6vRhWp5j` ("ND Management Holding B.V.").
