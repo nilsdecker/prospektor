@@ -168,6 +168,31 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
   check('/checkout/ does NOT ask for a website when one was handed over', !(await q3.isVisible('#siteAsk')));
 
 
+  /* --- CLAIM: checkout can actually take money -------------------------
+   *
+   * Everything above this point passed on 18 Aug 2026 while checkout was
+   * returning 502 and could not open a session at all. The audit was reading
+   * pages, and a page that renders a Stripe form proves only that the page
+   * renders. This claim is the one that would have caught the Stripe account
+   * cutover breaking the money path, so it exists.
+   *
+   * It mints a real Checkout Session against the live key. That is free, takes
+   * no payment, and the session expires on its own — but it is the only check
+   * that exercises the credential the funnel actually depends on. The address
+   * is deliberately one nobody owns, so the ownership guard lets it through to
+   * Stripe rather than short-circuiting at 409.
+   */
+  const buyRes = await fetch(SITE + '/.netlify/functions/create-checkout-session', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ email: 'audit-probe@prospektor.ai', domain: 'example.com', from: 'pricing' }),
+  });
+  const buyBody = await buyRes.json().catch(() => null);
+  check('the pricing tile can mint a live Stripe session',
+    buyRes.status === 200 && /^https:\/\/checkout\.stripe\.com\//.test(buyBody?.url || ''),
+    buyRes.status === 200 ? String(buyBody?.url || '').slice(0, 48) + '…'
+      : `HTTP ${buyRes.status} ${JSON.stringify(buyBody)} — Stripe's own reason is in the Netlify function log for create-checkout-session`);
+
   await browser.close();
   const bad = R.filter(r=>!r.ok);
   console.log(`\n${R.length-bad.length}/${R.length} claims held`);
