@@ -72,8 +72,28 @@ already done. What remains:
      only the first and any delayed payment method provisions nothing.
    - Save, then **reveal the signing secret** (`whsec_…`). That is step 2's
      `STRIPE_WEBHOOK_SECRET`.
-2. **Copy the secret API key.** Developers → API keys → *Secret key*
-   (`sk_live_…`). This account must be in **live mode**, not test.
+2. **Create the API key.** Developers → API keys. A **restricted** key is
+   better than the account's secret key, and the permissions are tiny, because
+   **the whole codebase makes exactly one Stripe API call**:
+   `POST /v1/checkout/sessions`, in `create-checkout-session.js`. Nothing else
+   touches the Stripe API — the webhook verifies signatures locally with HMAC
+   and never calls out.
+
+   | Resource | Permission |
+   |---|---|
+   | **Checkout Sessions** | **Write** |
+   | Products | Write |
+   | Prices | Write |
+
+   Checkout Sessions is the required one. Products and Prices are there because
+   the session is built with inline `price_data`, which has Stripe create those
+   objects on the fly; they may not need explicit grants and cost nothing to
+   include. **Everything else: None** — not Customers, Subscriptions, Invoices,
+   Payment Intents, Charges, Balance or Webhook Endpoints. Checkout creates the
+   customer and subscription on Stripe's side; this key never reads them back.
+
+   If a permission is short, the session call fails with an error naming the
+   resource, so starting minimal is safe. Live mode, not test.
 3. **Recreate any promotion codes.** Coupons and promotion codes live per
    account. The checkout passes `allow_promotion_codes: true`, so codes are
    entirely a dashboard thing — recreate whatever founding-client rates exist
@@ -104,8 +124,14 @@ deploy* → *Deploy site*.
 
 ## 3. Prove it, before telling anyone it works
 
+**The availability probe cannot catch a bad key.** `GET
+/create-checkout-session` returns 200 purely because `STRIPE_SECRET_KEY` is
+*set* — it makes no Stripe call (see the handler: it checks the env var and
+returns). A wrong, revoked or under-permissioned key still shows green there.
+That is the whole reason step 4 below is a live checkout rather than a curl.
+
 ```bash
-# the availability probe — 200 means a key is configured and usable
+# 200 means a key is PRESENT — not that it works. See above.
 curl -s -o /dev/null -w '%{http_code}\n' \
   https://prospektor.ai/.netlify/functions/create-checkout-session
 
