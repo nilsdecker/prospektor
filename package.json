@@ -1,10 +1,13 @@
 {
   "name": "prospektor-site",
   "version": "1.0.0",
-  "description": "Prospektor — The AI-first GTM agency",
+  "description": "Prospektor — prospektor.ai: the landing page, the scan field, and the checkout that provisions a Partner Studio.",
   "scripts": {
     "start": "eleventy --serve",
-    "build": "eleventy"
+    "build": "eleventy",
+    "test": "node --test test/*.test.js",
+    "drive": "npm run build && node test/drive.js",
+    "audit": "node test/audit-live.js"
   },
   "devDependencies": {
     "@11ty/eleventy": "^2.0.1"

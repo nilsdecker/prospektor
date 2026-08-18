@@ -14,7 +14,14 @@ needed to build against them without reading the studio's code.
    the first line**: `WEBSITE — the scan field`. One deliverable per thread.
 2. Start by reading the handover file (and ROADMAP.md) in
    `prospektor-ai/studio` — it is public, clone it read-only.
-3. `npm run build` must succeed before pushing.
+3. **Before pushing: `npm test`** (35 function tests, no network, no keys).
+   If the change touches a page or a client flow, also `npm run drive` —
+   it builds and drives the built site in a browser with the functions
+   mocked. `npm run build` must of course succeed.
+   After deploying, `npm run audit` asks **production** whether this board is
+   still telling the truth: 25 claims, read-only, safe to run any time. It is
+   how `app.prospektor.ai` was found still serving the pre-pivot agency page
+   that the log had recorded as gone.
 4. A deliverable is not shipped until the handover file in the studio repo
    is updated to record what was built and what was decided — that update
    is a STUDIO-repo commit, named in the sign-off.
