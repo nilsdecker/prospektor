@@ -11,8 +11,11 @@
 // the operator alerted in the dashboard). That makes a not-yet-configured
 // studio self-heal: once the secret lands, the next retry provisions.
 //
-// The welcome email is a Postmark scaffold, env-gated on POSTMARK_SERVER_TOKEN
-// and skipped silently when unset. An email failure never fails the webhook —
+// The welcome email is sent through Postmark, env-gated on POSTMARK_SERVER_TOKEN
+// and skipped silently when unset. Its sign-in sentence names both doors —
+// Google SSO and the studio's emailed single-use link (live 18 Aug 2026). It
+// must never carry a sign-in token itself: those are single-use and expire in
+// fifteen minutes, so a link that sat in a mail queue would arrive dead. An email failure never fails the webhook —
 // a Stripe retry after a sent email would send it twice.
 //
 // Secrets (STRIPE_WEBHOOK_SECRET, STUDIO_PROVISION_SECRET, the Postmark
@@ -202,7 +205,7 @@ async function sendWelcomeEmail(email) {
     'Your Prospektor Partner Studio is ready.',
     '',
     'Sign in here: https://studio.prospektor.ai',
-    'Sign in with Google, using this address — the one you paid with. That is the whole setup.',
+    'Sign in with Google, using this address — the one you paid with — or have the studio email you a sign-in link from that page. Either way, that is the whole setup.',
     '',
     'While you were paying, your studio read your site and drafted your brief.',
     'First thing you’ll do is confirm your target sentence — one line, your words.',
@@ -216,10 +219,10 @@ async function sendWelcomeEmail(email) {
     <p style="font-size:22px;font-weight:800;letter-spacing:-0.02em;color:${BRAND.ink};line-height:1.25;margin:0 0 14px;">Your studio is ready.</p>
     <p style="font-size:14px;color:${BRAND.ink};line-height:1.7;margin:0 0 22px;">
       Sign in at <a href="https://studio.prospektor.ai" style="color:${BRAND.ink};border-bottom:1px solid ${BRAND.accent};text-decoration:none;">studio.prospektor.ai</a> —
-      <strong>with Google, using this address</strong> (the one you paid with). That&#39;s the whole setup: no token, no wizard.
+      <strong>with Google, using this address</strong> (the one you paid with), <strong>or have the studio email you a sign-in link</strong> from that same page. That&#39;s the whole setup: no token, no wizard.
     </p>
     <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 26px;"><tr><td style="border-radius:100px;background:${BRAND.coral};">
-      <a href="https://studio.prospektor.ai" style="display:inline-block;padding:13px 28px;font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:100px;">Sign in with Google &rarr;</a>
+      <a href="https://studio.prospektor.ai" style="display:inline-block;padding:13px 28px;font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:100px;">Sign in to your studio &rarr;</a>
     </td></tr></table>
     <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;">
       ${[

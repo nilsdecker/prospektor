@@ -2,7 +2,7 @@
 layout: base.njk
 title: Privacy
 description: What Prospektor collects, where it goes, who else sees it, and how long it stays. Written to be read, not to cover us.
-updated: 15 August 2026
+updated: 18 August 2026
 ---
 
 <header class="legal-hero">
@@ -51,7 +51,8 @@ updated: 15 August 2026
       <span class="legal-n">02</span>
       <div>
         <h2>If you have a studio account</h2>
-        <p>You sign in with Google. There's no password to set — we never see one — and there's no other way in. Google tells us your email address, your full name, your given and family name, and the URL of your profile picture. We link to that picture; we don't copy or re-host it.</p>
+        <p>You sign in one of two ways, and there's no password to set either way — we never see one. <strong>With Google:</strong> Google tells us your email address, your full name, your given and family name, and the URL of your profile picture. We link to that picture; we don't copy or re-host it. <strong>Or with an emailed link:</strong> the studio sends a single-use sign-in link, good for fifteen minutes, to an address already on a workspace's allowlist — so typing a stranger's address into that form sends nothing anywhere. A session made that way knows only your email address; there's no name and no picture, because nobody told us one.</p>
+        <p>The emailed link leaves two small markers behind: a record that a link has been used, so it cannot be used twice, and a rate-limit marker holding a truncated hash of the requesting address rather than the address itself.</p>
         <p>Your email address is your account identifier, and it's written onto the records you create so the workspace can show who did what:</p>
         <ul class="legal-list">
           <li>who started each research run</li>
@@ -113,7 +114,7 @@ updated: 15 August 2026
       <span class="legal-n">05</span>
       <div>
         <h2>If you opened a pitch someone shared with you</h2>
-        <p>A finished pitch can be shared as a link. To read it you sign in with Google, so you end up with an account too — but you came for someone else's document, and this is the part you're least likely to expect:</p>
+        <p>A finished pitch can be shared as a link. To read it you sign in — with Google, or with a single-use link the studio emails you — so you end up with an account too. You came for someone else's document, and this is the part you're least likely to expect:</p>
         <p><strong>We record your email address, your name, when you first opened the link, when you last opened it, and how many times you've opened it. The team that sent the link can see all of that, listed under their shared links.</strong></p>
         <p>So the sender can tell whether you read it once or five times, and when. If you'd rather they couldn't, don't open the link — or email us and we'll remove your row.</p>
         <p>A share link shows one pitch and nothing else. Everything else in the studio refuses a share-link account, and an account created this way doesn't get a workspace of its own. A link can be revoked, which stops it working immediately for everyone including people who already read it — but the record of who opened it survives revocation.</p>
@@ -157,11 +158,21 @@ updated: 15 August 2026
                 <td>Sign-in through OAuth. Separately, Google Fonts receives the IP address of anyone loading a studio page — not this website, which hosts its own fonts.</td>
                 <td>Authentication, typography</td>
               </tr>
+              <tr>
+                <td>Stripe</td>
+                <td>Your email address, your card and billing details, and the company and goal you gave at checkout. Checkout runs on Stripe's own pages, so your card number never reaches us.</td>
+                <td>Payment</td>
+              </tr>
+              <tr>
+                <td>Postmark</td>
+                <td>Your email address and the message we send you — the welcome mail when your workspace is created, a sign-in link when you ask for one, and internal notices to us. It is an ActiveCampaign company, based in the United States. Transactional only: there is no list, no campaign and nothing to unsubscribe from.</td>
+                <td>Email</td>
+              </tr>
             </tbody>
           </table>
         </div>
-        <p>Not used, so you can rule them out: no payment processor, no CRM integration, no marketing email tool, no analytics or advertising vendor of any kind.</p>
-        <p>Anthropic and Netlify both process data outside the European Economic Area, mainly in the United States. That's an international transfer, and it needs a documented safeguard — we're working that through with both providers, and you're welcome to ask us where it stands.</p>
+        <p>Not used, so you can rule them out: no CRM integration, no marketing email or newsletter tool, no session recording, no analytics or advertising vendor of any kind. The email we send is transactional — your receipt, your welcome, your sign-in — never a campaign.</p>
+        <p>Anthropic, Netlify, Stripe and Postmark all process data outside the European Economic Area, mainly in the United States. That's an international transfer, and it needs a documented safeguard — we're working that through with both providers, and you're welcome to ask us where it stands.</p>
       </div>
     </section>
 
