@@ -51,6 +51,10 @@ async function checkOwnership(email) {
       // `reason` is optional studio-side; anything unexpected reads as the
       // plain email case, which is the more cautious sentence of the two.
       reason: result.reason === 'domain' ? 'domain' : 'email',
+      // A taken-but-suspended workspace is the one case where checkout must
+      // NOT block the owner: paying again is exactly how it comes back (the
+      // studio's provision POST resumes a suspended owner, live 18 Aug 2026).
+      suspended: result.suspended === true,
     };
   } catch (e) {
     return open;

@@ -101,3 +101,108 @@ describe('stripe-webhook', () => {
     assert.equal(r.statusCode, 200, 'a missing mail token must never fail a paid webhook');
   });
 });
+
+// The billing gate: failure events lock a workspace, recovery unlocks it.
+// The webhook's whole contribution is naming the right action and the right
+// address — the studio's PATCH is idempotent, so double-fires are free.
+describe('stripe-webhook billing gate', () => {
+  beforeEach(() => {
+    resetEnv();
+    process.env.STRIPE_WEBHOOK_SECRET = SECRET;
+    process.env.STUDIO_PROVISION_SECRET = 'shh';
+    process.env.STRIPE_SECRET_KEY = 'sk_test_x';
+  });
+
+  const patchCalls = calls => calls.filter(c => c.url.includes('/api/provision') && c.method === 'PATCH');
+  const suspended = (body = {}) => ['/api/provision', { status: 200, body: { action: 'suspend', existed: true, ...body } }];
+
+  test('a failed renewal suspends the workspace by the buyer email', async () => {
+    const calls = stubFetch([suspended()]);
+    const r = await fn.handler(signedStripeEvent(SECRET, {
+      type: 'invoice.payment_failed',
+      data: { object: { customer: 'cus_1', customer_email: 'b@acme.com' } },
+    }));
+    assert.equal(r.statusCode, 200);
+    const [patch] = patchCalls(calls);
+    assert.ok(patch, 'the studio was told');
+    assert.equal(patch.headers['x-provision-secret'], 'shh');
+    assert.deepEqual(JSON.parse(patch.body), { email: 'b@acme.com', action: 'suspend', reason: 'payment_failed' });
+  });
+
+  test('a chargeback suspends, resolving the customer when the event has no email', async () => {
+    const calls = stubFetch([
+      ['api.stripe.com/v1/customers/cus_9', { status: 200, body: { email: 'B@Acme.com' } }],
+      suspended(),
+    ]);
+    const r = await fn.handler(signedStripeEvent(SECRET, {
+      type: 'charge.dispute.created',
+      data: { object: { id: 'dp_1', customer: 'cus_9' } },
+    }));
+    assert.equal(r.statusCode, 200);
+    const body = JSON.parse(patchCalls(calls)[0].body);
+    assert.equal(body.email, 'b@acme.com', 'resolved via the customer, lowercased');
+    assert.equal(body.reason, 'chargeback');
+  });
+
+  test('a cancelled subscription suspends; a recovered one resumes', async () => {
+    let calls = stubFetch([
+      ['api.stripe.com/v1/customers/cus_9', { status: 200, body: { email: 'b@acme.com' } }],
+      suspended(),
+    ]);
+    await fn.handler(signedStripeEvent(SECRET, {
+      type: 'customer.subscription.deleted',
+      data: { object: { id: 'sub_1', customer: 'cus_9', status: 'canceled' } },
+    }));
+    assert.equal(JSON.parse(patchCalls(calls)[0].body).reason, 'subscription_canceled');
+
+    // past_due -> active after a successful retry: unlock without anyone writing in.
+    calls = stubFetch([
+      ['api.stripe.com/v1/customers/cus_9', { status: 200, body: { email: 'b@acme.com' } }],
+      ['/api/provision', { status: 200, body: { action: 'resume', existed: true } }],
+    ]);
+    await fn.handler(signedStripeEvent(SECRET, {
+      type: 'customer.subscription.updated',
+      data: { object: { id: 'sub_1', customer: 'cus_9', status: 'active' } },
+    }));
+    const resume = JSON.parse(patchCalls(calls)[0].body);
+    assert.equal(resume.action, 'resume');
+    assert.equal(resume.reason, undefined, 'a resume carries no reason');
+  });
+
+  test('a subscription update that is not active does nothing', async () => {
+    const calls = stubFetch([]);
+    const r = await fn.handler(signedStripeEvent(SECRET, {
+      type: 'customer.subscription.updated',
+      data: { object: { id: 'sub_1', customer: 'cus_9', status: 'past_due' } },
+    }));
+    assert.equal(r.statusCode, 200);
+    assert.equal(calls.length, 0, 'past_due on its own is Stripe mid-retry — the invoice event decides');
+  });
+
+  test('an unresolvable email is acknowledged, not retried for ever', async () => {
+    const calls = stubFetch([['api.stripe.com/v1/customers/cus_9', { status: 404, body: {} }]]);
+    const r = await fn.handler(signedStripeEvent(SECRET, {
+      type: 'invoice.payment_failed',
+      data: { object: { customer: 'cus_9' } },
+    }));
+    assert.equal(r.statusCode, 200, 'a retry would find the same nothing');
+    assert.equal(patchCalls(calls).length, 0);
+  });
+
+  test('a studio failure returns non-2xx so Stripe re-delivers', async () => {
+    stubFetch([['/api/provision', { status: 503, body: { error: 'not configured' } }]]);
+    const r = await fn.handler(signedStripeEvent(SECRET, {
+      type: 'invoice.payment_failed',
+      data: { object: { customer: 'cus_1', customer_email: 'b@acme.com' } },
+    }));
+    assert.equal(r.statusCode, 502);
+  });
+
+  test('checkout provisions as paid — the one door money actually comes through', async () => {
+    process.env.POSTMARK_SERVER_TOKEN = 'pm';
+    const calls = stubFetch([provisioned(), ['postmarkapp', { status: 200, body: {} }]]);
+    await fn.handler(signedStripeEvent(SECRET, checkoutSessionCompleted({ email: 'b@acme.com', metadata: { domain: 'acme.com' } })));
+    const post = calls.find(c => c.url.includes('/api/provision') && c.method === 'POST');
+    assert.equal(JSON.parse(post.body).plan, 'paid');
+  });
+});

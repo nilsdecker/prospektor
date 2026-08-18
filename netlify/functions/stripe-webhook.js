@@ -78,11 +78,57 @@ function verifyStripeSignature(payload, header, secret) {
   });
 }
 
+// The billing gate's switch on the studio (PATCH /api/provision, live
+// 18 Aug 2026): suspend locks a workspace without touching its data, resume
+// unlocks it. Addressed by the buyer's email; the studio resolves it with the
+// same function every sign-in uses. Idempotent both ways, so double-fired
+// events cost nothing.
+async function callSuspension({ email, action, reason, secret }) {
+  const body = JSON.stringify({ email, action, reason: reason || undefined });
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const response = await fetch(PROVISION_URL, {
+        method: 'PATCH',
+        headers: {
+          'content-type': 'application/json',
+          'x-provision-secret': secret,
+        },
+        body,
+      });
+      const data = await response.json().catch(() => ({}));
+      return { status: response.status, ok: response.ok, data };
+    } catch (e) {
+      if (attempt >= 2) throw e;
+      await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+    }
+  }
+}
+
+// The email behind a billing event. Renewal invoices carry it directly;
+// subscription and dispute events only carry ids, so one authenticated read
+// resolves the customer — the only Stripe API call in this codebase besides
+// minting checkout sessions.
+async function customerEmail(customerId) {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key || !customerId) return '';
+  try {
+    const response = await fetch('https://api.stripe.com/v1/customers/' + encodeURIComponent(customerId), {
+      headers: { authorization: 'Bearer ' + key },
+    });
+    if (!response.ok) return '';
+    const customer = await response.json().catch(() => ({}));
+    return String(customer.email || '').trim().toLowerCase();
+  } catch (e) {
+    return '';
+  }
+}
+
 async function callProvision({ email, company, website, goal, secret }) {
-  // `goal` is not in /api/provision's contract yet (requested 16 Aug 2026);
-  // the studio ignores unknown fields, so sending it now means the buyer's
-  // sentence starts seeding briefs the day the field lands, no change here.
-  const body = JSON.stringify({ email, company, website, goal: goal || undefined });
+  // `plan: 'paid'` because this caller is the one door money actually came
+  // through — the studio defaults everything else to 'comped', and without
+  // this line every checkout-provisioned workspace was landing as comped
+  // while the board said otherwise (caught 18 Aug 2026).
+  const body = JSON.stringify({ email, company, website, goal: goal || undefined, plan: 'paid' });
   for (let attempt = 0; ; attempt++) {
     try {
       const response = await fetch(PROVISION_URL, {
@@ -289,6 +335,76 @@ exports.handler = async function(event) {
     stripeEvent = JSON.parse(payload);
   } catch (e) {
     return { statusCode: 400, body: JSON.stringify({ error: 'Invalid JSON' }) };
+  }
+
+  /*
+   * The billing gate (operator ask, 18 Aug 2026: a buyer who charges back or
+   * declines to be billed is locked out and pointed at re-subscribing).
+   * Three events suspend, and recovery resumes:
+   *
+   * - invoice.payment_failed — a renewal declined. Suspend on the first
+   *   failure, deliberately: the operator's spec is lockout, the locked
+   *   screen says exactly how to fix it, and Stripe's own retries clear the
+   *   suspension the moment one succeeds (invoice.paid → resume).
+   * - charge.dispute.created — a chargeback. No grace at all.
+   * - customer.subscription.deleted — cancelled. The workspace waits, locked,
+   *   for the re-subscribe checkout (which resumes it via the provision POST).
+   * - invoice.paid / subscription becoming active again — resume, so a card
+   *   fixed inside Stripe's retry window unlocks without anyone writing in.
+   *
+   * All of it is fire-toward-the-studio with the same idempotency as
+   * provisioning; a non-2xx makes Stripe re-deliver, so a studio hiccup
+   * self-heals. NOTE for the operator: these event types must be added to
+   * the webhook endpoint's subscription in the Stripe dashboard — a webhook
+   * only receives what it is subscribed to.
+   */
+  const billing = {
+    'invoice.payment_failed': { action: 'suspend', reason: 'payment_failed' },
+    'charge.dispute.created': { action: 'suspend', reason: 'chargeback' },
+    'customer.subscription.deleted': { action: 'suspend', reason: 'subscription_canceled' },
+    'invoice.paid': { action: 'resume' },
+  }[stripeEvent.type]
+    // A subscription clawing its way back to active (past_due → active after
+    // a successful retry, or un-cancelled before period end) is a resume too.
+    || (stripeEvent.type === 'customer.subscription.updated'
+        && stripeEvent.data && stripeEvent.data.object && stripeEvent.data.object.status === 'active'
+      ? { action: 'resume' }
+      : null);
+
+  if (billing) {
+    const object = (stripeEvent.data && stripeEvent.data.object) || {};
+    const secret = process.env.STUDIO_PROVISION_SECRET;
+    if (!secret) {
+      console.error('STUDIO_PROVISION_SECRET is not set — cannot', billing.action);
+      return { statusCode: 500, body: JSON.stringify({ error: 'Not configured' }) };
+    }
+    // Renewal invoices carry the address; subscription and dispute events
+    // only carry ids, so resolve the customer with one authenticated read.
+    // A dispute names its customer via the charge's expandable field — take
+    // what is inline and fall back to the customer lookup.
+    const email = String(object.customer_email || '').trim().toLowerCase()
+      || await customerEmail(object.customer)
+      || String(((object.billing_details || {}).email) || '').trim().toLowerCase();
+    if (!email) {
+      // Nothing to act on and nothing a retry would find: acknowledge, and
+      // leave the trail in the function log for the operator.
+      console.error(stripeEvent.type, 'carried no resolvable email — no workspace touched.');
+      return { statusCode: 200, body: JSON.stringify({ received: true, acted: false }) };
+    }
+    let result;
+    try {
+      result = await callSuspension({ email, action: billing.action, reason: billing.reason, secret });
+    } catch (e) {
+      console.error('Studio unreachable for', billing.action, 'after retries:', e.message);
+      return { statusCode: 502, body: JSON.stringify({ error: 'Studio unreachable' }) };
+    }
+    if (!result.ok) {
+      console.error(billing.action, 'failed:', result.status, JSON.stringify(result.data).slice(0, 300));
+      return { statusCode: 502, body: JSON.stringify({ error: 'Suspension call failed' }) };
+    }
+    console.log(stripeEvent.type, '->', billing.action, 'for', email,
+      JSON.stringify(result.data).slice(0, 200));
+    return { statusCode: 200, body: JSON.stringify({ received: true, acted: billing.action }) };
   }
 
   // async_payment_succeeded covers delayed methods: their `completed` event

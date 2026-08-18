@@ -68,6 +68,13 @@ describe('create-checkout-session', () => {
     assert.match(body(r).error, /Acme GmbH already has a studio/);
   });
 
+  test('lets a suspended owner back through — their checkout is the re-subscribe', async () => {
+    const calls = stubFetch([STRIPE_OK, ['provision-check', { status: 200, body: { taken: true, name: 'Acme GmbH', reason: 'email', suspended: true } }]]);
+    const r = await post(fn, { email: 'b@acme.com', domain: 'acme.com', from: 'pricing' });
+    assert.equal(r.statusCode, 200, 'blocking them would seal the door the locked screen points at');
+    assert.equal(stripeCalls(calls).length, 1, 'a session is minted; paying it is what unlocks the studio');
+  });
+
   test('carries the goal and mirrors metadata onto the subscription', async () => {
     const calls = stubFetch([STRIPE_OK, FREE]);
     await post(fn, { email: 'b@acme.com', domain: 'acme.com', company: 'Acme', goal: 'Property managers' });

@@ -37,6 +37,14 @@ describe('check-email', () => {
     assert.match(body(await post(fn, { email: 'b@acme.com' })).message, /Acme GmbH already has a studio/);
   });
 
+  test('a suspended owner reads as free-to-pay, with the welcome-back sentence', async () => {
+    stubFetch([['provision-check', { status: 200, body: { taken: true, name: 'Acme GmbH', reason: 'email', suspended: true } }]]);
+    const r = body(await post(fn, { email: 'a@acme.com' }));
+    assert.equal(r.taken, false, 'checkout is open to them — it is the re-subscribe path');
+    assert.equal(r.suspended, true);
+    assert.match(r.message, /reactivates it/);
+  });
+
   test('fails open, and says so via checked:false rather than pretending', async () => {
     for (const reply of [{ status: 403, body: {} }, { status: 503, body: {} }, { status: 200, body: { nonsense: 1 } }]) {
       stubFetch([['provision-check', reply]]);

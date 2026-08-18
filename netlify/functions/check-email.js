@@ -31,6 +31,21 @@ exports.handler = async function(event) {
   }
 
   const result = await checkOwnership(email);
+  // A suspended owner is not "taken" to this page: checkout is open to them
+  // — it is the re-subscribe path, and the studio unlocks their workspace
+  // when this payment lands. `taken:false` lets the page proceed; the
+  // message says why paying again is right rather than a duplicate.
+  if (result.taken && result.suspended) {
+    return {
+      statusCode: 200,
+      body: JSON.stringify({
+        taken: false,
+        checked: result.checked,
+        suspended: true,
+        message: 'Welcome back — this email\u2019s workspace is paused. Completing checkout reactivates it with everything where you left it.',
+      }),
+    };
+  }
   return {
     statusCode: 200,
     body: JSON.stringify({

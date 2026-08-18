@@ -92,7 +92,12 @@ exports.handler = async function(event) {
   }
 
   const owned = await checkOwnership(email);
-  if (owned.taken) {
+  // Suspended is the exception to one-email-one-workspace: this owner's
+  // subscription lapsed, their studio is locked, and completing this checkout
+  // is what unlocks it — the studio resumes the workspace instead of creating
+  // a duplicate. Blocking them here would seal the front door of the very
+  // path the locked screen sends them down.
+  if (owned.taken && !owned.suspended) {
     return {
       statusCode: 409,
       body: JSON.stringify({
