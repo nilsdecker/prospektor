@@ -213,14 +213,18 @@ nav {
 }
 .scan-input::placeholder { color: var(--ink-faint); }
 
+/* Coral, like every other call to action — the token says "CTA only" and this
+   is the most important one on the page. It was ink, which made the primary
+   action on the homepage the one button that did not look clickable, while the
+   header's smaller "Scan your site" was coral two inches above it. */
 .scan-btn {
   font-family: var(--font); font-size: 0.84rem; font-weight: 700;
-  color: white; background: var(--ink);
+  color: white; background: var(--coral);
   padding: 0.6rem 1.4rem; border-radius: 100px;
   border: none; cursor: pointer; flex-shrink: 0;
-  transition: opacity .15s, transform .1s;
+  transition: background .15s, opacity .15s, transform .1s;
 }
-.scan-btn:hover { opacity: 0.85; transform: translateY(-1px); }
+.scan-btn:hover { background: var(--coral-hover); transform: translateY(-1px); }
 .scan-btn:disabled { opacity: 0.45; cursor: default; transform: none; }
 
 .scan-hint {
