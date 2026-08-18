@@ -18,6 +18,16 @@
 }
 
 html { scroll-behavior: smooth; }
+/* [hidden] has to actually hide. The UA stylesheet's `[hidden]{display:none}`
+   loses to any author rule that sets display, and several components below do
+   (.btn-cta is inline-block, .reserve-form and .scan-facts are flex) — so
+   toggling `.hidden` from JS silently did nothing on exactly the elements the
+   checkout paths toggle. Caught by the browser test on the pricing tile; it
+   was already leaving the founding-spot form on screen underneath the live
+   Stripe pay button on /checkout/. */
+[hidden] { display: none !important; }
+
+
 body {
   font-family: var(--font);
   background: var(--white);
@@ -693,6 +703,23 @@ nav {
 }
 .reserve-msg.is-error { color: var(--ink-mid); }
 .reserve-msg a { color: var(--ink); border-bottom: 1px solid var(--accent); text-decoration: none; }
+
+/* ── PRICING: the direct buy ── */
+/* Mirrors .scan-cta-row's rule-above-the-CTA so the tile reads the same
+   whether the visitor gets the pay form or the /checkout/ fallback link. */
+.buy {
+  margin-top: 1.6rem; padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+.buy .reserve-form { margin-top: 0; }
+.buy-site { margin-top: 0.75rem; width: 100%; flex-basis: 100%; }
+.buy .reserve-msg { margin-top: 0.9rem; font-size: 0.82rem; line-height: 1.55; }
+.buy-note {
+  font-size: 0.75rem; color: var(--ink-faint);
+  line-height: 1.6; margin-top: 0.9rem;
+}
+.buy-note a { color: var(--ink-mid); border-bottom: 1px solid var(--border); text-decoration: none; }
+.buy-note a:hover { color: var(--ink); border-bottom-color: var(--accent); }
 
 /* ── PRICING ── */
 .pricing { background: var(--white); border-bottom: 1px solid var(--border); }

@@ -1,18 +1,18 @@
-// Pre-checkout ownership check: does this email already own a studio?
+// Pre-checkout ownership check for the multi-step /checkout/ page: does this
+// email already own a studio?
 //
-// One email, one workspace (operator decision, 17 Aug 2026) — so a buyer
-// whose address already has a studio must be stopped BEFORE payment, not
-// discover it after. This proxies the studio's /api/provision-check
-// (contract proposed in HANDOVER-website-funnel.md) because the shared
-// secret lives server-side only.
+// The rule itself, the fail-open policy and the buyer-facing sentences live
+// in ../lib/ownership — shared with create-checkout-session, which is where
+// the guard is actually enforced (no Stripe session is minted for a taken
+// address, whichever page asked). This endpoint exists so /checkout/ can say
+// so a beat earlier, on its own payment step, rather than only at the moment
+// it tries to open Stripe.
 //
-// Fail-open by design: the endpoint does not exist studio-side yet, and a
-// missing endpoint, missing secret, or unreachable studio must never block
-// a sale. Anything but a clean "taken" answer returns taken:false with
-// checked:false, and checkout proceeds exactly as today. The studio
-// shipping the endpoint switches the block on with no website change.
+// It answers about an address the caller already typed, and only ever with
+// "taken or not" plus a sentence — never with anything the studio knows that
+// the buyer does not already know about themselves.
 
-const CHECK_URL = 'https://studio.prospektor.ai/api/provision-check';
+const { checkOwnership, ownershipMessage } = require('../lib/ownership');
 
 exports.handler = async function(event) {
   if (event.httpMethod !== 'POST') {
@@ -30,25 +30,17 @@ exports.handler = async function(event) {
     return { statusCode: 400, body: JSON.stringify({ error: 'That does not look like an email address.' }) };
   }
 
-  const open = extra => ({ statusCode: 200, body: JSON.stringify(Object.assign({ taken: false, checked: false }, extra)) });
-
-  const secret = process.env.STUDIO_PROVISION_SECRET;
-  if (!secret) return open();
-
-  try {
-    const response = await fetch(CHECK_URL, {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        'x-provision-secret': secret,
-      },
-      body: JSON.stringify({ email }),
-    });
-    if (!response.ok) return open(); // 404 = endpoint not built yet; anything else, fail open too
-    const result = await response.json().catch(() => null);
-    if (!result || typeof result.taken !== 'boolean') return open();
-    return { statusCode: 200, body: JSON.stringify({ taken: result.taken, checked: true }) };
-  } catch (e) {
-    return open();
-  }
+  const result = await checkOwnership(email);
+  return {
+    statusCode: 200,
+    body: JSON.stringify({
+      taken: result.taken,
+      checked: result.checked,
+      // The sentence comes from the server so both surfaces say the same
+      // thing, and so the domain case ("a colleague already bought this")
+      // reads differently from the plain one — a distinction the studio
+      // started reporting on 18 Aug and the site was still flattening.
+      message: result.taken ? ownershipMessage(result) : '',
+    }),
+  };
 };

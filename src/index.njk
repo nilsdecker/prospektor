@@ -215,13 +215,29 @@ layout: base.njk
         <li>Your whole team in — a work email brings its domain, no seats to count</li>
         <li>No setup fee, no metering, no annual lock-in</li>
       </ul>
-      <div class="scan-cta-row">
-        <a href="/checkout/" class="btn-cta">Start my studio →</a>
-        <p class="scan-cta-note">Pay first, money back if it doesn't earn its keep — no trial theater. Or <a href="#scan">scan your site ↑</a> to see what it'd hunt, free.</p>
+      <!-- The price buys the thing: this submits straight into a Stripe
+           Checkout Session, no onboarding page in between. The one field is
+           the address that becomes the studio's sign-in — collected here
+           rather than at Stripe so the ownership guard has somewhere to run
+           before $999 moves (server enforces it either way). -->
+      <div class="buy" id="buy">
+        <a href="/checkout/" class="btn-cta" id="buyLink">Start my studio →</a>
+        <form class="reserve-form buy-form" id="buyForm" hidden novalidate>
+          <input class="reserve-input" id="buyEmail" type="email" autocomplete="email"
+                 placeholder="you@yourcompany.com" aria-label="Your work email">
+          <button class="btn-cta" type="submit" id="buyBtn">Pay &amp; start &mdash; $999/mo →</button>
+        </form>
+        <input class="reserve-input buy-site" id="buySite" type="text" inputmode="url" autocomplete="url"
+               placeholder="yourcompany.com" aria-label="Your company website" hidden>
+        <p class="reserve-msg is-error" id="buyMsg" hidden></p>
+        <p class="buy-note">
+          <span id="buyLive" hidden>Next stop is Stripe. This address becomes your studio's sign-in — a work email brings your whole team in with you. </span>Pay first, money back if it doesn't earn its keep — no trial theater. Or <a href="#scan">scan your site ↑</a> to see what it'd hunt, free.
+        </p>
       </div>
     </div>
   </div>
 </section>
+<script src="/assets/js/buy.js"></script>
 
 <!-- CTA -->
 <section class="cta" id="try">

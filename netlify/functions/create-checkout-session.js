@@ -1,4 +1,5 @@
-// Opens Stripe Checkout for the /checkout/ payment step.
+// Opens Stripe Checkout — for the pricing tile's one-field buy form and for
+// the /checkout/ payment step alike.
 //
 // One product, one price: a Prospektor Partner Studio workspace, $999/month,
 // as a subscription (CEO decision, 16 Aug 2026). The price is inline
@@ -6,16 +7,31 @@
 // so founding-client rates are coupons the operator creates in the Stripe
 // dashboard, never a code change.
 //
-// Env-gated: with no STRIPE_SECRET_KEY this returns 503 and the page keeps
-// the founding-spot capture — the site behaves exactly as before keys exist.
-// GET is the availability probe the page uses to decide which payment UI to
-// show; it never creates a session.
+// Env-gated: with no STRIPE_SECRET_KEY this returns 503 and every caller
+// falls back to what it showed before keys existed. GET is the availability
+// probe the pages use to decide which UI to show; it never creates a session.
 //
-// The buyer's email is collected by Stripe itself. What rides along is the
-// scan's domain and company plus the edited target sentence, as session
-// metadata — the webhook turns those into the /api/provision call. Metadata
-// is mirrored onto the subscription so the operator sees who a subscription
-// belongs to in the Stripe dashboard.
+// This function is the last server-side thing that happens before money can
+// move, so the two things a paid session must have are enforced HERE rather
+// than in whichever page called it:
+//
+//   1. An address that does not already own a studio (§2b ownership check).
+//      The pricing CTA goes straight to Stripe, so there is no onboarding
+//      page left to run that check on — it has to be structural, not a
+//      convention a client remembers to follow.
+//   2. A company or website to provision from. /api/provision returns 400
+//      without one; the webhook would then keep returning non-2xx and Stripe
+//      would redeliver for days against a buyer who has been charged $999 and
+//      has no workspace. Refusing to open checkout is the cheap failure.
+//
+// The buyer's email is passed to Stripe as customer_email, which locks the
+// field there — that is what keeps the check above meaningful, since the
+// address that pays is then the address that was checked.
+
+const { checkOwnership, ownershipMessage } = require('../lib/ownership');
+const { companyDomainFromEmail, cleanDomain } = require('../lib/email-domain');
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 exports.handler = async function(event) {
   const key = process.env.STRIPE_SECRET_KEY;
@@ -41,15 +57,57 @@ exports.handler = async function(event) {
 
   // 500 is Stripe's metadata value ceiling.
   const meta = v => String(v || '').trim().slice(0, 500);
-  const domain = meta(data.domain);
   const company = meta(data.company);
   const goal = meta(data.goal);
-  // The payment step collects the email before redirecting (so the
-  // ownership check can run pre-payment); passing it locks the field at
-  // Stripe, which is what keeps that check meaningful.
   const email = String(data.email || '').trim().toLowerCase();
 
+  // Required now, where it used to be optional. Stripe can collect an address
+  // itself, but an address Stripe collects is one nothing has checked — and
+  // the ownership guard below is the whole reason the price can lead straight
+  // here without an onboarding page in front of it.
+  if (!EMAIL_RE.test(email)) {
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ error: 'That doesn’t look like an email address — this one becomes your studio’s sign-in.' }),
+    };
+  }
+
+  // Who are we researching? A website if one was passed (the scan path, or a
+  // buyer who answered the ask below); otherwise the company behind a work
+  // address. A free-mail address names no company, so that buyer is asked —
+  // 422 is the page's cue to reveal one more field, and it costs no studio
+  // call because it is answered before the check below.
+  let website = cleanDomain(data.domain);
+  if (!website && !company) {
+    website = companyDomainFromEmail(email);
+    if (!website) {
+      return {
+        statusCode: 422,
+        body: JSON.stringify({
+          need: 'website',
+          error: 'That’s a personal address, so it doesn’t tell us who to research. What’s your company’s website?',
+        }),
+      };
+    }
+  }
+
+  const owned = await checkOwnership(email);
+  if (owned.taken) {
+    return {
+      statusCode: 409,
+      body: JSON.stringify({
+        error: ownershipMessage(owned),
+        reason: owned.reason,
+        signin: 'https://studio.prospektor.ai',
+      }),
+    };
+  }
+
   const site = process.env.URL || 'https://prospektor.ai';
+  // Cancelling should land where they started, not somewhere they have never
+  // been: the pricing tile sends them back to the price, /checkout/ back to
+  // its payment step. Whitelisted, so the field cannot become an open redirect.
+  const cancelPath = data.from === 'pricing' ? '/#pricing' : '/checkout/';
 
   const params = new URLSearchParams({
     mode: 'subscription',
@@ -60,17 +118,15 @@ exports.handler = async function(event) {
     'line_items[0][price_data][product_data][name]': 'Prospektor Partner Studio — one workspace',
     allow_promotion_codes: 'true',
     success_url: site + '/checkout/done/',
-    cancel_url: site + '/checkout/',
+    cancel_url: site + cancelPath,
   });
-  for (const [k, v] of [['domain', domain], ['company', company], ['goal', goal]]) {
+  for (const [k, v] of [['domain', website], ['company', company], ['goal', goal]]) {
     if (v) {
       params.set('metadata[' + k + ']', v);
       params.set('subscription_data[metadata][' + k + ']', v);
     }
   }
-  if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    params.set('customer_email', email);
-  }
+  params.set('customer_email', email);
 
   let response, session;
   try {

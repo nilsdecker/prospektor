@@ -143,7 +143,11 @@
         if (owns && owns.taken) {
           stripeBtn.disabled = false;
           stripeBtn.textContent = stripeBtnLabel;
-          stripeNote('This email already has a studio — signing in will take you to it, or use a different address to start a new one.', true);
+          // The server writes the sentence: a colleague's company domain
+          // already owning the studio is a different message from this exact
+          // address owning it, and only the server knows which it is.
+          stripeNote(owns.message
+            || 'This email already has a studio — signing in will take you to it, or use a different address to start a new one.', true);
           return;
         }
       } catch (e2) { /* fail open — never block a sale on a hiccup */ }
@@ -155,6 +159,16 @@
       });
       if (r.status === 503) { showFallback(); return; } // keys pulled since the probe
       const data = await r.json().catch(() => null);
+      // create-checkout-session now enforces the ownership guard itself, so a
+      // 409 can arrive even when the pre-flight above failed open (the studio
+      // recovered in between). Show it rather than falling into the generic
+      // "that didn't open".
+      if (r.status === 409) {
+        stripeBtn.disabled = false;
+        stripeBtn.textContent = stripeBtnLabel;
+        stripeNote((data && data.error) || 'This email already has a studio.', true);
+        return;
+      }
       if (!r.ok || !data || !data.url) throw new Error('no session url');
       location.assign(data.url);
     } catch (err) {
