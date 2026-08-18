@@ -94,7 +94,29 @@ already done. What remains:
 
    If a permission is short, the session call fails with an error naming the
    resource, so starting minimal is safe. Live mode, not test.
-3. **Recreate any promotion codes.** Coupons and promotion codes live per
+3. **Turn on card payments, and check they work with USD.**
+   Settings → *Payment methods*. This bit the cutover on 18 Aug: the funnel
+   prices in **USD**, and a fresh **Netherlands** account arrives with
+   euro-oriented methods (iDEAL, Bancontact, SEPA) that cannot take a dollar.
+   With no USD-capable method enabled, session creation fails with:
+
+   > `400 No valid payment method types for this Checkout Session. Please
+   > ensure that you have activated payment methods compatible with your
+   > chosen currency`
+
+   Nothing about that error mentions currency mismatch in the dashboard, and
+   the site just shows "Could not open checkout". **Card must be on and
+   active** — not merely listed. If it shows as pending, that is the account
+   verification (the W-8 in step 0) blocking charges as well as payouts, so
+   clear that first.
+
+   *Deliberately not solved in code.* Passing `payment_method_types[0]=card`
+   in `create-checkout-session.js` would also make the error go away, and it
+   would hide the fact that card payments are not active on the account —
+   which matters for more than checkout — and would turn "add iDEAL for EU
+   buyers" from a dashboard toggle into a code change.
+
+4. **Recreate any promotion codes.** Coupons and promotion codes live per
    account. The checkout passes `allow_promotion_codes: true`, so codes are
    entirely a dashboard thing — recreate whatever founding-client rates exist
    on the Canadian account. Nothing in the code names a code.
