@@ -105,10 +105,36 @@ already done. What remains:
    > chosen currency`
 
    Nothing about that error mentions currency mismatch in the dashboard, and
-   the site just shows "Could not open checkout". **Card must be on and
-   active** — not merely listed. If it shows as pending, that is the account
-   verification (the W-8 in step 0) blocking charges as well as payouts, so
+   the site just shows "Could not open checkout".
+
+   **Check *both* payment method configurations, and the second one first.**
+   This is what actually cost the time on 18 Aug. Settings → Payment methods
+   lists **configurations** (`pmc_…`), not methods — click into one to see the
+   toggles. A Stripe account has:
+
+   - **Default** — used by ordinary one-off payments.
+   - **Billing Payments** — used by **subscriptions**, which is what this
+     funnel creates (`mode=subscription`).
+
+   Cards was **already enabled in Default** while the funnel was failing,
+   because the session was governed by *Billing Payments*, where it was off.
+   Default looking perfectly healthy is exactly what makes this misleading.
+   **Enable Cards in both.**
+
+   If Cards shows as *pending* rather than enabled, that is account
+   verification (the W-8 in step 0) blocking charges as well as payouts —
    clear that first.
+
+   **Worth enabling at the same time, in both configurations:** *Link*,
+   *Apple Pay* and *Google Pay*. All three are card rails underneath, so they
+   inherit Cards working and add no settlement or currency complexity, and all
+   three support recurring. Apple Pay additionally needs the site's domain
+   registered under *Payment method domains*. Everything else stays off — the
+   buyers are US, the price is a USD subscription, and most of the long list
+   (Bancontact, BLIK, Przelewy24, Pix, UPI, the Korean wallets) is the wrong
+   geography, the wrong currency, or cannot do subscriptions at all. iDEAL
+   arrives enabled on a Dutch account and is euro-only, so it can never serve
+   this funnel.
 
    *Deliberately not solved in code.* Passing `payment_method_types[0]=card`
    in `create-checkout-session.js` would also make the error go away, and it
