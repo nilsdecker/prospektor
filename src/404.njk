@@ -1,0 +1,23 @@
+---
+layout: base.njk
+title: Page not found
+description: That page isn't here. Scan your site instead, and see what Prospektor would hunt for you.
+permalink: /404.html
+noindex: true
+eleventyExcludeFromCollections: true
+---
+
+<section class="onboard">
+  <div class="onboard-inner">
+    <div class="onboard-panel">
+      <div class="scan-result-meta">404 · page not found</div>
+      <h1 class="onboard-h1">That page isn't here.</h1>
+      <p class="onboard-sub">Either it moved or the link was wrong — both are our problem, not yours. The two things worth doing from here:</p>
+      <div class="onboard-actions">
+        <a class="btn-cta" href="/#scan">Scan your site →</a>
+        <a class="btn-ghost" href="/#pricing">See the price</a>
+      </div>
+      <p class="onboard-sub">Looking for your studio? Sign in at <a href="https://studio.prospektor.ai">studio.prospektor.ai</a>. Stuck on something? <a href="mailto:{{ site.email }}">{{ site.email }}</a> reaches a human.</p>
+    </div>
+  </div>
+</section>
