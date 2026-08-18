@@ -3,10 +3,21 @@
   publish = "_site"
   functions = "netlify/functions"
 
+# app.prospektor.ai is retired (operator decision, 18 Aug 2026). It served the
+# pre-pivot agency page — apply, 90 days, $25k — which is not something
+# Prospektor sells any more. The subdomain keeps resolving on purpose: old
+# links, email signatures and search results should land on the product that
+# does exist rather than on a 404.
 [[redirects]]
   from = "https://app.prospektor.ai/*"
-  to = "/app/:splat"
-  status = 200
+  to = "https://prospektor.ai/"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/app/*"
+  to = "/"
+  status = 301
   force = true
 
 [[redirects]]
@@ -14,7 +25,10 @@
   to = "/404.html"
   status = 404
 
-# app.prospektor.ai loads the fonts from this origin, so they need CORS
+# A wildcard on the static font files. It was added when app.prospektor.ai
+# loaded them cross-origin; that subdomain is gone and the studio serves its
+# own fonts now, so nothing depends on this today — kept because it is
+# harmless on public font files and the long cache header beside it is not.
 [[headers]]
   for = "/assets/fonts/*"
   [headers.values]
