@@ -123,6 +123,21 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
   // ── CLAIM: the website hosts its own fonts (no Google Fonts) ──
   check('website makes no third-party requests', thirdParty.size===0, [...thirdParty].join(', ') || 'none');
 
+  // ── CLAIM: the origin with the buy form is not framable ──
+  const shellHeaders = await (async () => {
+    for (let i = 0; i < 3; i++) {
+      try { const r = await fetch(SITE + '/checkout/'); return r.headers; }
+      catch (e) { RELAY_RETRIES.push(SITE + '/checkout/'); }
+    }
+    return null;
+  })();
+  if (shellHeaders) {
+    for (const [h, want] of [['x-frame-options', 'DENY'], ['x-content-type-options', 'nosniff'], ['referrer-policy', 'strict-origin']]) {
+      const got = shellHeaders.get(h) || '';
+      check(`/checkout/ sends ${h}`, got.toLowerCase().includes(want.toLowerCase()), got || 'absent');
+    }
+  }
+
   // ── CLAIM: 404s are handled ──
   const missing = await fetch(SITE+'/definitely-not-a-page-9931/');
   check('unknown path returns 404', missing.status===404, 'HTTP '+missing.status);

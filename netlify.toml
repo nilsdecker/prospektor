@@ -25,6 +25,19 @@
   to = "/404.html"
   status = 404
 
+# The studio sets these on every response and this site set none — found by
+# running the board-versus-product pass against studio.prospektor.ai and
+# noticing the sibling was stricter. It matters more here than there: this is
+# the origin with the buy form, and a page that can be framed is a page that
+# can be clickjacked into a click the visitor thinks lands somewhere else.
+# Same values as the studio, deliberately — one policy, two properties.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
 # A wildcard on the static font files. It was added when app.prospektor.ai
 # loaded them cross-origin; that subdomain is gone and the studio serves its
 # own fonts now, so nothing depends on this today — kept because it is
