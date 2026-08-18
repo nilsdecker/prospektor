@@ -18,10 +18,25 @@ needed to build against them without reading the studio's code.
 4. A deliverable is not shipped until the handover file in the studio repo
    is updated to record what was built and what was decided — that update
    is a STUDIO-repo commit, named in the sign-off.
-5. **Cross-lane requests never travel as chat context.** Anything the
+5. **A thread is not done until its work is LIVE.** This site deploys from
+   `main`. Merged there, pushed, and **asked of the live site** — fetch
+   `https://prospektor.ai/…` and confirm the new element, the new href or
+   the changed copy is actually being served. A green build is not a deploy
+   and the commit log is not verification: on 18 Aug the studio spent three
+   days serving a build from three days earlier while every lane's board
+   said the work was shipped. If a deploy must wait on an operator decision
+   or on keys that are not set, say so in the sign-off as an explicit
+   hand-back — that is the only acceptable way to end a thread with work
+   not live.
+6. **Write the operator's asks down before building them.** An instruction
+   given in chat and not recorded in the studio repo's `ROADMAP.md` gets
+   dropped, or built to a different spec and marked done: the pricing CTA
+   was asked to go straight to Stripe, was built as a link to `/checkout/`,
+   and the board recorded a "direct pay path" as shipped for three days.
+7. **Cross-lane requests never travel as chat context.** Anything the
    studio side must change or answer is written into the studio repo's
    relevant handover file (dated, under *Requests from other lanes*).
-6. **Secrets stay server-side.** `STUDIO_PROVISION_SECRET` lives in this
+8. **Secrets stay server-side.** `STUDIO_PROVISION_SECRET` lives in this
    site's server env and is used only from webhook/function code — never in
    browser-delivered JavaScript, page source, or client-side config.
 
@@ -31,6 +46,9 @@ When the deliverable is shipped, end the thread with exactly this shape and
 nothing after it:
 
 > ✅ **Shipped:** one line on what now works that didn't.
+> 🚀 **Live:** the commit on `main`, and the fetch of the live page that
+> proves it is being served — the actual response, not "should be". If it
+> is deliberately not live, say what it waits on and who owes it.
 > 📝 **Updated:** the docs updated, and any handover entries written for
 > other lanes.
 > ⏭ **Still open:** what this deliberately left undone, or "nothing".
