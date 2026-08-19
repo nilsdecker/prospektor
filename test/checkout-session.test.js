@@ -75,6 +75,15 @@ describe('create-checkout-session', () => {
     assert.equal(stripeCalls(calls).length, 1, 'a session is minted; paying it is what unlocks the studio');
   });
 
+  test('a re-subscribe session returns the buyer to the studio, both ways out', async () => {
+    const calls = stubFetch([STRIPE_OK, ['provision-check', { status: 200, body: { taken: true, name: 'Acme GmbH', reason: 'email', suspended: true } }]]);
+    const r = await post(fn, { email: 'b@acme.com', company: 'Acme GmbH', from: 'resubscribe' });
+    assert.equal(r.statusCode, 200);
+    const p = new URLSearchParams(stripeCalls(calls)[0].body);
+    assert.equal(p.get('success_url'), 'https://studio.prospektor.ai/', 'paying lands them back in their unlocked studio');
+    assert.equal(p.get('cancel_url'), 'https://studio.prospektor.ai/', 'cancelling lands on the locked screen, not the onboarding interview');
+  });
+
   test('carries the goal and mirrors metadata onto the subscription', async () => {
     const calls = stubFetch([STRIPE_OK, FREE]);
     await post(fn, { email: 'b@acme.com', domain: 'acme.com', company: 'Acme', goal: 'Property managers' });

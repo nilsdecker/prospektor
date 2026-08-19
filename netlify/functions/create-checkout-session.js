@@ -111,8 +111,12 @@ exports.handler = async function(event) {
   const site = process.env.URL || 'https://prospektor.ai';
   // Cancelling should land where they started, not somewhere they have never
   // been: the pricing tile sends them back to the price, /checkout/ back to
-  // its payment step. Whitelisted, so the field cannot become an open redirect.
-  const cancelPath = data.from === 'pricing' ? '/#pricing' : '/checkout/';
+  // its payment step, and a re-subscribe (minted server-to-server by the
+  // studio's locked screen) back to the studio. Whitelisted, so the field
+  // cannot become an open redirect.
+  const cancelUrl = data.from === 'resubscribe'
+    ? 'https://studio.prospektor.ai/'
+    : site + (data.from === 'pricing' ? '/#pricing' : '/checkout/');
 
   const params = new URLSearchParams({
     mode: 'subscription',
@@ -122,8 +126,8 @@ exports.handler = async function(event) {
     'line_items[0][price_data][recurring][interval]': 'month',
     'line_items[0][price_data][product_data][name]': 'Prospektor Partner Studio — one workspace',
     allow_promotion_codes: 'true',
-    success_url: site + '/checkout/done/',
-    cancel_url: site + cancelPath,
+    success_url: data.from === 'resubscribe' ? 'https://studio.prospektor.ai/' : site + '/checkout/done/',
+    cancel_url: cancelUrl,
   });
   for (const [k, v] of [['domain', website], ['company', company], ['goal', goal]]) {
     if (v) {

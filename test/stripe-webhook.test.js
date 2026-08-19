@@ -206,3 +206,29 @@ describe('stripe-webhook billing gate', () => {
     assert.equal(JSON.parse(post.body).plan, 'paid');
   });
 });
+
+// The re-subscribe landing: existing + resumed is the gate working, not a
+// collision — the operator hears good news, and the buyer gets no second
+// welcome mail for a studio they already know.
+describe('stripe-webhook resume notice', () => {
+  beforeEach(() => {
+    resetEnv();
+    process.env.STRIPE_WEBHOOK_SECRET = SECRET;
+    process.env.STUDIO_PROVISION_SECRET = 'shh';
+    process.env.POSTMARK_SERVER_TOKEN = 'pm';
+  });
+
+  test('a resumed workspace is reported calmly, with the double-billing hand-check', async () => {
+    const calls = stubFetch([
+      ['/api/provision', { status: 200, body: { client: { id: 'acme' }, existing: true, resumed: true } }],
+      ['postmarkapp', { status: 200, body: {} }],
+    ]);
+    const r = await fn.handler(signedStripeEvent(SECRET, checkoutSessionCompleted({ email: 'b@acme.com', metadata: { domain: 'acme.com' } })));
+    assert.equal(r.statusCode, 200);
+    const m = mail(calls).find(x => /resumed/i.test(x.Subject));
+    assert.ok(m, 'the operator hears it as good news');
+    assert.doesNotMatch(m.Subject, /needs attention/);
+    assert.match(m.TextBody, /billed twice/, 'the one hand-check is named');
+    assert.equal(welcome(calls), undefined, 'no second welcome for a studio they already know');
+  });
+});
