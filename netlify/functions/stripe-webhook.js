@@ -44,7 +44,7 @@ function emailShell(inner, footnote) {
   return `
 <body style="margin:0;padding:32px 16px;background:${BRAND.offWhite};font-family:${BRAND.font};">
   <div style="max-width:560px;margin:0 auto;">
-    <p style="font-size:18px;font-weight:800;letter-spacing:-0.02em;color:${BRAND.ink};margin:0 0 14px 4px;">Prospektor<span style="color:${BRAND.accent};">.</span></p>
+    <p style="margin:0 0 14px 4px;"><img src="https://studio.prospektor.ai/brand/prospektor-120.png" width="36" height="36" alt="Prospektor" style="border-radius:50%;vertical-align:middle;"> <span style="font-size:18px;font-weight:800;letter-spacing:-0.02em;color:${BRAND.ink};vertical-align:middle;">Prospektor<span style="color:${BRAND.accent};">.</span></span></p>
     <div style="background:#ffffff;border:1px solid ${BRAND.stone};border-radius:14px;padding:32px;">
       ${inner}
     </div>
