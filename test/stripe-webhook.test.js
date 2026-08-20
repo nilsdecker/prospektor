@@ -38,7 +38,13 @@ describe('stripe-webhook', () => {
       email: 'b@acme.com', metadata: { domain: 'acme.com', company: 'Acme', goal: 'Property managers' } })));
     assert.equal(r.statusCode, 200);
     assert.ok(notice(calls), 'the operator is told about every sale');
-    assert.ok(welcome(calls), 'a new workspace earns a welcome email');
+    const w = welcome(calls);
+    assert.ok(w, 'a new workspace earns a welcome email');
+    // The sign-in links carry ?signin=<address> so the studio prefills its
+    // emailed-link field — the old flow made the buyer retype the address the
+    // mail was literally sent to (operator, 19 Aug).
+    assert.ok(w.TextBody.includes('/?signin=' + encodeURIComponent('b@acme.com')), 'the text link prefills');
+    assert.ok(w.HtmlBody.includes('/?signin=' + encodeURIComponent('b@acme.com')), 'the button link prefills');
   });
 
   test('sends the shared secret to the studio, and no secret to the buyer', async () => {

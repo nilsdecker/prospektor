@@ -282,7 +282,7 @@ async function sendWelcomeEmail(email) {
   const textBody = [
     'Your Prospektor Partner Studio is ready.',
     '',
-    'Sign in here: https://studio.prospektor.ai',
+    'Sign in here: https://studio.prospektor.ai/?signin=' + encodeURIComponent(email),
     'Sign in with Google, using this address — the one you paid with — or have the studio email you a sign-in link from that page. Either way, that is the whole setup.',
     '',
     'While you were paying, your studio read your site and drafted your brief.',
@@ -296,11 +296,11 @@ async function sendWelcomeEmail(email) {
   const htmlBody = emailShell(`
     <p style="font-size:22px;font-weight:800;letter-spacing:-0.02em;color:${BRAND.ink};line-height:1.25;margin:0 0 14px;">Your studio is ready.</p>
     <p style="font-size:14px;color:${BRAND.ink};line-height:1.7;margin:0 0 22px;">
-      Sign in at <a href="https://studio.prospektor.ai" style="color:${BRAND.ink};border-bottom:1px solid ${BRAND.accent};text-decoration:none;">studio.prospektor.ai</a> —
+      Sign in at <a href="https://studio.prospektor.ai/?signin=${encodeURIComponent(email)}" style="color:${BRAND.ink};border-bottom:1px solid ${BRAND.accent};text-decoration:none;">studio.prospektor.ai</a> —
       <strong>with Google, using this address</strong> (the one you paid with), <strong>or have the studio email you a sign-in link</strong> from that same page. That&#39;s the whole setup: no token, no wizard.
     </p>
     <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 26px;"><tr><td style="border-radius:100px;background:${BRAND.coral};">
-      <a href="https://studio.prospektor.ai" style="display:inline-block;padding:13px 28px;font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:100px;">Sign in to your studio &rarr;</a>
+      <a href="https://studio.prospektor.ai/?signin=${encodeURIComponent(email)}" style="display:inline-block;padding:13px 28px;font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:100px;">Sign in to your studio &rarr;</a>
     </td></tr></table>
     <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;">
       ${[
