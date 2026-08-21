@@ -370,8 +370,13 @@ exports.handler = async function(event) {
   }[stripeEvent.type]
     // A subscription clawing its way back to active (past_due → active after
     // a successful retry, or un-cancelled before period end) is a resume too.
+    // NOT a paused one, though: pause_collection (the studio's suspend
+    // reaching Stripe, billing-action.js) leaves status 'active' while
+    // invoices are voided, and the update event announcing the pause the
+    // operator just asked for must not unlock the workspace they just locked.
     || (stripeEvent.type === 'customer.subscription.updated'
         && stripeEvent.data && stripeEvent.data.object && stripeEvent.data.object.status === 'active'
+        && !stripeEvent.data.object.pause_collection
       ? { action: 'resume' }
       : null);
 

@@ -175,6 +175,18 @@ describe('stripe-webhook billing gate', () => {
     assert.equal(resume.reason, undefined, 'a resume carries no reason');
   });
 
+  test('a paused subscription reporting active is NOT recovery — the workspace stays locked', async () => {
+    // pause_collection is the studio's own suspend reaching Stripe
+    // (billing-action.js); the update event it fires must not undo the lock.
+    const calls = stubFetch([]);
+    const r = await fn.handler(signedStripeEvent(SECRET, {
+      type: 'customer.subscription.updated',
+      data: { object: { id: 'sub_1', customer: 'cus_9', status: 'active', pause_collection: { behavior: 'void' } } },
+    }));
+    assert.equal(r.statusCode, 200);
+    assert.equal(calls.length, 0, 'no resume was sent for a paused subscription');
+  });
+
   test('a subscription update that is not active does nothing', async () => {
     const calls = stubFetch([]);
     const r = await fn.handler(signedStripeEvent(SECRET, {
