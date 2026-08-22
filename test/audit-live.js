@@ -155,13 +155,17 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
     return null;
   })();
   const privHas = (needle) => !!priv && priv.includes(needle);
-  check('/privacy/ carries the imported-network reader-section',
-    privHas('id="network"') && privHas("If you're in someone's professional network"),
-    priv ? 'section absent' : 'unreachable ×3');
-  check('/privacy/ keeps the two sentences the LIA leans on',
-    privHas("We don't hold your email address")
-      && privHas('Prospektor will never contact you because of this'),
-    priv ? 'one or both sentences gone' : 'unreachable ×3');
+  // `check` prints its third argument whether the claim passed or failed, so
+  // these say what was actually found rather than assuming the failure case.
+  const sectionOk = privHas('id="network"') && privHas("If you're in someone's professional network");
+  check('/privacy/ carries the imported-network reader-section', sectionOk,
+    !priv ? 'unreachable ×3' : (sectionOk ? 'section 05 present' : 'section absent'));
+  const noEmail = privHas("We don't hold your email address");
+  const noContact = privHas('Prospektor will never contact you because of this');
+  check('/privacy/ keeps the two sentences the LIA leans on', noEmail && noContact,
+    !priv ? 'unreachable ×3'
+      : (noEmail && noContact ? 'both present'
+        : `missing: ${[!noEmail && 'no-email-address', !noContact && 'never-contact-you'].filter(Boolean).join(' + ')}`));
 
   // ── CLAIM (#76): /help renders the studio's live corpus, searchably ──
   const apiHelp = await (async () => {
