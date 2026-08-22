@@ -8,7 +8,8 @@
   "nav": [
     { "label": "What it does", "url": "/#what" },
     { "label": "How it works",  "url": "/#how" },
-    { "label": "Pricing", "url": "/#pricing" }
+    { "label": "Pricing", "url": "/#pricing" },
+    { "label": "Help", "url": "/help/" }
   ],
   "legal": [
     { "label": "Privacy", "url": "/privacy/" },

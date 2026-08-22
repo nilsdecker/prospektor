@@ -129,6 +129,67 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     await page.close();
   }
 
+  // 7 — the help center renders the studio's corpus and search finds things
+  {
+    const CORPUS = { files: [
+      { name: '01-getting-started.md', text: '# Getting started\n\nWelcome to the studio.\n\n## First steps\n\n- Open [Library](/library) to see pitches\n- The **tour** walks the screens\n  - it is skippable\n\n| Screen | Path |\n|---|---|\n| Library | `/library` |\n' },
+      { name: '02-sharing.md', text: '# Sharing a pitch\n\nA share link travels by email.\n\n## Revoking\n\nRevoke it from the pitch page.\n' },
+    ] };
+    const page = await browser.newPage();
+    await page.route('https://studio.prospektor.ai/api/help', route =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(CORPUS) }));
+    await page.goto('http://localhost:8899/help/');
+    await page.waitForSelector('#helpArticle h1', { timeout: 5000 });
+
+    check('nav lists every guide', (await page.$$eval('#helpNav a', a => a.length)) === 2);
+    check('first guide renders as the landing article',
+      (await page.textContent('#helpArticle h1')) === 'Getting started');
+    check('studio-relative links point at the studio',
+      (await page.getAttribute('#helpArticle a[target="_blank"]', 'href')) === 'https://studio.prospektor.ai/library');
+    check('tables render', await page.isVisible('#helpArticle table'));
+    check('nested list renders', await page.isVisible('#helpArticle li ul li'));
+
+    await page.click('#helpNav a[data-slug="sharing"]');
+    await page.waitForFunction(() => document.querySelector('#helpArticle h1')?.textContent === 'Sharing a pitch');
+    check('the hash routes to the second guide', page.url().endsWith('#sharing'));
+    check('nav marks the open guide',
+      await page.$eval('#helpNav a[data-slug="sharing"]', a => a.classList.contains('is-current')));
+
+    await page.fill('#helpSearch', 'revoke');
+    await page.waitForSelector('#helpResults:not([hidden])', { timeout: 5000 });
+    check('search surfaces the matching guide', /Sharing a pitch/.test(await page.textContent('#helpResults')));
+    check('search marks the matched words', await page.isVisible('#helpResults mark'));
+    check('the article steps aside while searching', await page.isHidden('#helpArticle'));
+    await page.click('#helpResults .help-hit-snippet');
+    await page.waitForSelector('#helpArticle:not([hidden])', { timeout: 5000 });
+    check('a result click lands on the guide, search cleared',
+      (await page.inputValue('#helpSearch')) === '');
+
+    await page.fill('#helpSearch', 'zzzunfindable');
+    await page.waitForSelector('#helpResults:not([hidden])');
+    check('a miss says so instead of an empty pane', /Nothing in the guides/.test(await page.textContent('#helpResults')));
+    await page.close();
+  }
+
+  // 8 — the studio unreachable: the help page says so and offers a retry
+  {
+    const page = await browser.newPage();
+    let calls = 0;
+    await page.route('https://studio.prospektor.ai/api/help', route => {
+      calls++;
+      if (calls === 1) return route.fulfill({ status: 502, body: 'bad gateway' });
+      return route.fulfill({ status: 200, contentType: 'application/json',
+        body: JSON.stringify({ files: [{ name: '01-a.md', text: '# Recovered\n\nBack again.\n' }] }) });
+    });
+    await page.goto('http://localhost:8899/help/');
+    await page.waitForSelector('#helpRetry', { timeout: 5000 });
+    check('a dead studio yields the honest message', /could not be loaded/.test(await page.textContent('#helpArticle')));
+    await page.click('#helpRetry');
+    await page.waitForFunction(() => document.querySelector('#helpArticle h1')?.textContent === 'Recovered', null, { timeout: 5000 });
+    check('retry recovers without a reload', true);
+    await page.close();
+  }
+
   await browser.close();
   server.close();
   console.log('\n' + pass + ' passed, ' + fail + ' failed');

@@ -1,0 +1,45 @@
+---
+layout: base.njk
+title: Help
+description: How to use Prospektor Studio — searchable guides and answers, served straight from the running product, so they are always current.
+---
+
+<header class="help-hero">
+  <div class="help-hero-inner">
+    <span class="tag">help</span>
+    <h1 class="help-h1">How do I…?</h1>
+    <p class="help-lede">Guides and step-by-step answers for Prospektor Studio. This page reads the same documentation the product itself runs on, so it always describes the version that is live.</p>
+    <div class="help-search">
+      <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.6"/><path d="M11 11l3.2 3.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      <input id="helpSearch" type="search" placeholder="Search the guides — try &ldquo;share a pitch&rdquo; or &ldquo;import my network&rdquo;" autocomplete="off" aria-label="Search the help guides">
+    </div>
+  </div>
+</header>
+
+<section class="help-body">
+  <div class="help-columns">
+    <aside class="help-sidenav" aria-label="Help topics">
+      <span class="help-sidenav-label">Guides</span>
+      <!-- not a <nav>: main.css fixes the bare nav element to the top bar -->
+      <div id="helpNav" class="help-sidenav-list" role="navigation"><p class="help-dim">Loading…</p></div>
+      <div class="help-sidenav-foot">
+        <a href="https://studio.prospektor.ai" target="_blank" rel="noopener">Open the studio ↗</a>
+        <p>Stuck anyway? The <strong>Support</strong> pill inside the studio answers in seconds — or write to <a href="mailto:{{ site.email }}">{{ site.email }}</a>.</p>
+      </div>
+    </aside>
+    <div class="help-main">
+      <div id="helpResults" class="help-results" hidden></div>
+      <article id="helpArticle" class="help-article" aria-live="polite">
+        <p class="help-dim">Loading the guides…</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<noscript>
+  <section class="help-body"><div class="help-columns"><div class="help-main">
+    <p>The help guides load live from the studio and need JavaScript. Without it, write to <a href="mailto:{{ site.email }}">{{ site.email }}</a> — a person answers.</p>
+  </div></div></section>
+</noscript>
+
+<script src="/assets/js/help.js"></script>

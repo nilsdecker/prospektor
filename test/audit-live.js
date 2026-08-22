@@ -53,7 +53,7 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
   });
 
   // ── CLAIM: secrets never reach the browser (CLAUDE.md rule 8) ──
-  const jsFiles = ['/assets/js/main.js','/assets/js/scan.js','/assets/js/checkout.js','/assets/js/buy.js'];
+  const jsFiles = ['/assets/js/main.js','/assets/js/scan.js','/assets/js/checkout.js','/assets/js/buy.js','/assets/js/help.js'];
   let leaked = [];
   for (const f of jsFiles) {
     const t = await (await fetch(SITE+f)).text();
@@ -141,6 +141,28 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
   // ── CLAIM: 404s are handled ──
   const missing = await fetch(SITE+'/definitely-not-a-page-9931/');
   check('unknown path returns 404', missing.status===404, 'HTTP '+missing.status);
+
+  // ── CLAIM (#76): /help renders the studio's live corpus, searchably ──
+  const apiHelp = await (async () => {
+    for (let i = 0; i < 3; i++) {
+      try { const r = await fetch('https://studio.prospektor.ai/api/help'); return { status: r.status, cors: r.headers.get('access-control-allow-origin'), body: await r.json() }; }
+      catch (e) { RELAY_RETRIES.push('https://studio.prospektor.ai/api/help'); }
+    }
+    return null;
+  })();
+  check('studio /api/help serves the corpus cross-origin',
+    !!apiHelp && apiHelp.status===200 && apiHelp.cors==='*' && (apiHelp.body.files||[]).length>=10,
+    apiHelp ? `HTTP ${apiHelp.status}, cors ${apiHelp.cors}, ${(apiHelp.body.files||[]).length} files` : 'unreachable ×3');
+  const hp = await ctx.newPage();
+  await hp.goto(SITE+'/help/', { waitUntil: 'domcontentloaded' });
+  let helpTitle = '';
+  try { await hp.waitForSelector('#helpArticle h1', { timeout: 15000 }); helpTitle = await hp.textContent('#helpArticle h1'); } catch (e) {}
+  check('/help renders the first guide from the live studio', helpTitle==='Getting started', JSON.stringify(helpTitle));
+  await hp.fill('#helpSearch', 'share');
+  let helpHits = false;
+  try { await hp.waitForSelector('#helpResults:not([hidden]) mark', { timeout: 5000 }); helpHits = true; } catch (e) {}
+  check('/help search finds and marks matches', helpHits);
+  await hp.close();
 
   // --- CLAIM (§1): "400 — what they typed is not a domain. Say so inline." ---
   const q1=await ctx.newPage();
