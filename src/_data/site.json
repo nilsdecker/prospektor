@@ -1,10 +1,10 @@
 {
   "name": "Prospektor",
-  "tagline": "Your GTM team in a box",
+  "tagline": "Your AI pre-sales team",
   "url": "https://prospektor.ai",
   "email": "hello@prospektor.ai",
   "privacyEmail": "privacy@prospektor.ai",
-  "description": "Prospektor Partner Studio finds companies worth pitching, researches who they actually are, and drafts the deck, emails and proposal in your voice. Claude does the heavy work — you edit and hit send.",
+  "description": "Prospektor Studio is your AI pre-sales team: it finds and researches companies worth pitching, enriches the decision-makers with sources, maps warm intros from your own network, and drafts the deck, emails, proposal and call prep in your voice. Claude does the heavy work — you stay the closer.",
   "nav": [
     { "label": "What's in the box", "url": "/#what" },
     { "label": "How it works",  "url": "/#how" },

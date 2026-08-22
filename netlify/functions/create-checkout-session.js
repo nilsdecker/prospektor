@@ -1,7 +1,7 @@
 // Opens Stripe Checkout — for the pricing tile's one-field buy form and for
 // the /checkout/ payment step alike.
 //
-// One product, one price: a Prospektor Partner Studio workspace, $999/month,
+// One product, one price: a Prospektor Studio workspace, $999/month,
 // as a subscription (CEO decision, 16 Aug 2026). The price is inline
 // price_data so no dashboard product needs to exist; promotion codes are on
 // so founding-client rates are coupons the operator creates in the Stripe
@@ -124,7 +124,7 @@ exports.handler = async function(event) {
     'line_items[0][price_data][currency]': 'usd',
     'line_items[0][price_data][unit_amount]': '99900',
     'line_items[0][price_data][recurring][interval]': 'month',
-    'line_items[0][price_data][product_data][name]': 'Prospektor Partner Studio — one workspace',
+    'line_items[0][price_data][product_data][name]': 'Prospektor Studio — one workspace',
     allow_promotion_codes: 'true',
     success_url: data.from === 'resubscribe' ? 'https://studio.prospektor.ai/' : site + '/checkout/done/',
     cancel_url: cancelUrl,
