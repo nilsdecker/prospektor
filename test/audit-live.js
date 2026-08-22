@@ -142,6 +142,27 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
   const missing = await fetch(SITE+'/definitely-not-a-page-9931/');
   check('unknown path returns 404', missing.status===404, 'HTTP '+missing.status);
 
+  // ── CLAIM (#64): /privacy/ carries the imported-network reader-section ──
+  // The Art. 14(5)(b) exemption in LIA-contact-graph.md (studio repo) rests on
+  // this information being publicly available. If this check goes red, the
+  // exemption is claimed and not earned — it is a compliance failure, not a
+  // copy nit.
+  const priv = await (async () => {
+    for (let i = 0; i < 3; i++) {
+      try { const r = await fetch(SITE + '/privacy/'); return await r.text(); }
+      catch (e) { RELAY_RETRIES.push(SITE + '/privacy/'); }
+    }
+    return null;
+  })();
+  const privHas = (needle) => !!priv && priv.includes(needle);
+  check('/privacy/ carries the imported-network reader-section',
+    privHas('id="network"') && privHas("If you're in someone's professional network"),
+    priv ? 'section absent' : 'unreachable ×3');
+  check('/privacy/ keeps the two sentences the LIA leans on',
+    privHas("We don't hold your email address")
+      && privHas('Prospektor will never contact you because of this'),
+    priv ? 'one or both sentences gone' : 'unreachable ×3');
+
   // ── CLAIM (#76): /help renders the studio's live corpus, searchably ──
   const apiHelp = await (async () => {
     for (let i = 0; i < 3; i++) {

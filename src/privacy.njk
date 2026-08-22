@@ -2,7 +2,7 @@
 layout: base.njk
 title: Privacy
 description: What Prospektor collects, where it goes, who else sees it, and how long it stays. Written to be read, not to cover us.
-updated: 18 August 2026
+updated: 22 August 2026
 ---
 
 <header class="legal-hero">
@@ -27,12 +27,13 @@ updated: 18 August 2026
       <a href="#accounts"><span class="legal-toc-n">02</span> If you have a studio account</a>
       <a href="#applicants"><span class="legal-toc-n">03</span> If you applied to work with us</a>
       <a href="#research"><span class="legal-toc-n">04</span> If your name came up in research</a>
-      <a href="#viewers"><span class="legal-toc-n">05</span> If you opened a shared pitch</a>
-      <a href="#cookies"><span class="legal-toc-n">06</span> Cookies, tracking and providers</a>
-      <a href="#retention"><span class="legal-toc-n">07</span> How long we keep it</a>
-      <a href="#rights"><span class="legal-toc-n">08</span> Your rights, and how to use them</a>
-      <a href="#separation"><span class="legal-toc-n">09</span> Keeping workspaces apart</a>
-      <a href="#changes"><span class="legal-toc-n">10</span> Changes to this page</a>
+      <a href="#network"><span class="legal-toc-n">05</span> If you're in someone's professional network</a>
+      <a href="#viewers"><span class="legal-toc-n">06</span> If you opened a shared pitch</a>
+      <a href="#cookies"><span class="legal-toc-n">07</span> Cookies, tracking and providers</a>
+      <a href="#retention"><span class="legal-toc-n">08</span> How long we keep it</a>
+      <a href="#rights"><span class="legal-toc-n">09</span> Your rights, and how to use them</a>
+      <a href="#separation"><span class="legal-toc-n">10</span> Keeping workspaces apart</a>
+      <a href="#changes"><span class="legal-toc-n">11</span> Changes to this page</a>
     </div>
 
     <!-- 01 -->
@@ -100,7 +101,7 @@ updated: 18 August 2026
         <p>We don't write to people to tell them they've appeared in a run. We usually hold no way to reach them — no email address, no phone number — and doing it at the volume the studio produces would mean contacting far more people than any client ever approaches. This page is the notice instead. If you want to know whether you're in there, ask and we'll look.</p>
 
         <h3>Who sees it</h3>
-        <p>The list is visible to the client's team inside their own workspace. It isn't sold, published, or shared with anyone else — except that a pitch containing it can be shared with a named person by link, which is covered in <a href="#viewers">section 05</a>. It's processed by the providers in <a href="#subprocessors">section 06</a>, and it isn't deleted on a schedule: see <a href="#retention">section 07</a>.</p>
+        <p>The list is visible to the client's team inside their own workspace. It isn't sold, published, or shared with anyone else — except that a pitch containing it can be shared with a named person by link, which is covered in <a href="#viewers">section 06</a>. It's processed by the providers in <a href="#subprocessors">section 07</a>, and it isn't deleted on a schedule: see <a href="#retention">section 08</a>.</p>
 
         <div class="legal-note">
           <span class="legal-note-tag">object</span>
@@ -110,8 +111,49 @@ updated: 18 August 2026
     </section>
 
     <!-- 05 -->
-    <section class="legal-block" id="viewers">
+    <section class="legal-block" id="network">
       <span class="legal-n">05</span>
+      <div>
+        <h2>If you're in someone's professional network</h2>
+        <p>This section is also for people who never signed up for anything, but you got here a different way from <a href="#research">section 04</a>. Nobody researched you. Somebody who already knows you brought their own contacts into their workspace, and you were among them.</p>
+
+        <h3>What a client's team member can bring in</h3>
+        <p>A member of a client's team can import who they know. Three doors, and each one is a file or a list that is already theirs:</p>
+        <ul class="legal-list">
+          <li><strong>The connections export LinkedIn gave them</strong> — the <code>Connections.csv</code> anyone can download of their own connections. Per connection we hold: name, company, position, the public LinkedIn profile URL, and the date the two of them connected.</li>
+          <li><strong>Their own email address book</strong> — the contacts CSV Google Contacts or Outlook lets a person export. We keep three fields out of it and nothing else: name, company, job title.</li>
+          <li><strong>A list they typed out</strong> — people they know under a label like Investors or Partners, each with an optional short note, in their own words, on how they know them.</li>
+        </ul>
+        <p>There's no integration behind any of this. We don't connect to LinkedIn, we don't read anyone's mailbox, and we hold no key to either. A person exports their own data and uploads the file, or types the names.</p>
+
+        <h3>What we don't hold, which is the part that matters</h3>
+        <p><strong>We don't hold your email address.</strong> A LinkedIn export usually contains some; we drop them at import and never store them. An address book export contains far more — addresses, phone numbers, postal addresses, birthdays, whatever private notes the owner kept — and we read the three professional fields out of it and discard the rest at the door. Both rules are covered by automated tests, because they're the sentences here we'd least like to be wrong about.</p>
+        <p>We hold none of your messages or correspondence either — no emails, no LinkedIn conversations, nothing that passed between you. Only that they know you, and where you work.</p>
+
+        <h3>What it's used for</h3>
+        <p>One thing. When that team prepares a pitch to a target company, the studio looks for a warm path — someone in their network who might be able to introduce them there — and shows them the route: <em>you know this person, who could reach that person at the company you're approaching</em>. It uses public web sources to check the connection it's about to suggest is plausible.</p>
+        <p>An AI model does that matching, so a digest of the network — names, companies, positions, public profile URLs and the member's own notes — is sent to <a href="#subprocessors">Anthropic</a> as part of a prompt. Your email address isn't in it, because it was never stored.</p>
+        <p><strong>Prospektor will never contact you because of this.</strong> Nothing we send is triggered by an import — no notification, no marketing, no mail of any kind. If anyone reaches out, it's the person who already knows you, on their own account, the way they could have anyway.</p>
+
+        <h3>Why we think we're allowed to</h3>
+        <p>Legitimate interests again: a team working out who could introduce them to a company they want to work with. What we hold is professional — your job, your employer, a public profile — and it's information the person who imported it already had about you. We've written the balancing test down rather than just asserted it, and we'll show it to you if you ask.</p>
+
+        <h3>How you'd know</h3>
+        <p>This page. We don't write to imported connections to tell them they're in a workspace, and the reason is the fact above: we deliberately don't keep your email address, so notifying you would mean going out and collecting the very thing we refused to store, for thousands of people, in order to announce that we hold less. That's a worse outcome than the one it announces, so this section is the notice instead. If you want to know whether you're in there, ask and we'll look — across every workspace, by name.</p>
+
+        <h3>Who sees it, and how long it stays</h3>
+        <p>That one team, inside their own workspace. It's never shown to other customers, never carried on a shared pitch, never sold, never pooled with anyone else's. The member who imported it can remove that import whenever they like, and removal deletes every entry it brought — only they can do it, since it was theirs to bring. It goes when their workspace goes. Like everything else here, nothing expires on its own: see <a href="#retention">section 08</a>.</p>
+
+        <div class="legal-note">
+          <span class="legal-note-tag">remove me</span>
+          <p>Email <a href="mailto:{{ site.privacyEmail }}">{{ site.privacyEmail }}</a> with your name and employer and we'll search every workspace and take you out. We won't ask you to justify it, and we won't ask the customer's permission — we act, then tell them we did.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 06 -->
+    <section class="legal-block" id="viewers">
+      <span class="legal-n">06</span>
       <div>
         <h2>If you opened a pitch someone shared with you</h2>
         <p>A finished pitch can be shared as a link. To read it you sign in — with Google, or with a single-use link the studio emails you — so you end up with an account too. You came for someone else's document, and this is the part you're least likely to expect:</p>
@@ -121,9 +163,9 @@ updated: 18 August 2026
       </div>
     </section>
 
-    <!-- 06 -->
+    <!-- 07 -->
     <section class="legal-block" id="cookies">
-      <span class="legal-n">06</span>
+      <span class="legal-n">07</span>
       <div>
         <h2>Cookies, tracking, and who else touches the data</h2>
         <p>No analytics. No advertising. No third-party trackers, no session recording, no fingerprinting. There's no cookie banner because there's nothing to ask you to consent to.</p>
@@ -176,9 +218,9 @@ updated: 18 August 2026
       </div>
     </section>
 
-    <!-- 07 -->
+    <!-- 08 -->
     <section class="legal-block" id="retention">
-      <span class="legal-n">07</span>
+      <span class="legal-n">08</span>
       <div>
         <h2>How long we keep it — and what "delete" actually does</h2>
         <p><strong>Nothing expires on its own.</strong> There is no automatic deletion and no retention limit in the product today. A run from January is still there in December unless somebody removed it.</p>
@@ -197,20 +239,20 @@ updated: 18 August 2026
       </div>
     </section>
 
-    <!-- 08 -->
+    <!-- 09 -->
     <section class="legal-block" id="rights">
-      <span class="legal-n">08</span>
+      <span class="legal-n">09</span>
       <div>
         <h2>Your rights, and how to use them</h2>
         <p>If you're in the UK or EU, you have the right to see what we hold about you, correct it, have it deleted, object to us holding it at all, get a copy in a portable form, and complain to your national data protection authority. We apply the same to everyone wherever they are, because running two standards is more work than running one.</p>
-        <p>To use any of them, email <a href="mailto:{{ site.privacyEmail }}">{{ site.privacyEmail }}</a>. Tell us what you want and enough to find you: for <a href="#research">section 04</a>, your name and employer; for <a href="#viewers">section 05</a> or an account, the email address you signed in with. If we can't identify you from that, we'll ask for more rather than refuse.</p>
+        <p>To use any of them, email <a href="mailto:{{ site.privacyEmail }}">{{ site.privacyEmail }}</a>. Tell us what you want and enough to find you: for <a href="#research">section 04</a> or <a href="#network">section 05</a>, your name and employer, since those are the only handles we have on you; for <a href="#viewers">section 06</a> or an account, the email address you signed in with. If we can't identify you from that, we'll ask for more rather than refuse.</p>
         <p>What then actually happens: a person goes and does it by hand. We'll confirm when it's done, and we'll come back to you within a month at the outside — normally much sooner. Where the data sits inside a client's workspace, we'll act on it and tell that client.</p>
       </div>
     </section>
 
-    <!-- 09 -->
+    <!-- 10 -->
     <section class="legal-block" id="separation">
-      <span class="legal-n">09</span>
+      <span class="legal-n">10</span>
       <div>
         <h2>Keeping workspaces apart</h2>
         <p>Every stored record is namespaced by client, and the workspace is resolved fresh from your signed-in email on every single request. One client's data isn't addressable from another client's session, and removing somebody from a client's allowlist takes effect immediately rather than at their next sign-in. That behaviour is covered by automated tests.</p>
@@ -219,9 +261,9 @@ updated: 18 August 2026
       </div>
     </section>
 
-    <!-- 10 -->
+    <!-- 11 -->
     <section class="legal-block" id="changes">
-      <span class="legal-n">10</span>
+      <span class="legal-n">11</span>
       <div>
         <h2>Changes to this page</h2>
         <p>If we change what we collect, we change this page and move the date at the top. Where it's a material change for people with accounts, we'll say so in the studio rather than hope you re-read this.</p>
