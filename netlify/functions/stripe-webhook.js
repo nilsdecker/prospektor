@@ -280,7 +280,7 @@ async function sendWelcomeEmail(email) {
   if (!process.env.POSTMARK_SERVER_TOKEN) return;
 
   const textBody = [
-    'Your Prospektor Partner Studio is ready.',
+    'Your Prospektor Studio is ready.',
     '',
     'Sign in here: https://studio.prospektor.ai/?signin=' + encodeURIComponent(email),
     'Sign in with Google, using this address — the one you paid with — or have the studio email you a sign-in link from that page. Either way, that is the whole setup.',
@@ -312,7 +312,7 @@ async function sendWelcomeEmail(email) {
     <p style="font-size:13px;color:${BRAND.inkFaint};line-height:1.65;margin:20px 0 0;">
       Paid with your work email? Every colleague on your domain can sign in the same way.
     </p>`,
-    'You&#39;re getting this one email because you started a Prospektor Partner Studio. Questions? Just reply — it reaches a human at hello@prospektor.ai.');
+    'You&#39;re getting this one email because you started a Prospektor Studio. Questions? Just reply — it reaches a human at hello@prospektor.ai.');
 
   await sendMail({ to: email, subject: 'Your studio is ready — sign in', textBody, htmlBody });
 }

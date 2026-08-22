@@ -391,9 +391,10 @@ nav {
   transition: background .2s;
 }
 .wc:hover { background: var(--off-white); }
-.wc:nth-child(1) { border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-.wc:nth-child(2) { border-bottom: 1px solid var(--border); }
-.wc:nth-child(3) { border-right: 1px solid var(--border); }
+/* Any even number of cards in two columns: odd cards carry the column rule,
+   every card above the last row carries the row rule. */
+.wc:nth-child(odd) { border-right: 1px solid var(--border); }
+.wc:not(:nth-last-child(-n+2)) { border-bottom: 1px solid var(--border); }
 
 .wc-n {
   font-family: var(--mono); font-size: 0.65rem; color: var(--ink-faint);
@@ -973,6 +974,8 @@ footer {
   .section { padding: 4rem 1.25rem; }
   .what-layout, .how-layout, .ai-layout { grid-template-columns: 1fr; gap: 2.5rem; }
   .what-grid { grid-template-columns: 1fr; }
+  .what-grid .wc { border-right: none; }
+  .what-grid .wc:not(:last-child) { border-bottom: 1px solid var(--border); }
   .who-grid { grid-template-columns: 1fr; }
   .proof { grid-template-columns: 1fr 1fr; }
   .proof-item:nth-child(2n) { border-right: none; }
