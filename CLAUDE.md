@@ -1,25 +1,31 @@
 # Working in this repo
 
 This is the **WEBSITE lane** of Prospektor: prospektor.ai, an Eleventy
-static site with Netlify functions. The product itself (Prospektor Partner
-Studio) lives in `prospektor-ai/studio` — the master board is that repo's
-`ROADMAP.md`, and this lane's contract file is `HANDOVER-website-funnel.md`
-there. Read both before starting anything; the handover documents the
-studio's live endpoints (`/api/scan`, `/api/provision`) and everything
-needed to build against them without reading the studio's code.
+static site with Netlify functions. The product itself (Prospektor
+Studio — renamed from "Partner Studio", 21 Aug 2026) lives in
+`prospektor-ai/studio` — the master board is that repo's `BOARD.md`
+(its archive is `ROADMAP.md`), and this lane's contract file is
+`HANDOVER-website-funnel.md` there. Read all three before starting
+anything; the handover documents the studio's live endpoints
+(`/api/scan`, `/api/provision`) and everything needed to build against
+them without reading the studio's code.
 
 ## Thread protocol
 
 1. **Every thread's opening message starts with the lane and deliverable on
    the first line**: `WEBSITE — the scan field`. One deliverable per thread.
-2. Start by reading the handover file (and ROADMAP.md) in
-   `prospektor-ai/studio` — it is public, clone it read-only.
+2. Start by reading the handover file (and BOARD.md / ROADMAP.md) in
+   `prospektor-ai/studio`. **That repo is private** (found 21 Aug 2026),
+   so website sessions must be launched with `prospektor-ai/studio`
+   attached in scope — until the operator either restores public
+   visibility or changes this protocol, a session that cannot read it
+   should say so and stop rather than guess at the contract.
 3. **Before pushing: `npm test`** (35 function tests, no network, no keys).
    If the change touches a page or a client flow, also `npm run drive` —
    it builds and drives the built site in a browser with the functions
    mocked. `npm run build` must of course succeed.
    After deploying, `npm run audit` asks **production** whether this board is
-   still telling the truth: 25 claims, read-only, safe to run any time. It is
+   still telling the truth: 29 claims, read-only, safe to run any time. It is
    how `app.prospektor.ai` was found still serving the pre-pivot agency page
    that the log had recorded as gone.
 4. A deliverable is not shipped until the handover file in the studio repo
