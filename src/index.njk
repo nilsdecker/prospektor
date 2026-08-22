@@ -6,6 +6,13 @@ layout: base.njk
 <section class="hero">
   <div class="hero-ai-tag">Prospektor Studio</div>
 
+  <!-- The headline sits inside .hero-rest so a scan's focus mode still
+       collapses it: from the moment a scan starts, the scan is the page. -->
+  <div class="hero-rest" id="heroRest">
+    <h1>Your AI <span class="accent">pre-sales</span> team.</h1>
+    <p class="hero-sub">It finds the companies, the people and the words. You close.</p>
+  </div>
+
   <!-- The scan field: POST /api/scan, poll, render the proposal. scan.js drives it. -->
   <div class="scan-hero" id="scan">
     <form class="scan-form" id="scanForm" novalidate>
@@ -14,7 +21,7 @@ layout: base.njk
              spellcheck="false" placeholder="yourcompany.com" aria-label="Your company website">
       <button class="scan-btn" type="submit" id="scanBtn">Scan</button>
     </form>
-    <p class="scan-hint" id="scanHint">We read your site and propose the targets you should be hunting — free, ~30 seconds.</p>
+    <p class="scan-hint" id="scanHint">Free · no sign-up · it reads your site and proposes your targets in ~30 seconds</p>
     <p class="scan-error" id="scanError" hidden></p>
 
     <div aria-live="polite">
@@ -41,211 +48,178 @@ layout: base.njk
       </div>
     </div>
   </div>
-
-  <div class="hero-rest" id="heroRest">
-    <h1>Your AI <span class="accent">pre-sales</span> team.</h1>
-    <p class="hero-sub">Prospektor does the BDR grind and the AE prep: it finds companies worth pitching, proves who they actually are, enriches the decision-makers, maps who you already know there — and drafts the deck, emails, proposal and call sheet in your voice. You stay the closer.</p>
-    <div class="hero-actions">
-      <a href="#how" class="btn-ghost">See how it works →</a>
-    </div>
-    <p class="hero-note">Free scan · No sign-up to try it · From company name to drafted pitch in minutes</p>
-  </div>
 </section>
 <script src="/assets/js/scan.js"></script>
 
-<!-- PROOF -->
-<div class="proof reveal">
-  <div class="proof-item"><span class="proof-num">Minutes</span><span class="proof-label">From company name to drafted pitch</span></div>
-  <div class="proof-item"><span class="proof-num">100</span><span class="proof-label">Companies per batch — paste a list, get a pitch library</span></div>
-  <div class="proof-item"><span class="proof-num">0</span><span class="proof-label">Invented facts, names or connectors — no source, no claim</span></div>
-  <div class="proof-item"><span class="proof-num">3</span><span class="proof-label">Researched prospects at first sign-in</span></div>
-</div>
-
-<!-- WHAT'S IN THE BOX -->
-<section class="what section" id="what">
-  <div class="inner">
-    <div class="what-layout">
-      <div class="reveal">
-        <span class="tag">what's in the box</span>
-        <h2 class="section-h2">Pre-sales to closed, one loop.</h2>
-        <p class="what-desc">Not a scraped lead list. The studio finds the companies worth your time, proves who they are, enriches the people, writes what you'd actually send — then preps the call and remembers what worked.</p>
-      </div>
-      <div class="what-grid reveal d1">
-        <div class="wc"><div class="wc-n">01</div><h3>Deal discovery</h3><p>Type a company, paste a list of a hundred, or press "find more" on an empty box. The studio suggests lookalikes worth pitching and scores every one against what you told it to hunt.</p></div>
-        <div class="wc"><div class="wc-n">02</div><h3>Research that shows its work</h3><p>It reads the target's own website before anything else runs. Every pitch lists the pages it opened and the same-named companies it ruled out.</p></div>
-        <div class="wc"><div class="wc-n">03</div><h3>AI-powered enrichment</h3><p>Decision-makers named only where a credible source backs the name — rated confirmed, likely or unverified, with 1st/2nd/3rd-degree LinkedIn search chips on every row. No source, no name.</p></div>
-        <div class="wc"><div class="wc-n">04</div><h3>The pitch, drafted</h3><p>Pitch deck, one-pager, cold-email sequence and written proposal — on your brand, in your voice, every block editable in place, print-to-PDF over your own stylesheet.</p></div>
-        <div class="wc"><div class="wc-n">05</div><h3>Calls, prepped both ways</h3><p>Before a call you booked: one sheet — the goal, grounded talking points, the objection they'll raise with an answer you can say verbatim. For a call someone's asking for: paste their outreach and get take-it-or-skip-it, argued from your own brief.</p></div>
-        <div class="wc"><div class="wc-n">06</div><h3>Warm paths in</h3><p>Bring your network — a LinkedIn export or a pasted list — and every pitch maps you → connector → target, with a forwardable intro request drafted in your voice. No connector is ever invented.</p></div>
-      </div>
+<!-- THE GRIND, HANDLED -->
+<section class="section-big" id="what">
+  <h2 class="sec-big reveal">The grind, handled.</h2>
+  <div class="grind-grid reveal d1">
+    <div class="gcard">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.3-4.3"></path></svg>
+      <h3>Find</h3>
+      <p>Lookalikes worth pitching, scored against your goal.</p>
+    </div>
+    <div class="gcard">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+      <h3>Enrich</h3>
+      <p>Decision-makers with sources. No source, no name.</p>
+    </div>
+    <div class="gcard">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
+      <h3>Draft</h3>
+      <p>Deck, one-pager, emails, proposal — your voice.</p>
+    </div>
+    <div class="gcard">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z"></path></svg>
+      <h3>Prep</h3>
+      <p>The call sheet: the objection, and the answer.</p>
     </div>
   </div>
 </section>
 
-<!-- HOW IT WORKS -->
-<section class="how section" id="how">
-  <div class="inner">
-    <div class="how-layout">
-      <div>
-        <span class="tag reveal">how it works</span>
-        <h2 class="section-h2 reveal">From your URL<br>to your first pitch.</h2>
-        <div class="how-steps">
-          <div class="how-step reveal"><span class="step-n">01</span><div><h3>Scan your site</h3><p>The field up top. The studio reads your website and proposes what it should hunt for you — that proposal is yours to confirm or sharpen.</p></div></div>
-          <div class="how-step reveal d1"><span class="step-n">02</span><div><h3>Check out</h3><p>The moment payment lands, your workspace is created and researched — the studio is reading your site while you're still on the receipt page.</p></div></div>
-          <div class="how-step reveal d2"><span class="step-n">03</span><div><h3>Sign in and go</h3><p>You arrive in a studio already full of you: brief drafted, goal pre-filled, three researched prospects ready to run. Use your work email and your whole team gets in.</p></div></div>
-          <div class="how-step reveal d3"><span class="step-n">04</span><div><h3>Run pitches</h3><p>Thumbs-up a prospect — or paste a whole list and run it as a batch. Minutes later the research, deliverables and decision-makers are there. Your edits teach it your voice for next time.</p></div></div>
+<!-- NAME A COMPANY — the animated run card is the whole explanation -->
+<section class="section-big termsec" id="how">
+  <h2 class="sec-big reveal">Name a company.<br>That's the job.</h2>
+  <p class="sec-sub reveal">Six stages. Minutes. It shows its work.</p>
+  <div class="termwrap reveal d1">
+    <div class="build-card">
+      <div class="build-titlebar">
+        <div class="ttdot" style="background:#f87171;"></div>
+        <div class="ttdot" style="background:#fbbf24;"></div>
+        <div class="ttdot" style="background:#4ade80;"></div>
+        <span class="build-filename">prospektor studio · pitch run · northwind.io</span>
+      </div>
+      <div class="build-body">
+        <div class="code-lines" id="codeLines">
+          <div class="cl" id="cll1"><span class="ln">1</span><span class="cm">// understand: who is northwind.io, actually?</span></div>
+          <div class="cl" id="cll2"><span class="ln">2</span><span class="ac">✓</span> <span class="tx">read 6 pages · ruled out 2 same-named companies</span></div>
+          <div class="cl" id="cll3"><span class="ln">3</span><span class="cm">// research + score against your brief</span></div>
+          <div class="cl" id="cll4"><span class="ln">4</span><span class="ac">✓</span> <span class="tx">fit thesis drafted — signals for and against</span></div>
+          <div class="cl" id="cll5"><span class="ln">5</span>&nbsp;</div>
+          <div class="cl" id="cll6"><span class="ln">6</span><span class="cm">// drafting deliverables in your voice</span></div>
+          <div class="cl" id="cll7"><span class="ln">7</span><span class="ac">✓</span> <span class="tx">deck · one-pager · cold emails · proposal</span></div>
+          <div class="cl" id="cll8"><span class="ln">8</span><span class="ac">✓</span> <span class="tx">no invented numbers — 1 placeholder flagged</span></div>
+          <div class="cl" id="cll9"><span class="ln">9</span>&nbsp;</div>
+          <div class="cl" id="cll10"><span class="ln">10</span><span class="cm">// decision-makers — no fabricated people</span></div>
+          <div class="cl" id="cll11"><span class="ln">11</span><span class="ac">✓</span> <span class="tx">2 named with sources · 1 role left for enrichment</span></div>
+          <div class="cl" id="cll12"><span class="ln">12</span><span class="ac">✓</span> <span class="tx">4 lookalikes queued — "Run 3 pitches"</span></div>
+          <div class="cl" id="cll13"><span class="ln">13</span>&nbsp;</div>
+          <div class="cl" id="cll14"><span class="ln">14</span><span class="cm">// compliance read-back</span></div>
+          <div class="cl" id="cll15"><span class="ln">15</span><span class="ac">✓</span> <span class="tx">0 banned terms · every claim sourced</span></div>
+          <div class="cl" id="cll16"><span class="ln">16</span><span class="ac">✓</span> <span class="tx">pitch ready to edit — minutes, not weeks</span></div>
         </div>
       </div>
-
-      <!-- ANIMATED RUN CARD — mirrors the studio's own run view -->
-      <div class="reveal d1">
-        <div class="build-card">
-          <div class="build-titlebar">
-            <div class="ttdot" style="background:#f87171;"></div>
-            <div class="ttdot" style="background:#fbbf24;"></div>
-            <div class="ttdot" style="background:#4ade80;"></div>
-            <span class="build-filename">prospektor studio · pitch run · northwind.io</span>
-          </div>
-          <div class="build-body">
-            <div class="code-lines" id="codeLines">
-              <div class="cl" id="cll1"><span class="ln">1</span><span class="cm">// understand: who is northwind.io, actually?</span></div>
-              <div class="cl" id="cll2"><span class="ln">2</span><span class="ac">✓</span> <span class="tx">read 6 pages · ruled out 2 same-named companies</span></div>
-              <div class="cl" id="cll3"><span class="ln">3</span><span class="cm">// research + score against your brief</span></div>
-              <div class="cl" id="cll4"><span class="ln">4</span><span class="ac">✓</span> <span class="tx">fit thesis drafted — signals for and against</span></div>
-              <div class="cl" id="cll5"><span class="ln">5</span>&nbsp;</div>
-              <div class="cl" id="cll6"><span class="ln">6</span><span class="cm">// drafting deliverables in your voice</span></div>
-              <div class="cl" id="cll7"><span class="ln">7</span><span class="ac">✓</span> <span class="tx">deck · one-pager · cold emails · proposal</span></div>
-              <div class="cl" id="cll8"><span class="ln">8</span><span class="ac">✓</span> <span class="tx">no invented numbers — 1 placeholder flagged</span></div>
-              <div class="cl" id="cll9"><span class="ln">9</span>&nbsp;</div>
-              <div class="cl" id="cll10"><span class="ln">10</span><span class="cm">// decision-makers — no fabricated people</span></div>
-              <div class="cl" id="cll11"><span class="ln">11</span><span class="ac">✓</span> <span class="tx">2 named with sources · 1 role left for enrichment</span></div>
-              <div class="cl" id="cll12"><span class="ln">12</span><span class="ac">✓</span> <span class="tx">4 lookalikes queued — "Run 3 pitches"</span></div>
-              <div class="cl" id="cll13"><span class="ln">13</span>&nbsp;</div>
-              <div class="cl" id="cll14"><span class="ln">14</span><span class="cm">// compliance read-back</span></div>
-              <div class="cl" id="cll15"><span class="ln">15</span><span class="ac">✓</span> <span class="tx">0 banned terms · every claim sourced</span></div>
-              <div class="cl" id="cll16"><span class="ln">16</span><span class="ac">✓</span> <span class="tx">pitch ready to edit — minutes, not weeks</span></div>
-            </div>
-          </div>
-          <div class="build-footer">
-            <div class="build-progress-label">
-              <span id="buildLbl">Running...</span>
-              <span id="buildPct">0%</span>
-            </div>
-            <div class="build-bar"><div class="build-fill" id="bFill"></div></div>
-            <div class="build-status-row">
-              <div class="bstat" id="bst1"><span class="bstat-dot"></span> understand</div>
-              <div class="bstat" id="bst2"><span class="bstat-dot"></span> research</div>
-              <div class="bstat" id="bst3"><span class="bstat-dot"></span> score</div>
-              <div class="bstat" id="bst4"><span class="bstat-dot"></span> draft</div>
-              <div class="bstat" id="bst5"><span class="bstat-dot"></span> people</div>
-              <div class="bstat" id="bst6"><span class="bstat-dot"></span> check</div>
-            </div>
-          </div>
+      <div class="build-footer">
+        <div class="build-progress-label">
+          <span id="buildLbl">Running...</span>
+          <span id="buildPct">0%</span>
         </div>
-      </div>
-
-    </div>
-  </div>
-</section>
-
-<!-- NO BS -->
-<section class="ai section" id="ai">
-  <div class="inner">
-    <div class="ai-layout">
-      <div class="reveal">
-        <span class="tag">no bs</span>
-        <h2 class="section-h2">Claude does the heavy work.<br>You stay the closer.</h2>
-        <div class="ai-points">
-          <div class="ai-pt"><span class="ai-pt-arrow">→</span><div><h4>Real reading, not vibes</h4><p>Every run opens the target's website and settles who they are before a word is drafted. The pitch ships with what was read — and what was ruled out.</p></div></div>
-          <div class="ai-pt"><span class="ai-pt-arrow">→</span><div><h4>No invented facts</h4><p>Numbers come from your brief or a cited source; anything else becomes a bracketed placeholder, listed for you to fill. Drafts are checked against your banned terms before you see them.</p></div></div>
-          <div class="ai-pt"><span class="ai-pt-arrow">→</span><div><h4>It learns your voice</h4><p>Drafts you edit become voice examples for future runs — tone and structure only. One company's facts never end up in another's pitch.</p></div></div>
-        </div>
-      </div>
-      <div class="reveal d2">
-        <div class="slogan-card">
-          <div>
-            <div style="font-family:var(--mono);font-size:0.65rem;color:var(--accent);margin-bottom:0.75rem;letter-spacing:0.06em;">PROSPEKTOR STUDIO</div>
-            <div class="slogan-main">Your <span>pre-sales team</span><br>in a box.</div>
-          </div>
-          <div class="slogan-desc">Discovery, enrichment, drafting, call prep and warm paths in one workspace. Claude runs the six stages; you approve what leaves the building.</div>
-          <div class="slogan-stat-row">
-            <div class="slogan-stat"><span class="slogan-stat-num">6</span><span class="slogan-stat-label">Stages per run</span></div>
-            <div class="slogan-stat"><span class="slogan-stat-num">100</span><span class="slogan-stat-label">Companies per batch</span></div>
-            <div class="slogan-stat"><span class="slogan-stat-num">0</span><span class="slogan-stat-label">Invented facts</span></div>
-            <div class="slogan-stat"><span class="slogan-stat-num">1 click</span><span class="slogan-stat-label">To revoke a shared pitch</span></div>
-          </div>
+        <div class="build-bar"><div class="build-fill" id="bFill"></div></div>
+        <div class="build-status-row">
+          <div class="bstat" id="bst1"><span class="bstat-dot"></span> understand</div>
+          <div class="bstat" id="bst2"><span class="bstat-dot"></span> research</div>
+          <div class="bstat" id="bst3"><span class="bstat-dot"></span> score</div>
+          <div class="bstat" id="bst4"><span class="bstat-dot"></span> draft</div>
+          <div class="bstat" id="bst5"><span class="bstat-dot"></span> people</div>
+          <div class="bstat" id="bst6"><span class="bstat-dot"></span> check</div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- WHO -->
-<section class="who section" id="who">
-  <div class="inner">
-    <span class="tag reveal">who it's for</span>
-    <h2 class="section-h2 reveal">For the people<br>who carry the number.</h2>
-    <div class="who-grid reveal d1">
-      <div class="who-card"><div class="who-stage">SDR / BDR teams</div><h3>The prospecting grind, automated</h3><p>List building, qualification, enrichment and the first-touch emails — a pasted list becomes a library of researched pitches with the outreach already written. Inbound? Paste their message and get take-it-or-skip-it before you give up a slot.</p></div>
-      <div class="who-card"><div class="who-stage">Account executives</div><h3>Dealflow velocity</h3><p>Call prep in about a minute from research you already have: goal, talking points, the objection with an answer you can say out loud. Ask the studio how to open the call, share the pitch, revoke it in one click, log what happened.</p></div>
-      <div class="who-card"><div class="who-stage">Founders &amp; partnership leads</div><h3>Founder-led, minus the blank page</h3><p>Three researched prospects wait at first sign-in — confirm one sentence and run them. You pick the motion and value angle in your own vocabulary; the studio argues your case with it.</p></div>
+<!-- ONE LIST IN -->
+<section class="section-big batch">
+  <h2 class="sec-big reveal">One list in.<br>A pitch library out.</h2>
+  <div class="batch-flow reveal d1">
+    <div class="batch-card">
+      <span class="batch-label">targets.csv</span>
+      <span class="batch-num">47 <em>companies</em></span>
     </div>
-    <div class="who-not reveal d2">
-      <span class="who-not-tag">not a fit</span>
-      <p>If you want ten thousand scraped emails, this isn't it. The studio goes deep on a shortlist of companies actually worth pitching — research you could defend in the meeting.</p>
+    <svg class="batch-arrow" width="44" height="24" viewBox="0 0 44 24" fill="none" stroke="#00B37E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h38"></path><path d="M32 4l8 8-8 8"></path></svg>
+    <div class="batch-card is-out">
+      <span class="batch-label">library</span>
+      <span class="batch-num">47 <em>pitches, drafted</em></span>
     </div>
   </div>
+  <p class="sec-sub reveal d2">Paste a list, close the tab. Up to 100 at a time.</p>
+</section>
+
+<!-- WARM PATHS -->
+<section class="section-big">
+  <h2 class="sec-big reveal">Warm intros from people<br>you already know.</h2>
+  <div class="warm-flow reveal d1">
+    <span class="warm-chip">You</span>
+    <svg class="warm-arrow" width="36" height="20" viewBox="0 0 36 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 10h28"></path><path d="M24 3l7 7-7 7"></path></svg>
+    <span class="warm-chip is-connector">M. Keller<em>your seed investor</em></span>
+    <svg class="warm-arrow" width="36" height="20" viewBox="0 0 36 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 10h28"></path><path d="M24 3l7 7-7 7"></path></svg>
+    <span class="warm-chip is-target">northwind.io</span>
+  </div>
+  <p class="sec-sub reveal d2">Your network, mapped against every target — with the intro request drafted.</p>
 </section>
 
 <!-- PRICING -->
-<section class="pricing section" id="pricing">
-  <div class="inner">
-    <div class="pricing-head">
-      <span class="tag reveal">pricing</span>
-      <h2 class="section-h2 reveal">One price. The whole box.</h2>
-      <p class="pricing-sub reveal d1">Less than an outsourced SDR — who works one channel, sends plain-text mail, and leaves you nothing branded.</p>
+<section class="pricing section-big" id="pricing">
+  <h2 class="sec-big reveal">One price. The whole box.</h2>
+  <div class="pricing-card reveal d1">
+    <div class="price-row">
+      <span class="price-num">$999</span>
+      <span class="price-per">/ month · per workspace</span>
     </div>
-    <div class="pricing-card reveal d1">
-      <div class="price-row">
-        <span class="price-num">$999</span>
-        <span class="price-per">/ month · per workspace</span>
-      </div>
-      <ul class="pricing-list">
-        <li>Unlimited pitch runs, under fair use — one target or a hundred-company batch</li>
-        <li>Every run drafted in full: deck, one-pager, cold-email sequence, proposal</li>
-        <li>Enriched decision-makers with sources, warm-path mapping from your own network, call prep, inbound evaluation</li>
-        <li>Your whole team in — a work email brings its domain, no seats to count</li>
-        <li>No setup fee, no metering, no annual lock-in</li>
-      </ul>
-      <!-- The price buys the thing: this submits straight into a Stripe
-           Checkout Session, no onboarding page in between. The one field is
-           the address that becomes the studio's sign-in — collected here
-           rather than at Stripe so the ownership guard has somewhere to run
-           before $999 moves (server enforces it either way). -->
-      <div class="buy" id="buy">
-        <a href="/checkout/" class="btn-cta" id="buyLink">Start my studio →</a>
-        <form class="reserve-form buy-form" id="buyForm" hidden novalidate>
-          <input class="reserve-input" id="buyEmail" type="email" autocomplete="email"
-                 placeholder="you@yourcompany.com" aria-label="Your work email">
-          <button class="btn-cta" type="submit" id="buyBtn">Pay &amp; start &mdash; $999/mo →</button>
-        </form>
-        <input class="reserve-input buy-site" id="buySite" type="text" inputmode="url" autocomplete="url"
-               placeholder="yourcompany.com" aria-label="Your company website" hidden>
-        <p class="reserve-msg is-error" id="buyMsg" hidden></p>
-        <p class="buy-note">
-          <span id="buyLive" hidden>Next stop is Stripe. This address becomes your studio's sign-in — a work email brings your whole team in with you. </span>Pay first, money back if it doesn't earn its keep — no trial theater. Or <a href="#scan">scan your site ↑</a> to see what it'd hunt, free.
-        </p>
-      </div>
+    <p class="price-line">Unlimited runs · your whole team in · money back if it doesn't earn its keep</p>
+    <!-- The price buys the thing: this submits straight into a Stripe
+         Checkout Session, no onboarding page in between. The one field is
+         the address that becomes the studio's sign-in — collected here
+         rather than at Stripe so the ownership guard has somewhere to run
+         before $999 moves (server enforces it either way). -->
+    <div class="buy" id="buy">
+      <a href="/checkout/" class="btn-cta" id="buyLink">Start my studio →</a>
+      <form class="reserve-form buy-form" id="buyForm" hidden novalidate>
+        <input class="reserve-input" id="buyEmail" type="email" autocomplete="email"
+               placeholder="you@yourcompany.com" aria-label="Your work email">
+        <button class="btn-cta" type="submit" id="buyBtn">Pay &amp; start &mdash; $999/mo →</button>
+      </form>
+      <input class="reserve-input buy-site" id="buySite" type="text" inputmode="url" autocomplete="url"
+             placeholder="yourcompany.com" aria-label="Your company website" hidden>
+      <p class="reserve-msg is-error" id="buyMsg" hidden></p>
+      <p class="buy-note">
+        <span id="buyLive" hidden>Next stop is Stripe. This address becomes your studio's sign-in — a work email brings your whole team in with you. </span>Pay first, money back if it doesn't earn its keep — no trial theater.
+      </p>
     </div>
   </div>
 </section>
 <script src="/assets/js/buy.js"></script>
 
+<!-- FAQ -->
+<section class="section-big faq">
+  <h2 class="sec-mid reveal">The fine print, on request.</h2>
+  <div class="faq-list reveal d1">
+    <details>
+      <summary>Where do the names come from?<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></summary>
+      <p>A decision-maker is named only when a credible public source backs the name, and the pitch links what was read. Every name is rated — confirmed, likely or unverified. No source, no name: the role is returned blank instead.</p>
+    </details>
+    <details>
+      <summary>Will it invent facts?<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></summary>
+      <p>No. Numbers come from your brief or a cited source; anything else becomes a bracketed placeholder, listed for you to fill. Every draft is read back against your banned terms before you see it.</p>
+    </details>
+    <details>
+      <summary>How does my team get in?<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></summary>
+      <p>Pay with your work email and every colleague on your domain signs straight in — no seats to count. Sign-in is Google or an emailed single-use link; there are no passwords.</p>
+    </details>
+    <details>
+      <summary>What happens to my data?<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></summary>
+      <p>Workspaces are strictly separated — your research, pitches and network are visible to your team only. Email addresses in a LinkedIn export are deleted at import, and your network never travels on a shared pitch. The <a href="/privacy/">privacy page</a> says the rest, plainly.</p>
+    </details>
+    <details>
+      <summary>What if it's not for us?<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></summary>
+      <p>Money back if it doesn't earn its keep — no trial theater. And if you want ten thousand scraped emails, this isn't it: the studio goes deep on a shortlist worth pitching.</p>
+    </details>
+  </div>
+</section>
+
 <!-- CTA -->
 <section class="cta" id="try">
-  <span class="tag reveal">try it on yourself</span>
   <h2 class="reveal">See what it'd <span class="accent">hunt</span> for you.</h2>
-  <p class="cta-sub reveal">Scan your site up top — the proposal is free and takes about thirty seconds. If it's off, you sharpen one sentence after checkout.</p>
-  <a href="#scan" class="btn-cta reveal">Scan your site ↑</a>
-  <p class="cta-note reveal">Sign in with Google or an emailed link · A work email brings your whole team</p>
+  <a href="#scan" class="btn-cta reveal">Scan your site — free</a>
 </section>
