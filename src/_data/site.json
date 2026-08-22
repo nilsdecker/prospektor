@@ -6,9 +6,8 @@
   "privacyEmail": "privacy@prospektor.ai",
   "description": "Prospektor Studio is your AI pre-sales team: it finds and researches companies worth pitching, enriches the decision-makers with sources, maps warm intros from your own network, and drafts the deck, emails, proposal and call prep in your voice. Claude does the heavy work — you stay the closer.",
   "nav": [
-    { "label": "What's in the box", "url": "/#what" },
+    { "label": "What it does", "url": "/#what" },
     { "label": "How it works",  "url": "/#how" },
-    { "label": "Who it's for", "url": "/#who" },
     { "label": "Pricing", "url": "/#pricing" }
   ],
   "legal": [
