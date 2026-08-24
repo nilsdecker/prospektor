@@ -191,7 +191,13 @@ updated: 24 August 2026
           <li><code>pps_oauth_state</code> — 10 minutes, protects the sign-in against cross-site request forgery.</li>
           <li><code>pps_share</code> — 10 minutes, remembers which share link sent you to the sign-in page.</li>
         </ul>
-        <p>The last two are cleared as soon as sign-in finishes. The studio also keeps your light/dark choice and your library sort order in your own browser, and nothing else; its own <a href="https://studio.prospektor.ai/#cookies">Cookies</a> link lists every item.</p>
+        <p>The last two are cleared as soon as sign-in finishes. It keeps three more things in your browser, which never leave it:</p>
+        <ul class="legal-list">
+          <li><code>pps-theme</code> — this device's light/dark choice. Not stored against your account, so nobody, us included, can read how you like to look at the studio. Until you clear site data.</li>
+          <li><code>pps-library-sort</code> — how this device likes the library sorted. Until you clear site data.</li>
+          <li><code>pps-consent</code> — your answer to the studio's own cookie notice, with the date. 12 months, then it asks again.</li>
+        </ul>
+        <p>That is the whole list, on both properties, and it is the same list the code works from: the studio's own <a href="https://studio.prospektor.ai/#cookies">Cookies</a> link shows it, item by item, and is where you change your answer there.</p>
 
         <h3>Fonts</h3>
         <!-- Corrected 24 Aug 2026 (#89). What stood here said the studio loads
