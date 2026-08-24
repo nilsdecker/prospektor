@@ -24,6 +24,57 @@
 
   var STUDIO = 'https://studio.prospektor.ai';
 
+  /* How long a reader may be made to wait on the studio (#185).
+
+     Every fetch of /api/help in this codebase used to be unbounded, and the
+     fallback chain #136 built did not cover that. Its four tests rehearse a
+     studio that is DEAD — refusing, lying, malformed — and a dead endpoint
+     fails fast and falls back. A HANGING one does not fail at all: the promise
+     never settles, so the catch that shows the built-in copy never runs and
+     the retry button is never offered. #185 measured one request in three
+     never completing, and that is the shape it takes on the page.
+
+     Three seconds, because the endpoint answers in 0.2–0.8s when it answers,
+     and because the reader is not waiting for this: since #136 the guides are
+     already in the served HTML. The fetch only reconciles a corpus the studio
+     may have moved since the last build, which is worth three seconds and not
+     one second more. */
+  var CORPUS_TIMEOUT_MS = 3000;
+
+  /* The corpus, or a rejection — never an open promise. Resolves with the
+     parsed body; rejects on a bad status, unparseable JSON, or the deadline.
+
+     `AbortController` is missing in a few browsers old enough to have `fetch`
+     without it; there the deadline still rejects on time and only the socket
+     is left to the browser to clean up. The caller's failure path is what
+     matters, and it runs either way. */
+  function fetchCorpus(api, timeoutMs) {
+    var ms = timeoutMs || CORPUS_TIMEOUT_MS;
+    return new Promise(function (resolve, reject) {
+      var control = typeof AbortController === 'function' ? new AbortController() : null;
+      var done = false;
+      var timer = setTimeout(function () {
+        if (control) control.abort();
+        settle(reject, new Error('no answer in ' + ms + 'ms'));
+      }, ms);
+
+      function settle(fn, value) {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        fn(value);
+      }
+
+      fetch(api, control ? { signal: control.signal } : undefined)
+        .then(function (r) {
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          return r.json();
+        })
+        .then(function (body) { settle(resolve, body); },
+              function (e) { settle(reject, e); });
+    });
+  }
+
   function esc(s) {
     return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
       .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -550,6 +601,8 @@
 
   return {
     STUDIO: STUDIO,
+    CORPUS_TIMEOUT_MS: CORPUS_TIMEOUT_MS,
+    fetchCorpus: fetchCorpus,
     esc: esc,
     slugify: slugify,
     slugOf: slugOf,

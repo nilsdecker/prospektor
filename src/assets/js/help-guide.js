@@ -51,8 +51,10 @@
     restore();
   }
 
-  fetch(API)
-    .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+  /* With a deadline (#185). Everything above is why the failure path has to be
+     reachable at all: a hanging studio used to leave this promise pending
+     forever, which is the same as having no failure path. */
+  H.fetchCorpus(API, H.CORPUS_TIMEOUT_MS)
     .then(function (body) {
       var files = (body && body.files) || [];
       var mine = null;

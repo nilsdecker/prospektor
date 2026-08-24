@@ -345,6 +345,79 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     await page.close();
   }
 
+  // 8b — the studio that HANGS (#185). Section 8 above proves a *dead* studio
+  //      is survivable, and it always was: a 502 rejects the promise, the
+  //      catch runs, the prerendered page is announced as the copy on screen.
+  //      A studio that accepts the connection and then says nothing never
+  //      rejected anything, so none of that ran — the request just stayed open
+  //      behind the page. These three checks are the difference, and the route
+  //      below is the fixture: it is never fulfilled, ever.
+  {
+    const hang = route => new Promise(() => {});   // accepted, never answered
+
+    // (a) the hub. The reader has every guide from the HTML, so the only
+    //     visible difference a hang may make is none at all — but the deadline
+    //     has to actually fire, and the console line is how that is observable
+    //     from out here. Before this row it never appeared.
+    {
+      const page = await browser.newPage();
+      const said = [];
+      page.on('console', m => said.push(m.text()));
+      await page.route('https://studio.prospektor.ai/api/help', hang);
+      await page.goto('http://localhost:8899/help/');
+      check('a hanging studio leaves the hub whole',
+        (await page.$$eval('.card', n => n.length)) > 0);
+      await page.waitForTimeout(4000);            // the 3s deadline, plus slack
+      check('and the fetch gives up rather than staying open',
+        said.some(t => /could not be read/.test(t)), said);
+      check('with no error shown over a page full of answers',
+        !/could not be loaded/.test(await page.textContent('body')));
+      await page.close();
+    }
+
+    // (b) a guide on its own URL. Same rule, narrower: the built copy stays,
+    //     and it is never re-stamped as having come from the studio.
+    {
+      const page = await browser.newPage();
+      const said = [];
+      page.on('console', m => said.push(m.text()));
+      await page.route('https://studio.prospektor.ai/api/help', hang);
+      await page.goto('http://localhost:8899/help/workspace/');
+      await page.waitForTimeout(4000);
+      check('a hanging studio leaves the prerendered guide on screen',
+        /New client workspace/.test(await page.textContent('#guide-workspace')));
+      check('and the guide page gives up too',
+        said.some(t => /could not be read/.test(t)), said);
+      check('and does not claim the copy came from the studio',
+        (await page.getAttribute('#guide-workspace', 'data-guide-source')) !== 'runtime');
+      await page.close();
+    }
+
+    // (c) the case the deadline is really for: a build that prerendered
+    //     NOTHING (studio unreachable at build time too), meeting a studio
+    //     that hangs at runtime. The reader has no guides and no way to ask
+    //     for them again — before #185 the promise never settled, so the
+    //     "Try again" offer was never made and the hub sat empty for good.
+    //     The served HTML is rewritten here to be that build.
+    {
+      const page = await browser.newPage();
+      await page.route('http://localhost:8899/help/', async route => {
+        const res = await route.fetch();
+        const html = (await res.text())
+          .replace(/(<script type="application\/json" id="helpCorpus">)[\s\S]*?(<\/script>)/, '$1{}$2');
+        return route.fulfill({ response: res, body: html });
+      });
+      await page.route('https://studio.prospektor.ai/api/help', hang);
+      await page.goto('http://localhost:8899/help/');
+      await page.waitForSelector('#helpRetry', { timeout: 8000 }).catch(() => {});
+      check('with nothing prerendered, a hang is offered as retryable',
+        await page.isVisible('#helpRetry'));
+      check('and says the studio did not answer in time',
+        /did not answer in time/.test(await page.textContent('body')));
+      await page.close();
+    }
+  }
+
   // 9 — what a crawler is served: robots.txt, the sitemap, and the Search
   //     Console verification hook (#135).
   //

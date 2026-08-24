@@ -19,16 +19,22 @@ const H = require('../src/assets/js/help-render.js');
 
 const API = process.env.HELP_API || 'https://studio.prospektor.ai/api/help';
 const OUT = path.join(__dirname, '..', 'data', 'help-corpus.json');
+// With a deadline (#185). Node's fetch has none, so a studio that accepts the
+// connection and then says nothing left this command hanging at the operator's
+// terminal with the word "Fetching" on screen — the one failure mode where
+// "the snapshot was NOT changed" never got printed.
+const TIMEOUT_MS = Number(process.env.HELP_CORPUS_TIMEOUT_MS || 20000);
 
 (async () => {
   process.stdout.write(`Fetching ${API} … `);
   let body;
   try {
-    const r = await fetch(API);
+    const r = await fetch(API, { signal: AbortSignal.timeout(TIMEOUT_MS) });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     body = await r.json();
   } catch (e) {
-    console.error(`\n✗ ${e.message}\n  The snapshot was NOT changed.`);
+    const why = e.name === 'TimeoutError' ? `no answer in ${TIMEOUT_MS}ms` : e.message;
+    console.error(`\n✗ ${why}\n  The snapshot was NOT changed.`);
     process.exit(1);
   }
 

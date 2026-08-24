@@ -267,9 +267,15 @@
     }
   }
 
+  /* The deadline is the point of the call, not a detail of it (#185): with the
+     guides already on the page this fetch is a reconcile, and a studio that
+     does not answer inside `H.CORPUS_TIMEOUT_MS` must reach the catch below
+     rather than hold an open request behind a page the reader is already
+     reading. Before this, a hanging endpoint settled nothing — so the
+     build-time copy was never announced as such, and on a build that
+     prerendered nothing the "Try again" offer never appeared at all. */
   function boot() {
-    fetch(API)
-      .then(function (r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); })
+    H.fetchCorpus(API, H.CORPUS_TIMEOUT_MS)
       .then(function (body) {
         var files = (body && body.files) || [];
         if (!files.length) throw new Error('empty corpus');
@@ -286,7 +292,7 @@
           return;
         }
         console.error('help corpus failed to load', error);
-        offerRetry('The guides could not be loaded right now — they are served live from the studio, and the studio did not answer.');
+        offerRetry('The guides could not be loaded right now — they are served live from the studio, and the studio did not answer in time.');
       });
   }
 

@@ -18,6 +18,17 @@ const SECRET_PATTERNS = [
   /x-provision-secret/i, /process\.env\./,
 ];
 const RELAY_RETRIES = [];
+/* Every fetch in this file gets a deadline (#185). The retry loop below was
+   written for an egress that DROPS a connection, and it works: a dead socket
+   throws, the attempt is retried, the audit reports the app rather than the
+   transport. A connection that is accepted and then goes silent is the other
+   half, and Node's fetch has no default timeout — so the audit hung on the
+   request rather than retrying it, and a run against production could sit
+   there indefinitely with no failure and no output. Shadowing `fetch` once
+   here covers every call site in the file, including the browser relay. */
+const NET_TIMEOUT_MS = Number(process.env.AUDIT_TIMEOUT_MS || 15000);
+const bareFetch = globalThis.fetch;
+const fetch = (url, opts) => bareFetch(url, { signal: AbortSignal.timeout(NET_TIMEOUT_MS), ...(opts || {}) });
 const R = [];
 const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.log((ok?'  ok   ':'  FAIL '), claim, detail?('— '+detail):''); };
 
@@ -37,7 +48,12 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
       // roughly one request in six — always as a dead connection, never as a
       // 5xx from the app — and a single blip on the availability probe used to
       // report two claims as BROKEN. An audit that cries wolf gets ignored, so
-      // only a request that fails three times counts as a failure.
+      // only a request that fails three times counts as a failure. Since #185
+      // a request that HANGS reaches this path too: measured from these
+      // containers, the stall is a connect/TLS stall on the way to
+      // prospektor.ai and it hits a static asset exactly as often as it hits a
+      // function, so it is transport here as well — it just used to be
+      // transport that never threw.
       let up, lastErr;
       for (let attempt = 0; attempt < 3; attempt++) {
         try {

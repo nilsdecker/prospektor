@@ -20,7 +20,7 @@ them without reading the studio's code.
    attached in scope — until the operator either restores public
    visibility or changes this protocol, a session that cannot read it
    should say so and stop rather than guess at the contract.
-3. **Before pushing: `npm test`** (148 tests, no network, no keys).
+3. **Before pushing: `npm test`** (154 tests, no network, no keys).
    If the change touches a page or a client flow, also `npm run drive` —
    it builds and drives the built site in a browser with the functions
    mocked. `npm run build` must of course succeed.
@@ -93,6 +93,16 @@ what makes the two halves of the contract worth stating.
   build's list of slugs that do have a page), and each guide page reconciles its
   own markdown against the live corpus by hash. Both are driven in `test/drive.js`
   §7c and neither may be dropped without putting #76 back on the table.
+- **Every fetch of the corpus has a deadline, and the runtime ones are short**
+  (#185). The chain above answers a studio that is *dead*; it did not answer one
+  that *hangs*, because an unbounded fetch never fails and so never falls back.
+  `H.fetchCorpus()` in `help-render.js` is the one door — `H.CORPUS_TIMEOUT_MS`
+  is 3s in the browser, because the guides are already in the HTML and the
+  reader is not waiting on the studio for anything; the build allows 8s and
+  `npm run help:snapshot` 20s, since those are waited on by a machine and not by
+  a person. A bare `fetch(API)` added back to `help.js` or `help-guide.js` fails
+  `test/help.test.js` by name, and `test/drive.js` §8b drives a studio that
+  accepts the connection and never answers.
 - **A guide's text must live on exactly one URL.** Leaving the stacked copy on
   the hub as well would recreate the duplication #166 removed, silently and
   without failing anything else. `test/help.test.js` asserts it directly.

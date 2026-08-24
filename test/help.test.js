@@ -444,3 +444,95 @@ describe('a studio outage must never break the build', () => {
     }
   });
 });
+
+/* #185 — the fallback chain had no clock on it.
+
+   The four tests above rehearse a studio that is DEAD: refusing the
+   connection, serving an app shell, serving a malformed corpus. All three fail
+   *fast*, which is why the fallback worked. A studio that accepts the
+   connection and then says nothing fails not at all — and every fetch of
+   /api/help in this repo was unbounded, so the build waited, `npm run
+   help:snapshot` waited, and in the browser the promise simply never settled:
+   no catch, no "showing the build-time copy" line, and on a page that
+   prerendered nothing, no "Try again" button either. A hang is not a slow
+   failure, it is the absence of one.
+
+   `hangingServer()` is the missing fixture — it accepts and never answers. */
+function hangingServer() {
+  const sockets = [];
+  const server = http.createServer((req, res) => { sockets.push(res); });
+  server.on('connection', (s) => sockets.push(s));
+  return {
+    server,
+    listen: () => new Promise((r) => server.listen(0, r)),
+    url: () => `http://127.0.0.1:${server.address().port}/api/help`,
+    close: () => {
+      for (const s of sockets) { try { s.destroy ? s.destroy() : s.end(); } catch (e) {} }
+      server.close();
+    },
+  };
+}
+
+describe('a hanging studio is a failure, not a wait (#185)', () => {
+  test('fetchCorpus rejects on its own deadline rather than pending forever', async () => {
+    const h = hangingServer();
+    await h.listen();
+    try {
+      const began = Date.now();
+      await assert.rejects(H.fetchCorpus(h.url(), 300), /no answer in 300ms/);
+      // The deadline is the point: it has to be the thing that ends the wait.
+      assert.ok(Date.now() - began < 3000, 'the deadline did not end the wait');
+    } finally {
+      h.close();
+    }
+  });
+
+  test('and still resolves, or rejects, on the ordinary answers', async () => {
+    const good = http.createServer((req, res) => {
+      res.writeHead(200, { 'content-type': 'application/json' });
+      res.end(JSON.stringify({ files: [{ name: '01-x.md', text: '# X\n\nyes.\n' }] }));
+    });
+    await new Promise((r) => good.listen(0, r));
+    const bad = http.createServer((req, res) => { res.writeHead(500); res.end('nope'); });
+    await new Promise((r) => bad.listen(0, r));
+    try {
+      const body = await H.fetchCorpus(`http://127.0.0.1:${good.address().port}/api/help`, 5000);
+      assert.equal(body.files.length, 1);
+      await assert.rejects(H.fetchCorpus(`http://127.0.0.1:${bad.address().port}/api/help`, 5000), /HTTP 500/);
+      await assert.rejects(H.fetchCorpus('http://127.0.0.1:9/api/help', 5000), (e) => !/no answer/.test(e.message));
+    } finally {
+      good.close();
+      bad.close();
+    }
+  });
+
+  test('the deadline is short enough that the reader is not waiting on it', () => {
+    // The guides are already in the HTML since #136; this fetch only
+    // reconciles. Three seconds is the argument, and a later edit that
+    // quietly raises it to thirty should have to change this line.
+    assert.ok(H.CORPUS_TIMEOUT_MS <= 3000, `${H.CORPUS_TIMEOUT_MS}ms is too long to hold a reader`);
+  });
+
+  test('both runtime fetches of the corpus go through it', () => {
+    // Not a style check: a new `fetch(API)` added to either file is exactly
+    // the bug this row fixed, and it would pass every other test here.
+    for (const f of ['help.js', 'help-guide.js']) {
+      const src = fs.readFileSync(path.join(ROOT, 'src', 'assets', 'js', f), 'utf8');
+      assert.match(src, /H\.fetchCorpus\(API/, `${f} does not fetch the corpus with a deadline`);
+      assert.equal(/[^.\w]fetch\(API/.test(src), false, `${f} still fetches the corpus without one`);
+    }
+  });
+
+  test('the build survives a studio that hangs, from the snapshot', async () => {
+    const h = hangingServer();
+    await h.listen();
+    try {
+      const out = tmp();
+      build(out, { HELP_CORPUS_OFFLINE: '', HELP_API: h.url(), HELP_CORPUS_TIMEOUT_MS: '1500' });
+      assert.match(fs.readFileSync(path.join(out, 'help', 'workspace', 'index.html'), 'utf8'),
+        /New client workspace/, 'the build did not fall back to the snapshot');
+    } finally {
+      h.close();
+    }
+  });
+});
