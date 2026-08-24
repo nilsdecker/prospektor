@@ -6,11 +6,19 @@ pages:
   - /privacy/
   - /terms/
   - /resources/
+  - /help/
 ---
 {#-
   The list of pages we want ranked — not a list of pages that exist. Search
   Console reads this as our own statement of what matters, so anything in here
   that is thin, transactional or half-rendered costs more than it earns.
+
+  /help/ was deliberately out until 24 Aug 2026, on #135's reasoning: the
+  served HTML was a shell whose entire body copy was the word "Loading…", and
+  listing that is worse than omitting it. **#136 removed the reason** — the
+  corpus is now prerendered at build time, so /help/ ships ~51k characters of
+  real guide text and is the site's deepest long-tail content. The line #135
+  left room for is the one above.
 
   Deliberately out, each for its own reason:
     /checkout/       a form, not an answer to any search. Left crawlable and
@@ -18,11 +26,6 @@ pages:
                      Search Console ever shows it earning buy-intent
                      impressions, #137 can put it back with evidence rather
                      than on a hunch. (Decided #135, 24 Aug 2026.)
-    /help/           real long-tail content, but the served HTML is still a
-                     shell whose body copy is the word "Loading…" — the corpus
-                     arrives from the studio after load. Listing that is worse
-                     than omitting it. One line to add here the day #136
-                     prerenders the corpus.
     /checkout/done/  noindex — what a buyer reads seconds after paying.
     /404.html        noindex.
     /app/            301s to /; whether that page has a future is W2's

@@ -20,14 +20,18 @@ them without reading the studio's code.
    attached in scope — until the operator either restores public
    visibility or changes this protocol, a session that cannot read it
    should say so and stop rather than guess at the contract.
-3. **Before pushing: `npm test`** (35 function tests, no network, no keys).
+3. **Before pushing: `npm test`** (86 tests, no network, no keys).
    If the change touches a page or a client flow, also `npm run drive` —
    it builds and drives the built site in a browser with the functions
    mocked. `npm run build` must of course succeed.
    After deploying, `npm run audit` asks **production** whether this board is
-   still telling the truth: 29 claims, read-only, safe to run any time. It is
-   how `app.prospektor.ai` was found still serving the pre-pivot agency page
-   that the log had recorded as gone.
+   still telling the truth: one claim per board row, read-only, safe to run any
+   time. It is how `app.prospektor.ai` was found still serving the pre-pivot
+   agency page that the log had recorded as gone.
+   **`npm run help:snapshot`** refreshes `data/help-corpus.json`, the last-good
+   copy of the studio's help corpus that `/help/` falls back to when the studio
+   cannot be reached at build time (#136). Run it when the studio ships help
+   changes; the build prefers the live endpoint and never fails without it.
 4. A deliverable is not shipped until the handover file in the studio repo
    is updated to record what was built and what was decided — that update
    is a STUDIO-repo commit, named in the sign-off.

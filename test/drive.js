@@ -129,67 +129,117 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     await page.close();
   }
 
-  // 7 — the help center renders the studio's corpus and search finds things
+  // 7 — the help hub is served whole, and search answers the operator's own
+  //     question (#145/#136). Nothing is mocked before the first assertions on
+  //     purpose: everything here has to be true of the HTML the build wrote,
+  //     because that is what a crawler and a reader with a slow studio get.
   {
-    const CORPUS = { files: [
-      { name: '01-getting-started.md', text: '# Getting started\n\nWelcome to the studio.\n\n## First steps\n\n- Open [Library](/library) to see pitches\n- The **tour** walks the screens\n  - it is skippable\n\n| Screen | Path |\n|---|---|\n| Library | `/library` |\n' },
-      { name: '02-sharing.md', text: '# Sharing a pitch\n\nA share link travels by email.\n\n## Revoking\n\nRevoke it from the pitch page.\n' },
-    ] };
+    const SNAPSHOT = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'help-corpus.json'), 'utf8'));
     const page = await browser.newPage();
-    await page.route('https://studio.prospektor.ai/api/help', route =>
-      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(CORPUS) }));
+    // Same corpus the build used: the reconcile should decide there is
+    // nothing to do and touch no DOM at all.
+    let calls = 0;
+    await page.route('https://studio.prospektor.ai/api/help', route => {
+      calls++;
+      return route.fulfill({ status: 200, contentType: 'application/json',
+        body: JSON.stringify({ files: SNAPSHOT.files }) });
+    });
     await page.goto('http://localhost:8899/help/');
-    await page.waitForSelector('#helpArticle h1', { timeout: 5000 });
 
-    check('nav lists every guide', (await page.$$eval('#helpNav a', a => a.length)) === 2);
-    check('first guide renders as the landing article',
-      (await page.textContent('#helpArticle h1')) === 'Getting started');
+    const guides = SNAPSHOT.files.length;
+    check('every guide is in the served HTML before any fetch',
+      (await page.$$eval('.help-guide', n => n.length)) === guides);
+    check('the hub shows a card per guide',
+      (await page.$$eval('.card', n => n.length)) === guides);
+    check('the search box the operator kept is present', await page.isVisible('#helpSearch'));
+    check('a guide body is real text, not a placeholder',
+      /New client workspace/.test(await page.textContent('#guide-workspace')));
+    check('tables render', await page.isVisible('.help-guide table'));
+    check('nested list renders', await page.isVisible('.help-guide li ul li'));
     check('studio-relative links point at the studio',
-      (await page.getAttribute('#helpArticle a[target="_blank"]', 'href')) === 'https://studio.prospektor.ai/library');
-    check('tables render', await page.isVisible('#helpArticle table'));
-    check('nested list renders', await page.isVisible('#helpArticle li ul li'));
+      (await page.getAttribute('.help-guide a[target="_blank"]', 'href') || '').startsWith('https://studio.prospektor.ai/'));
 
-    await page.click('#helpNav a[data-slug="sharing"]');
-    await page.waitForFunction(() => document.querySelector('#helpArticle h1')?.textContent === 'Sharing a pitch');
-    check('the hash routes to the second guide', page.url().endsWith('#sharing'));
-    check('nav marks the open guide',
-      await page.$eval('#helpNav a[data-slug="sharing"]', a => a.classList.contains('is-current')));
-
-    await page.fill('#helpSearch', 'revoke');
+    // The bug this row exists for.
+    await page.fill('#helpSearch', 'how can I create a new workspace');
     await page.waitForSelector('#helpResults:not([hidden])', { timeout: 5000 });
-    check('search surfaces the matching guide', /Sharing a pitch/.test(await page.textContent('#helpResults')));
+    const results = await page.textContent('#helpResults');
+    check("the operator's question finds the workspace guide", /Workspace settings/.test(results), results.slice(0, 120));
+    check('the answer is in the snippet', /client workspace/i.test(results));
     check('search marks the matched words', await page.isVisible('#helpResults mark'));
-    check('the article steps aside while searching', await page.isHidden('#helpArticle'));
+    check('the guides step aside while searching', await page.isHidden('#helpGuides'));
+    check('so does the card hub', await page.isHidden('#helpHub'));
+
     await page.click('#helpResults .help-hit-snippet');
-    await page.waitForSelector('#helpArticle:not([hidden])', { timeout: 5000 });
-    check('a result click lands on the guide, search cleared',
+    await page.waitForSelector('#helpGuides:not([hidden])', { timeout: 5000 });
+    check('a result click restores the guides, search cleared',
       (await page.inputValue('#helpSearch')) === '');
+    check('and lands inside the workspace guide', /guide-workspace|workspace--/.test(page.url()));
 
     await page.fill('#helpSearch', 'zzzunfindable');
     await page.waitForSelector('#helpResults:not([hidden])');
     check('a miss says so instead of an empty pane', /Nothing in the guides/.test(await page.textContent('#helpResults')));
+
+    // ── no double render ──
+    // Wait for the fetch to land, then give the page a moment in which a
+    // wrong implementation would re-render. Matching corpora produce no DOM
+    // signal at all, which is the point — so the check is that nothing moved.
+    for (let i = 0; i < 100 && calls === 0; i++) await page.waitForTimeout(20);
+    await page.waitForTimeout(150);
+    check('the live corpus was fetched', calls >= 1);
+    check('an unchanged corpus re-renders nothing',
+      (await page.getAttribute('#helpGuides', 'data-corpus-source')) !== 'runtime');
+    check('and nothing was duplicated',
+      (await page.$$eval('.help-guide', n => n.length)) === guides);
     await page.close();
   }
 
-  // 8 — the studio unreachable: the help page says so and offers a retry
+  // 7b — the studio HAS moved on since the build: the runtime fetch is still
+  //      what keeps a help change live for a human the moment the studio
+  //      deploys (#76), so a changed corpus must actually replace the page.
+  {
+    const SNAPSHOT = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'help-corpus.json'), 'utf8'));
+    const moved = { files: SNAPSHOT.files.concat([{ name: '99-brand-new.md', text: '# A brand new guide\n\nShipped by the studio after this site was built.\n' }]) };
+    const page = await browser.newPage();
+    await page.route('https://studio.prospektor.ai/api/help', route =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(moved) }));
+    await page.goto('http://localhost:8899/help/');
+    await page.waitForFunction(
+      n => document.querySelectorAll('.help-guide').length === n,
+      moved.files.length, { timeout: 5000 });
+    check('a corpus that moved is picked up at runtime',
+      (await page.$$eval('.help-guide', n => n.length)) === moved.files.length);
+    check('the new guide is on the page', await page.isVisible('#guide-brand-new'));
+    check('the hub gained its card',
+      (await page.$$eval('.card', n => n.length)) === moved.files.length);
+    check('and the reconcile said so',
+      (await page.getAttribute('#helpGuides', 'data-corpus-source')) === 'runtime');
+    check('an unknown guide still gets a card',
+      /Guide/.test(await page.textContent('#guide-brand-new .help-guide-topic')));
+    await page.close();
+  }
+
+  // 8 — the studio unreachable. Before #136 this was the honest error state,
+  //     because the page had nothing without the fetch. Now the guides are in
+  //     the HTML, so a dead studio costs freshness and nothing else — and
+  //     showing an error over a page full of answers would be a lie.
   {
     const page = await browser.newPage();
-    let calls = 0;
-    await page.route('https://studio.prospektor.ai/api/help', route => {
-      calls++;
-      if (calls === 1) return route.fulfill({ status: 502, body: 'bad gateway' });
-      return route.fulfill({ status: 200, contentType: 'application/json',
-        body: JSON.stringify({ files: [{ name: '01-a.md', text: '# Recovered\n\nBack again.\n' }] }) });
-    });
+    await page.route('https://studio.prospektor.ai/api/help', route =>
+      route.fulfill({ status: 502, body: 'bad gateway' }));
     await page.goto('http://localhost:8899/help/');
-    await page.waitForSelector('#helpRetry', { timeout: 5000 });
-    check('a dead studio yields the honest message', /could not be loaded/.test(await page.textContent('#helpArticle')));
-    await page.click('#helpRetry');
-    await page.waitForFunction(() => document.querySelector('#helpArticle h1')?.textContent === 'Recovered', null, { timeout: 5000 });
-    check('retry recovers without a reload', true);
+    await page.waitForSelector('.help-guide', { timeout: 5000 });
+    check('a dead studio leaves the prerendered guides on screen',
+      (await page.$$eval('.help-guide', n => n.length)) > 0);
+    check('and shows no error over them',
+      !/could not be loaded/.test(await page.textContent('body')));
+    check('search still works with the studio down',
+      await (async () => {
+        await page.fill('#helpSearch', 'how can I create a new workspace');
+        await page.waitForSelector('#helpResults:not([hidden])', { timeout: 5000 });
+        return /Workspace settings/.test(await page.textContent('#helpResults'));
+      })());
     await page.close();
   }
-
 
   // 9 — what a crawler is served: robots.txt, the sitemap, and the Search
   //     Console verification hook (#135).
@@ -213,7 +263,8 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     // structurally instead: every non-static entry must be an article that
     // exists in src/resources/, and every article must be listed.
     const STATIC = ['https://prospektor.ai/', 'https://prospektor.ai/privacy/',
-                    'https://prospektor.ai/terms/', 'https://prospektor.ai/resources/'];
+                    'https://prospektor.ai/terms/', 'https://prospektor.ai/resources/',
+                    'https://prospektor.ai/help/'];
     const articleLocs = locs.filter(l => !STATIC.includes(l));
     check('sitemap lists exactly the static pages we want ranked',
       JSON.stringify(locs.slice(0, STATIC.length)) === JSON.stringify(STATIC), locs);
@@ -237,11 +288,20 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     // comes back, that reason has to be argued, not lost in a rebase.
     for (const [pathname, why] of [
       ['/checkout/', 'a form, not an answer to a search (#135)'],
-      ['/help/', 'still a shell that serves a crawler "Loading…" (#136)'],
       ['/checkout/done/', 'noindex — what a buyer reads after paying'],
       ['/app/', '301s, and W2 has not decided its future'],
       ['/404', 'noindex'],
     ]) check('sitemap keeps ' + pathname + ' out — ' + why, !locs.some(l => l.endsWith(pathname)));
+
+    // /help/ is in the sitemap as of #136, and the reason it may be there is
+    // that the guides are in the served bytes. Listing it while it is a shell
+    // again would be the exact mistake #135 refused to make, so the sitemap
+    // entry and the guarantee behind it are checked together.
+    const helpHtml = fs.readFileSync(path.join(ROOT, 'help', 'index.html'), 'utf8');
+    check('sitemap lists /help/ now that it serves real content (#136)',
+      locs.includes('https://prospektor.ai/help/'));
+    check('and /help/ is not a Loading… shell any more',
+      !/Loading…/.test(helpHtml) && /id="guide-workspace"/.test(helpHtml));
 
     // Every listed URL must actually be served, and none of them may be
     // noindex — submitting a page we tell Google not to index is a

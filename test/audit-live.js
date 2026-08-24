@@ -220,15 +220,37 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
   check('studio /api/help serves the corpus cross-origin',
     !!apiHelp && apiHelp.status===200 && apiHelp.cors==='*' && (apiHelp.body.files||[]).length>=10,
     apiHelp ? `HTTP ${apiHelp.status}, cors ${apiHelp.cors}, ${(apiHelp.body.files||[]).length} files` : 'unreachable ×3');
+  // ── CLAIM (#136): /help/ is prerendered, so the guides are in the bytes ──
+  // Asked of the raw response, before a browser runs anything: this is what a
+  // crawler is handed, and the whole of #136 is that it used to be the word
+  // "Loading…". A browser check would pass on the old page too.
+  const helpRaw = await (async () => {
+    for (let i = 0; i < 3; i++) {
+      try { const r = await fetch(SITE+'/help/'); return await r.text(); }
+      catch (e) { RELAY_RETRIES.push(SITE+'/help/'); }
+    }
+    return null;
+  })();
+  const helpBody = (helpRaw||'')
+    .replace(/<script[\s\S]*?<\/script>/g, ' ')
+    .replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  check('/help/ serves the guides in its HTML, not a Loading… shell',
+    !!helpRaw && !/Loading…/.test(helpRaw) && helpBody.length > 20000,
+    helpRaw ? `${helpBody.length} chars of body copy` : 'unreachable ×3');
+  check('/help/ answers the question the search bug hid (#145)',
+    !!helpRaw && /New client workspace/.test(helpRaw));
+
   const hp = await ctx.newPage();
   await hp.goto(SITE+'/help/', { waitUntil: 'domcontentloaded' });
-  let helpTitle = '';
-  try { await hp.waitForSelector('#helpArticle h1', { timeout: 15000 }); helpTitle = await hp.textContent('#helpArticle h1'); } catch (e) {}
-  check('/help renders the first guide from the live studio', helpTitle==='Getting started', JSON.stringify(helpTitle));
-  await hp.fill('#helpSearch', 'share');
-  let helpHits = false;
-  try { await hp.waitForSelector('#helpResults:not([hidden]) mark', { timeout: 5000 }); helpHits = true; } catch (e) {}
-  check('/help search finds and marks matches', helpHits);
+  let helpCards = 0;
+  try { await hp.waitForSelector('.card', { timeout: 15000 }); helpCards = await hp.$$eval('.card', n => n.length); } catch (e) {}
+  check('/help renders the card hub over the live corpus', helpCards >= 10, String(helpCards));
+  // The operator's own screenshot query — the regression this row exists for.
+  await hp.fill('#helpSearch', 'how can I create a new workspace');
+  let helpHit = '';
+  try { await hp.waitForSelector('#helpResults:not([hidden]) mark', { timeout: 5000 }); helpHit = await hp.textContent('#helpResults'); } catch (e) {}
+  check('/help search answers "how can I create a new workspace"',
+    /Workspace settings/.test(helpHit), helpHit ? helpHit.slice(0,90) : 'no results');
   await hp.close();
 
   // --- CLAIM (§1): "400 — what they typed is not a domain. Say so inline." ---

@@ -1,45 +1,132 @@
 ---
 layout: base.njk
 title: Help
-description: How to use Prospektor Studio — searchable guides and answers, served straight from the running product, so they are always current.
+description: How to use Prospektor Studio — guides, answers and a search box, served straight from the running product so they always describe the version that is live.
+faqs:
+  - q: What does Prospektor cost?
+    a: $999 a month per workspace, taken by Stripe. The scan on the home page is free and needs no sign-up — point it at a site and it reads that company before it says a word about them.
+  - q: Do I have to install anything?
+    a: No. Prospektor Studio runs in the browser at studio.prospektor.ai. There is nothing to download and no extension to add.
+  - q: Can I run Prospektor for my clients?
+    a: Yes. An agency-flagged workspace gets New client workspace in the workspace switcher, for the agency's owner or admins — name the client and a researched workspace exists before the next screen. A portfolio upload creates a whole roster at once. Each client workspace is billed as its own workspace.
+    link: /help/#guide-workspace
+    linkLabel: Read the workspace guide
+  - q: Who at my company can sign in?
+    a: If you bought with a company address, the access list carries your whole domain as well as your own address, so everyone at that company can sign in — including addresses that do not exist yet. An owner can keep that or narrow it to named addresses.
+    link: /help/#guide-workspace
+    linkLabel: Members and access
+  - q: What happens if I stop paying?
+    a: The workspace pauses rather than disappears. The lock screen's resubscribe button reopens the same studio with everything kept. Deleting a workspace is a separate, deliberate act in the danger zone, only an owner may do it, and it cannot be undone.
+  - q: What do you do with my data?
+    a: The privacy page is the full answer, and it is written to be read rather than to be survived. In short - the studio holds no card details, sets only the cookies that sign you in, and makes no third-party requests.
+    link: /privacy/
+    linkLabel: Read the privacy page
 ---
 
 <header class="help-hero">
   <div class="help-hero-inner">
     <span class="tag">help</span>
-    <h1 class="help-h1">How do I…?</h1>
+    <h1 class="help-h1">How can we help?</h1>
     <p class="help-lede">Guides and step-by-step answers for Prospektor Studio. This page reads the same documentation the product itself runs on, so it always describes the version that is live.</p>
     <div class="help-search">
       <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.6"/><path d="M11 11l3.2 3.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-      <input id="helpSearch" type="search" placeholder="Search the guides — try &ldquo;share a pitch&rdquo; or &ldquo;import my network&rdquo;" autocomplete="off" aria-label="Search the help guides">
+      <input id="helpSearch" type="search" placeholder="Search the guides — try &ldquo;how do I create a new workspace&rdquo;" autocomplete="off" aria-label="Search the help guides">
     </div>
   </div>
 </header>
 
-<section class="help-body">
-  <div class="help-columns">
-    <aside class="help-sidenav" aria-label="Help topics">
-      <span class="help-sidenav-label">Guides</span>
-      <!-- not a <nav>: main.css fixes the bare nav element to the top bar -->
-      <div id="helpNav" class="help-sidenav-list" role="navigation"><p class="help-dim">Loading…</p></div>
-      <div class="help-sidenav-foot">
-        <a href="https://studio.prospektor.ai" target="_blank" rel="noopener">Open the studio ↗</a>
-        <p>Stuck anyway? The <strong>Support</strong> pill inside the studio answers in seconds — or write to <a href="mailto:{{ site.email }}">{{ site.email }}</a>.</p>
+{#- The search results take the page over while a query is live: the cards and
+    the guides below are both hidden, and this is the only panel on screen. -#}
+<section id="helpResults" class="help-results" aria-live="polite" hidden></section>
+
+{#- ── the hub: a card per guide ──
+    Cards are built at build time from the corpus (#136) and rebuilt by help.js
+    only if the live corpus has actually moved since — see the hash on
+    #helpGuides. The grid is the one #144 shipped for /resources/; the CSS is
+    shared rather than copied. -#}
+<section id="helpHub" class="help-hub">
+  {%- if help.guides.length %}
+  <ul class="card-grid">
+    {%- for g in help.guides %}
+    <li class="card">
+      <a href="#guide-{{ g.slug }}">
+        <span class="card-emoji" aria-hidden="true">{{ g.emoji }}</span>
+        <span class="card-topic">{{ g.topic }}</span>
+        <h2 class="card-title">{{ g.title }}</h2>
+        <p class="card-dek">{{ g.dek }}</p>
+        <span class="card-cta">Read the guide <span aria-hidden="true">→</span></span>
+      </a>
+    </li>
+    {%- endfor %}
+  </ul>
+  {%- else %}
+  {#- The corpus could not be reached at build time. The page still ships and
+      help.js fills this in from the live studio — see src/_data/help.js. -#}
+  <p class="help-dim" id="helpHubEmpty">Loading the guides…</p>
+  {%- endif %}
+</section>
+
+{#- ── the guides themselves ──
+    Every guide, in the served HTML. This is #136: before this, a crawler was
+    handed the word "Loading…" and ten guides of long-tail content were
+    invisible. `data-corpus-hash` is what stops the browser re-rendering all of
+    this a second time for nothing. -#}
+<section id="helpGuides" class="help-guides" data-corpus-hash="{{ help.hash }}" data-corpus-source="{{ help.source }}">
+  {%- for g in help.guides %}
+  <article class="help-guide" id="guide-{{ g.slug }}" data-slug="{{ g.slug }}">
+    <span class="help-guide-topic">{{ g.emoji }} {{ g.topic }}</span>
+    {{ g.html | safe }}
+    <a class="help-guide-top" href="#helpHub">↑ All guides</a>
+  </article>
+  {%- endfor %}
+</section>
+
+<section class="help-faq">
+  <div class="help-faq-inner">
+    <h2 class="help-faq-h2">Frequently asked questions</h2>
+    <dl class="help-faq-list">
+      {%- for item in faqs %}
+      <div class="help-faq-item">
+        <dt>{{ item.q }}</dt>
+        <dd>{{ item.a }}{% if item.link %} <a href="{{ item.link }}">{{ item.linkLabel }} →</a>{% endif %}</dd>
       </div>
-    </aside>
-    <div class="help-main">
-      <div id="helpResults" class="help-results" hidden></div>
-      <article id="helpArticle" class="help-article" aria-live="polite">
-        <p class="help-dim">Loading the guides…</p>
-      </article>
-    </div>
+      {%- endfor %}
+    </dl>
   </div>
 </section>
 
-<noscript>
-  <section class="help-body"><div class="help-columns"><div class="help-main">
-    <p>The help guides load live from the studio and need JavaScript. Without it, write to <a href="mailto:{{ site.email }}">{{ site.email }}</a> — a person answers.</p>
-  </div></div></section>
-</noscript>
+<section class="help-support">
+  <div class="help-support-inner">
+    <span class="tag">still stuck</span>
+    <h2>Ask a person.</h2>
+    <p>The <strong>Support</strong> pill inside the studio answers in seconds and already knows which workspace you are in. If you would rather write, we read every mail.</p>
+    <a class="btn-cta" href="mailto:{{ site.email }}">{{ site.email }}</a>
+    <p class="help-support-alt"><a href="https://studio.prospektor.ai" target="_blank" rel="noopener">Open the studio ↗</a></p>
+  </div>
+</section>
 
+{#- The visible FAQ above and this are rendered from the same frontmatter list,
+    so the structured data cannot drift from what the page says. -#}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {%- for item in faqs %}
+    {
+      "@type": "Question",
+      "name": {{ item.q | dump | safe }},
+      "acceptedAnswer": { "@type": "Answer", "text": {{ item.a | dump | safe }} }
+    }{% if not loop.last %},{% endif %}
+    {%- endfor %}
+  ]
+}
+</script>
+
+{#- The corpus the build rendered from, verbatim, for help.js: it is what the
+    search index is built from before any network call, and what the live
+    corpus is compared against so the page is not re-rendered for nothing. -#}
+<script type="application/json" id="helpCorpus">{{ help.corpusJson | safe }}</script>
+
+<script src="/assets/js/help-render.js"></script>
 <script src="/assets/js/help.js"></script>
