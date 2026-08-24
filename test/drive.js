@@ -567,6 +567,60 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     await page.close();
   }
 
+  // 13 — the /resources topic filter (#159). The section is one article per
+  //      useful learning, so it grows; a flat grid of every article was fine at
+  //      nine and is a wall at twenty-three. Two properties matter and neither
+  //      is visible in the built HTML, which is why they are here:
+  //      the row is inert markup until the script runs (so a reader with no JS
+  //      is never shown buttons that do nothing), and a chip actually filters.
+  {
+    const page = await browser.newPage();
+    await page.goto('http://localhost:8899/resources/', { waitUntil: 'networkidle' });
+
+    const total = await page.$$eval('.res-card', ns => ns.length);
+    check('the hub lists every article at rest', total > 9, total);
+    check('the filter row is revealed once the script runs', await page.isVisible('[data-topic-filter]'));
+    // It shipped as a <nav> once, and main.css styles the bare `nav` element as
+    // the site's fixed header — so the row rendered pinned across the logo while
+    // every behavioural check above still passed. Ask where it actually is.
+    const rowBox = await page.locator('[data-topic-filter]').boundingBox();
+    const heroBox = await page.locator('.res-hub-hero').boundingBox();
+    check('and sits below the hero rather than over the site header',
+      rowBox.y > heroBox.y + heroBox.height - 1, { row: rowBox.y, heroEnds: heroBox.y + heroBox.height });
+
+    // Pick a topic that more than one article carries, and one that is not it.
+    const topics = await page.$$eval('.res-card', ns => ns.map(n => n.getAttribute('data-topic')));
+    const multi = topics.find((t, i) => topics.indexOf(t) !== i);
+    check('at least one topic has more than one article', !!multi, topics);
+
+    await page.click(`[data-topic-filter] button[data-filter="${multi}"]`);
+    const shown = await page.$$eval('.res-card:not([hidden])', ns =>
+      ns.map(n => n.getAttribute('data-topic')));
+    check('a chip hides every card of another topic',
+      shown.length > 0 && shown.length < total && shown.every(t => t === multi), shown);
+    check('the chip reports itself pressed',
+      await page.getAttribute(`[data-topic-filter] button[data-filter="${multi}"]`, 'aria-pressed') === 'true');
+    check('and the count is announced',
+      new RegExp('article').test(await page.textContent('[data-filter-count]')));
+
+    await page.click('[data-topic-filter] button[data-filter=""]');
+    check('Everything brings them all back',
+      (await page.$$eval('.res-card:not([hidden])', ns => ns.length)) === total);
+
+    // The keep-reading block is the other half of #159: same topic first. Asked
+    // by following the link rather than by reading the markup, because the
+    // failure this replaces — every article recommending the same three newest
+    // posts — looked completely correct in the HTML.
+    await page.goto('http://localhost:8899/resources/the-ceiling-formula/');
+    const here = (await page.textContent('.res-hero .tag')).trim();
+    const first = await page.getAttribute('.res-more-list a', 'href');
+    await page.goto('http://localhost:8899' + first);
+    const there = (await page.textContent('.res-hero .tag')).trim();
+    check('keep-reading leads with a same-topic article',
+      here === there, here + ' → ' + first + ' (' + there + ')');
+    await page.close();
+  }
+
   await browser.close();
   server.close();
   console.log('\n' + pass + ' passed, ' + fail + ' failed');

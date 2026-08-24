@@ -2,7 +2,8 @@
 title: "Why one agency is worth three customers"
 dek: "A direct customer's spend is flat from the day they sign. An agency's compounds. That difference changes what you can afford to spend acquiring one — and it is the argument most B2B teams never run."
 description: "The maths behind selling through agencies rather than to brands: why agency revenue compounds where direct revenue is flat, what agencies actually want instead of a kickback, and how to run the motion."
-topic: channel strategy
+topic: partnerships
+learnings: what-partners-want, material-partners-reserve, another-client-campaign, partner-opening
 date: 2026-08-19
 readingTime: 7
 ogImage: /assets/img/og/selling-to-agencies.png

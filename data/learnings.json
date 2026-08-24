@@ -1,0 +1,139 @@
+{
+  "$comment": [
+    "THE LEDGER (#159). /resources/ is defined as one article per useful learning —",
+    "the operator's words, 24 Aug 2026: \"we should create one article per useful",
+    "learning under /resources or /blog on the website\". #144 shipped the section and",
+    "a fixed list of nine articles. A fixed list cannot be checked, so it drifts: a",
+    "learning enters the research, nobody writes it up, and nothing goes red.",
+    "",
+    "This file is the list the section is derived from. Every row is one learning and",
+    "every row carries a verdict. `test/learnings.test.js` enforces both directions:",
+    "a row with verdict `article` must name an article that exists and that declares",
+    "this row's id in its `learnings:` frontmatter, and an article may not declare an",
+    "id this file does not carry. A `not-publishable` row must carry a written reason.",
+    "Nothing here counts articles or rows — writing more never turns the suite red.",
+    "",
+    "WHAT IS NOT CHECKED, said plainly: this repo cannot see the research. A learning",
+    "added to `prospektor-ai/studio` -> `docs/research/growth-playbook.md` and never",
+    "entered here is the one drift no test can catch. Adding the row is the job of the",
+    "thread that adds the learning; `ref` is what makes the row findable in the source."
+  ],
+  "source": {
+    "repo": "prospektor-ai/studio",
+    "file": "docs/research/growth-playbook.md",
+    "board": "#124",
+    "scope": [
+      "Parts 1, 3, 5, 8 and 9 — the diagnostic instruments, what Prospektor hands its",
+      "clients, the SFTROU doctrine, channels and founder-led sales, and churn. These",
+      "are the parts that contain findings a reader could act on.",
+      "Parts 2, 4, 6 and 7 are out of scope and deliberately carry no rows: they are",
+      "Prospektor's own growth diagnosis, its product roadmap, its four-week plan and",
+      "its AI-era strategic argument. None is a finding about finding or winning a",
+      "customer, which is what this section is for. Promote a row out of them the day",
+      "one turns out to be — the rule is the reader, not the part number."
+    ]
+  },
+  "learnings": [
+    { "id": "ceiling-formula", "ref": "§1.1", "title": "The MRR ceiling is new MRR divided by churn — a hard cap, computable today", "verdict": "article", "article": "the-ceiling-formula" },
+    { "id": "ceiling-convergence", "ref": "§8.7", "title": "Walling runs the same ceiling calculation as Cohen, independently — it is the field's consensus arithmetic, not one person's heuristic", "verdict": "article", "article": "the-ceiling-formula" },
+    { "id": "churn-benchmarks", "ref": "§9.1", "title": "The churn benchmark ladder, average lifetime = 1 ÷ monthly churn, and how fast a cohort disappears at 10%", "verdict": "article", "article": "the-ceiling-formula" },
+
+    { "id": "powers-of-ten", "ref": "§1.2", "title": "Powers-of-ten market sizing kills a bad segment in four minutes instead of four months", "verdict": "article", "article": "size-a-market" },
+    { "id": "trm-not-tam", "ref": "§5.6", "title": "Total Reachable Market, not Total Addressable — how many you can get in front of with the channels you have", "verdict": "article", "article": "size-a-market" },
+    { "id": "size-the-segment-first", "ref": "§3.1 Rule 1", "title": "Size the segment by powers of ten before touching it — pitch quality cannot rescue arithmetic", "verdict": "article", "article": "size-a-market" },
+
+    { "id": "forever-vs-temporary", "ref": "§1.3", "title": "Forever customers build you into something they sell; temporary customers should not be allowed to set your spending", "verdict": "article", "article": "forever-customers" },
+    { "id": "prefer-build-you-in", "ref": "§3.1 Rule 4", "title": "Prefer prospects who will resell you rather than consume you once", "verdict": "article", "article": "forever-customers" },
+    { "id": "one-time-use-product", "ref": "§9.2", "title": "A one-time-use product is a top-three cause of early plateau — and the fix is the cohort, not the price", "verdict": "article", "article": "forever-customers" },
+    { "id": "retention-curve-flattens", "ref": "§9.3", "title": "The retention curve must flatten and hold, not decay to zero, or cohorts never layer", "verdict": "article", "article": "forever-customers" },
+
+    { "id": "too-expensive", "ref": "§1.4", "title": "\"Too expensive\" is never the real cancellation reason — they already agreed the price when they bought", "verdict": "article", "article": "too-expensive" },
+
+    { "id": "delight-vs-table-stakes", "ref": "§1.5", "title": "Requested features are table stakes; delight comes from you, and customers are not product people", "verdict": "article", "article": "sell-to-the-career" },
+    { "id": "career-not-task", "ref": "§1.6", "title": "Position to the buyer's career, not the buyer's task — and the Slack-channel test for whether it is strong enough", "verdict": "article", "article": "sell-to-the-career" },
+    { "id": "lead-with-the-human", "ref": "§3.3 Principle 1", "title": "Lead with what it does for the human, not the org — a career claim beats a utility claim", "verdict": "article", "article": "sell-to-the-career" },
+    { "id": "three-x-rule", "ref": "§5.9", "title": "The 3× bar: a 20–30% improvement does not move anyone, and saving money is a much weaker pitch than making it possible", "verdict": "article", "article": "sell-to-the-career" },
+
+    { "id": "ads-as-a-laboratory", "ref": "§1.7", "title": "Ads bought to learn the words, not to buy the customers — time-boxed, with copy as the deliverable", "verdict": "article", "article": "ads-as-a-positioning-lab" },
+
+    { "id": "fish-where-the-fish-are", "ref": "§1.8", "title": "Affinity is not a channel — spend where your buyers are, with a budgeted column for what you love", "verdict": "article", "article": "fish-where-the-fish-are" },
+    { "id": "the-channel-menu", "ref": "§8.1", "title": "The big five B2B approaches, the selection question, and which ad platform each kind of targeting knowledge licenses", "verdict": "article", "article": "fish-where-the-fish-are" },
+
+    { "id": "cohort-quality", "ref": "§1.9", "title": "Cohort quality beats cohort size — pick the pond where the fish jump in the boat", "verdict": "article", "article": "the-best-pond-is-not-the-biggest" },
+    { "id": "where-your-wins-cluster", "ref": "§3.1 Rule 2", "title": "The best segment is where a client's happiest, longest-retained customers already cluster", "verdict": "article", "article": "the-best-pond-is-not-the-biggest" },
+
+    { "id": "own-the-new-motion", "ref": "§1.10", "title": "A new motion nobody owns gets eaten by the existing business, every time", "verdict": "article", "article": "time-box-the-experiment" },
+    { "id": "time-box-it", "ref": "§1.11", "title": "A week is not enough and six months is too long — and the comfortable work is what kills the experiment", "verdict": "article", "article": "time-box-the-experiment" },
+    { "id": "two-two-two-hundred", "ref": "§5.5", "title": "2-2-200: two hours of research, twenty of conversations, two hundred of building — in that order", "verdict": "article", "article": "time-box-the-experiment" },
+    { "id": "building-does-not-de-risk", "ref": "§5.11", "title": "Building more does not de-risk the company; it defers the moment you find out", "verdict": "article", "article": "time-box-the-experiment" },
+
+    { "id": "activated-not-could-want", "ref": "§3.1 Rule 3", "title": "Target the buyer for whom this is a top-two priority this quarter, not the company that could want it", "verdict": "article", "article": "who-to-approach" },
+    { "id": "the-free-test", "ref": "§3.2 Test 1", "title": "If they would not want it free — free of money and of their time — it is a no, not a slow deal", "verdict": "article", "article": "who-to-approach" },
+    { "id": "already-staffed", "ref": "§3.2 Test 2", "title": "A prospect who has staffed the problem is a harder sale, and the pitch has to change from replace to capacity", "verdict": "article", "article": "who-to-approach" },
+    { "id": "lost-to-whom", "ref": "§3.2 Test 3", "title": "Lost-to-competitor and no-decision look identical in a CRM and demand opposite fixes", "verdict": "article", "article": "who-to-approach" },
+    { "id": "nobody-takes-a-meeting", "ref": "§3.3 Principle 5", "title": "Nobody takes a meeting to be sold to — the reply-rate ceiling is set by how much of the list is in-market", "verdict": "article", "article": "who-to-approach" },
+
+    { "id": "specifics-only-real-ones", "ref": "§3.3 Principle 2", "title": "This person at this company did this thing and this happened — generic capability claims are the failure mode", "verdict": "article", "article": "answer-without-freezing" },
+    { "id": "area-framework", "ref": "§8.6 AREA", "title": "Angle, Reason, Example, Angle — how to answer a hard question on a call while you are still thinking", "verdict": "article", "article": "answer-without-freezing" },
+
+    { "id": "personalisation-as-evidence", "ref": "§3.3 Principle 3", "title": "Merge-tag personalisation costs trust; showing someone their own stuff buys it", "verdict": "article", "article": "cold-email-personalisation" },
+
+    { "id": "small-ask-immediate-value", "ref": "§3.3 Principle 4", "title": "Send the artefact instead of asking for the meeting in which you would describe it", "verdict": "article", "article": "cold-email-sequence" },
+    { "id": "cold-email-template", "ref": "§3.4 Template A", "title": "The cold email to an activated buyer, and why each line is there", "verdict": "article", "article": "cold-email-personalisation" },
+    { "id": "four-email-sequence", "ref": "§8.5 Damian Thompson", "title": "The four-email sequence whose first email expects roughly no replies", "verdict": "article", "article": "cold-email-sequence" },
+    { "id": "price-on-the-first-call", "ref": "§8.5 pricing on calls", "title": "Mentioning price on the first call closes 40% against 28%", "verdict": "article", "article": "cold-email-sequence" },
+    { "id": "objection-document", "ref": "§8.5 Steli Efti", "title": "The ten-objection document, two hours, answers capped at three sentences — because a long answer concedes the objection", "verdict": "article", "article": "cold-email-sequence" },
+
+    { "id": "first-call-is-research", "ref": "§3.3 Principle 6", "title": "The first call is a sale and a research interview at once, and the research half is what compounds", "verdict": "article", "article": "the-first-call-is-research" },
+
+    { "id": "problem-stack", "ref": "§8.6 Problem Stack", "title": "Known-said, known-unsaid, unknown-unsaid — and why naming level one proves nothing", "verdict": "article", "article": "problem-stack" },
+    { "id": "four-reasons-to-buy", "ref": "§8.6 four reasons", "title": "Make money, save money, increase efficiency, mitigate risk — seven people, four stories, and you must know which to tell to whom", "verdict": "article", "article": "four-reasons-businesses-buy" },
+
+    { "id": "partnership-or-wish", "ref": "§3.5 the two questions", "title": "Within one power of ten of their revenue, or answering a public strategic mandate — otherwise it is a wish", "verdict": "article", "article": "partnerships-or-wishes" },
+    { "id": "what-partners-want", "ref": "§3.5 what partners want", "title": "Partners want support and a project to sell, not a commission", "verdict": "article", "article": "selling-to-agencies" },
+    { "id": "material-partners-reserve", "ref": "§3.5 re-servable material", "title": "Give an agency something it can hand its own client under its own name", "verdict": "article", "article": "selling-to-agencies" },
+    { "id": "another-client-campaign", "ref": "§3.4 Template B", "title": "The highest-ROI email in the set goes to the partners you already have, about the clients they already have", "verdict": "article", "article": "selling-to-agencies" },
+    { "id": "partner-opening", "ref": "§3.4 Template C", "title": "The partner opening: credibility from having done their job, and letting them name the commercial terms", "verdict": "article", "article": "selling-to-agencies" },
+    { "id": "in-house-objection", "ref": "§3.4 Template D", "title": "\"We already do this in-house\" — accept the premise and move the claim to capacity", "verdict": "article", "article": "who-to-approach" },
+
+    { "id": "abm-vs-campaign", "ref": "§3.6 the two motions", "title": "Account-based or campaign-based is decided by price, and the thresholds are explicit", "verdict": "article", "article": "what-your-price-licenses" },
+    { "id": "fewer-better-customers", "ref": "§5.4", "title": "A few hundred high-value customers beats ten thousand — the maths does not favour scale for a small team", "verdict": "article", "article": "what-your-price-licenses" },
+    { "id": "acv-floor-for-outbound", "ref": "§8.2 ACV thresholds", "title": "Three practitioners, three floors — below roughly $3–5k ACV, outbound does not pay for itself", "verdict": "article", "article": "what-your-price-licenses" },
+    { "id": "enterprise-triggers", "ref": "§8.5 enterprise triggers", "title": "A redlined contract, procurement routing or a security questionnaire is a pricing event, not a paperwork event", "verdict": "article", "article": "what-your-price-licenses" },
+
+    { "id": "first-meeting-loss-rate", "ref": "§8.2 win rates", "title": "You will lose 75–85% of first meetings, and a 25% win rate is very good", "verdict": "article", "article": "cold-email-sequence" },
+    { "id": "funnel-benchmarks", "ref": "§8.2 funnel rules of thumb", "title": "Visitor-to-trial and trial-to-paid ranges, and what a credit-card gate does to both", "verdict": "article", "article": "what-your-price-licenses" },
+    { "id": "activity-model", "ref": "§8.8 BlinkMetrics", "title": "104 conversations to 24 sales calls — a 23% conversation-to-call rate as the activity model to copy", "verdict": "article", "article": "do-not-delegate-sales" },
+
+    { "id": "network-beats-audience", "ref": "§5.3", "title": "An audience gives reach; a network gives leverage — with the three launch numbers that settle it", "verdict": "article", "article": "network-beats-audience" },
+    { "id": "other-peoples-audiences", "ref": "§8.3", "title": "Fewer than 5% of 210 companies ever built an audience — borrow one instead, ten emails at a time", "verdict": "article", "article": "network-beats-audience" },
+    { "id": "stay-top-of-mind", "ref": "§3.6 top of mind", "title": "The newsletter and the excuse to call — how a relationship survives the gap between deals", "verdict": "article", "article": "network-beats-audience" },
+
+    { "id": "niching-wins-more", "ref": "§5.7", "title": "Niching down wins more customers, not fewer, because clear trade-offs are what let non-ideal buyers buy", "verdict": "article", "article": "niche-down" },
+    { "id": "orthogonal-cut", "ref": "§9.8", "title": "Vertical and orthogonal both beat horizontal — and the orthogonal cut costs no code", "verdict": "article", "article": "niche-down" },
+
+    { "id": "three-channels-minimum", "ref": "§8.4 three channels", "title": "The minimum is three channels now, and existing off-search makes search itself easier", "verdict": "article", "article": "the-channel-mix-changed" },
+    { "id": "discovery-vs-relationship", "ref": "§8.4 platform kinds", "title": "Use discovery platforms to reduce your dependency on discovery platforms", "verdict": "article", "article": "the-channel-mix-changed" },
+    { "id": "cold-channels-saturating", "ref": "§8.4 saturation", "title": "Cold email and cold LinkedIn are saturating, and the physical alternative only works paired with a trust layer", "verdict": "article", "article": "the-channel-mix-changed" },
+    { "id": "attribution-question", "ref": "§8.4 attribution", "title": "\"How did you hear about us?\" moves you from ~55% to 75–80% attributed, and costs nothing", "verdict": "article", "article": "the-channel-mix-changed" },
+    { "id": "a-channel-costs-a-year", "ref": "§8.4 learning curve", "title": "Every channel skill costs about a year — budget one, learned properly", "verdict": "article", "article": "the-channel-mix-changed" },
+
+    { "id": "do-not-delegate-sales", "ref": "§8.5 the hiring ladder", "title": "Nothing sales-related leaves the founder below $300k, and the gate is running the full process ten times", "verdict": "article", "article": "do-not-delegate-sales" },
+    { "id": "two-reps-or-none", "ref": "§8.5 two reps", "title": "Hire two reps or none — one rep gives you an argument, two give you a diagnosis", "verdict": "article", "article": "do-not-delegate-sales" },
+    { "id": "learning-before-scale", "ref": "§8.5 Steli's ladder", "title": "In person, then calls, then email — most context first, most scale last", "verdict": "article", "article": "do-not-delegate-sales" },
+    { "id": "introvert-script", "ref": "§8.5 the introvert", "title": "The answer to hating sales is a script, not a personality transplant", "verdict": "article", "article": "do-not-delegate-sales" },
+
+    { "id": "seo-is-slow", "ref": "§8.4 SEO", "title": "SEO is five years to anything interesting, plus the cheap structural wins if you do it anyway", "verdict": "not-publishable", "reason": "The one operative half — put the blog in a subfolder, slug exactly the keyword — is a build instruction for this site, taken by #144, and the rest waits on #137's audit. It becomes an article the day the section has search data to write against rather than a claim about search." },
+    { "id": "three-factor-framework", "ref": "§8.1 honesty note", "title": "The Three Factor Framework for prioritising marketing approaches", "verdict": "not-publishable", "reason": "The source names it on air and never enumerates it, and third-party summaries disagree about what the three factors are. Publishing a reconstruction would be inventing a framework and attributing it to someone." },
+    { "id": "ideas-come-from-proximity", "ref": "§8.9", "title": "Over 90% of SaaS ideas come from proximity; cold research is the least productive origin, at 8%", "verdict": "not-publishable", "reason": "It is a finding about finding an idea to build, not about finding customers for a business that already exists — the second is this section's whole remit. Its live warning (aim at operators with a product and a quota, not at founders still looking for an idea) is a targeting decision for this site, not a reader's lesson." },
+    { "id": "channels-settled", "ref": "§8.8 what this settles", "title": "The summary of what Parts 8 settles and leaves open", "verdict": "not-publishable", "reason": "A summary of rows that already carry articles, plus Prospektor's own channel choice. Its one novel number, the BlinkMetrics activity model, has its own row." },
+    { "id": "twelve-commandments", "ref": "§5.1", "title": "Rob Walling's twelve commandments", "verdict": "not-publishable", "reason": "General founder doctrine — think in spectrums, decide without certainty, overnight success takes a decade. The four load-bearing ones carry their own rows and their own articles; the remainder is not a finding about finding or winning a customer." },
+    { "id": "eight-classic-traps", "ref": "§5.2", "title": "The eight classic traps, two of which are on Prospektor's own board", "verdict": "not-publishable", "reason": "A build-side checklist read against this company's roadmap. Its live entries are internal decisions on board rows #113 and #114, not advice a reader is in a position to take." },
+    { "id": "ai-product-categories", "ref": "§5.8", "title": "The three categories of AI product, and which one Prospektor is", "verdict": "not-publishable", "reason": "A positioning question about this product, argued for this product. The reader-facing half of it — how large a claim has to be before anyone acts on it — is the 3× row, which has an article." },
+    { "id": "moat-that-isnt", "ref": "§5.10", "title": "The moat that is not a moat — doing the expensive thing a funded competitor will refuse to do", "verdict": "not-publishable", "reason": "A defensibility argument for a company that already has customers, not a finding about getting them. It is also the load-bearing argument in this company's own CLAUDE.md moat audit, which makes it strategy rather than field notes." },
+    { "id": "concierge-onboarding", "ref": "§9.5", "title": "Concierge onboarding is indicated above $100/mo or 20 seats, and the barbell that makes the mid-range dangerous", "verdict": "not-publishable", "reason": "About activating a customer who has already bought. This section stops at the sale; taking it further would need a second section with its own remit rather than a stray article about onboarding." },
+    { "id": "cancellation-toolkit", "ref": "§9.6", "title": "Instrument why people cancel: multiple choice not freeform, offer a pause, route by reason", "verdict": "not-publishable", "reason": "Post-sale retention mechanics. The one part a seller acts on — that the stated reason is usually not the real one — is the too-expensive article, which has its own row." },
+    { "id": "pricing-mechanics", "ref": "§9.7", "title": "The rule of 15, the announced annual increase, and why freemium is not a distribution fix", "verdict": "not-publishable", "reason": "Price-book operations for a company with a live subscriber base. What a price licenses you to *do* in sales is the row that has an article; what you charge existing customers next year is not this section's subject." },
+    { "id": "expansion-revenue", "ref": "§9.4", "title": "Expansion revenue is the missing holy grail", "verdict": "not-publishable", "reason": "Revenue growth inside accounts you already won. Out of remit for the same reason as concierge onboarding — this section is about the sale, up to and including the moment it closes." }
+  ]
+}

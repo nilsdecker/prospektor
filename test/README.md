@@ -4,8 +4,8 @@ Three commands, in the order a thread uses them.
 
 | Command | What it asks | Needs |
 |---|---|---|
-| `npm test` | Do the functions behave, and does the site build what it claims? 86 tests over the guards, the fail-open policy, the webhook, `/resources/` and `/help/`. | Nothing — no network, no keys (`HELP_CORPUS_OFFLINE=1` is set for you, so the help corpus comes from the committed snapshot) |
-| `npm run drive` | Does the built site wire up in a real browser? 104 checks over the pay form, the ownership block, the website ask and both fallbacks, the help hub and its search, and what a crawler is served — with the functions and the studio mocked. | Chromium (`CHROME_PATH` to override) |
+| `npm test` | Do the functions behave, and does the site build what it claims? 124 tests over the guards, the fail-open policy, the webhook, `/resources/` (including the learnings ledger) and `/help/`. | Nothing — no network, no keys (`HELP_CORPUS_OFFLINE=1` is set for you, so the help corpus comes from the committed snapshot) |
+| `npm run drive` | Does the built site wire up in a real browser? 207 checks over the pay form, the ownership block, the website ask and both fallbacks, the help hub and its search, the /resources topic filter, and what a crawler is served — with the functions and the studio mocked. | Chromium (`CHROME_PATH` to override) |
 | `npm run audit` | Is **production** still what the board says it is? Every claim on this lane's board rows, fetched from the live site — the count grows with the board, so it is deliberately not promised here (#135's lesson about the runbook's fixed URL count). Read-only — it runs a real scan and reads pages, and never posts anything that charges. | Chromium, network (`AUDIT_SITE` to point elsewhere) |
 
 ## What the function tests are actually protecting
@@ -26,6 +26,19 @@ things that happened rather than things that did not:
 - A target sentence the studio did not record is shouted about; a purchase
   that sent no sentence is not, because that is the pricing tile's direct path
   working as designed.
+
+## The /resources coverage check (#159)
+
+`test/learnings.test.js` is the odd one out: it asserts a **contract between two
+files**, not a behaviour. `/resources` is defined as one article per useful
+learning, `data/learnings.json` is the list, and the test makes the two agree in
+both directions — see *The resources contract* in `CLAUDE.md`.
+
+Its failure modes are proven against fixtures rather than by planting a broken
+article in `src/resources/`, so a red test here always means the real corpus is
+wrong and never means the suite is testing itself. One of those fixtures asserts
+that **writing more articles never turns it red**, which is the property the help
+corpus learned the hard way in #131.
 
 ## Notes
 

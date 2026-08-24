@@ -3,8 +3,9 @@ title: "Personalisation that works, and personalisation that costs you trust"
 dek: "Using someone's first name is not personalisation — and the people you most want to reach read it as proof that a machine sent the email. Here is the line between the two."
 description: "Why first-name merge tags reduce reply rates with sophisticated buyers, what actually reads as personal in a cold email, and how to do the expensive version at volume."
 topic: cold email
+learnings: personalisation-as-evidence, cold-email-template
 date: 2026-08-24
-readingTime: 6
+readingTime: 8
 ogImage: /assets/img/og/cold-email-personalisation.png
 ---
 
@@ -83,6 +84,45 @@ The test is simple and slightly uncomfortable: **could you paste this sentence
 into an email to a different company and have it still make sense?** If yes, it
 is not personalisation. It is a template with a variable in it, and it will be
 read as one.
+
+## What it looks like written down
+
+The principle is easy to agree with and easy to lose in the drafting, so here is
+the whole email. Five short paragraphs, no merge tags, and every line doing one
+job.
+
+> **Subject:** your {the thing they announced}
+>
+> {Name} — I read your {launch page / careers page / partner page} and it looks
+> like {specific, verifiable observation about what they are pushing on right now}.
+>
+> If that's right, the {N} companies below are already selling to the same buyer
+> and don't compete with you. I've written up why each one fits, who to speak to,
+> and a first-meeting note for the top one — attached, nothing to sign up for.
+>
+> If it's useful I'll do the next ten. If not, no reply needed.
+>
+> — {Sender}
+
+Why each part is there:
+
+- **The subject line names their priority, not your product.** It is the only line
+  guaranteed to be read, and it is the cheapest place to prove you looked.
+- **The observation is verifiable and specific.** Not "I see you're growing" —
+  something a person could check and either confirm or correct. If your observation
+  cannot be wrong, it is not evidence of anything.
+- **The value is attached, not offered.** They are not being asked for thirty
+  minutes so you can describe a thing; the thing is here. This matters more than it
+  seems: a recipient who is not activated on this problem cannot justify a meeting
+  at any level of interest, but they can open an attachment.
+- **The ask is smaller than the gift.** "I'll do the next ten" is an offer to do
+  more work, not a request for their time.
+- **The exit is explicit.** *No reply needed* costs you nothing and removes the
+  small social debt that makes people avoid the message entirely.
+
+The structural point: everything expensive in that email is in the second paragraph
+and the attachment. That is the twenty minutes, and it is the only part a competitor
+sending four hundred merge-tagged emails cannot copy.
 
 ## The objection, and the honest answer
 
