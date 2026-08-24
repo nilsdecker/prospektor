@@ -311,6 +311,18 @@ nothing"*), §7c(a)/(b) (#76's edited and brand-new guides still correct
 themselves at runtime) and §7d (the three generations of legacy `#anchor` still
 forward). 255 drive checks and 149 tests, both green.
 
+*And verified again against the deploy, because a green suite is not a deploy.*
+Production's own served bytes — `/help/`, `/help/workspace/`, `/help/sharing/`
+and the three scripts, fetched from prospektor.ai and served back unmodified,
+with only the studio's `/api/help` stubbed because Chromium has no egress here
+— driven in a browser, **18/18**. The corpus fed back is the one production
+itself embedded (`f8a722ab`), so *unchanged* means the literal bytes the live
+page was built from. Both halves were asserted, which is what makes it worth
+anything: the deferred script demonstrably **ran** (it fetched) and demonstrably
+**did nothing** (`data-corpus-source` never became `runtime`, no guide returned
+to the hub) — and when the corpus was moved instead, it re-rendered as it
+should.
+
 *Measured, and modestly.* Same build, twice, differing only by the attribute;
 Chromium at a 4× CPU throttle with 150 ms per asset standing in for a mobile
 round trip; median of nine. Lab and local, and labelled as such — there is still
