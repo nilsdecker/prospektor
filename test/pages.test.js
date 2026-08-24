@@ -123,6 +123,37 @@ describe('the header, and the pages behind it', () => {
       'the two halves do not both link through to their pages');
   });
 
+  // #137 deferred four scripts (F6) and left /help/'s alone, because #136's
+  // no-double-render stamp had not been re-verified with `defer` on; #170
+  // verified it and finished the pass. Nothing pinned any of it: the audit
+  // records async/defer as a FACT per script and flags no defect, so a fifth
+  // blocking script could arrive tomorrow and the only trace would be a
+  // column in a report nobody runs on a branch.
+  //
+  // Derived from the built pages, never from a list of filenames — adding a
+  // page or a script must never turn this red, only adding a BLOCKING one.
+  // Same rule as the learnings ledger and the help checks: friction points at
+  // the defect, not at the work (#131).
+  test('no page serves a parser-blocking script', () => {
+    const blocking = [];
+    for (const file of htmlPages(SITE)) {
+      const html = fs.readFileSync(file, 'utf8');
+      for (const m of html.matchAll(/<script\b[^>]*\ssrc=["'][^"']*["'][^>]*>/gi)) {
+        const tag = m[0];
+        // A module script is deferred by definition; nothing here is one yet,
+        // and this exists so that adding one is not a false red.
+        if (/\stype\s*=\s*["']?module\b/i.test(tag)) continue;
+        // Attribute VALUES stripped first, so a filename that happens to
+        // contain "async" cannot pass for the attribute.
+        const attrs = tag.replace(/=\s*("[^"]*"|'[^']*'|[^\s>]+)/g, '');
+        if (/\b(?:defer|async)\b/i.test(attrs)) continue;
+        blocking.push(`${path.relative(SITE, file)} → ${(tag.match(/\ssrc=["']([^"']*)["']/i) || [])[1]}`);
+      }
+    }
+    assert.deepEqual(blocking, [],
+      'these scripts stop the parser mid-document — add defer (#137 F6, #170):\n  ' + blocking.join('\n  '));
+  });
+
   test('every page carries the mobile way into the nav', () => {
     // Under 860px .nav-links is display:none and this button is the only
     // thing that opens it — so a page that ships without it ships a header

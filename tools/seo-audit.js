@@ -185,6 +185,16 @@ function parse(html, url) {
     if (p.jsonldTypes.includes('PARSE-ERROR')) flag('BLOCKER', path, 'structured data is not valid JSON');
     for (const im of p.images) if (im.alt === null) flag('MINOR', path, `img without alt: ${im.src}`);
     if (indexable && p.words < 250) flag('MAJOR', path, `only ${p.words} words of body copy`);
+    // F6/R3: a <script src> with neither defer nor async stops the parser
+    // where it sits, so nothing below it renders until it has been fetched
+    // and run. #137 recorded async/defer as a fact per script and flagged no
+    // defect — which is why F6 had to be read off the fact table by eye, and
+    // why R3 could sit in a document rather than in a red suite. Since #170
+    // `test/pages.test.js` pins the rule on the build, and this asks the same
+    // of PRODUCTION, where a tag injected into the response — Netlify's own
+    // RUM script — counts too.
+    for (const s of p.scripts)
+      if (!s.async && !s.defer) flag('MINOR', path, `parser-blocking script: ${s.src}`);
   }
 
   // Internal link graph: which indexable pages nothing links to.

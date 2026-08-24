@@ -127,5 +127,10 @@ eleventyComputed:
   </div>
 </section>
 
-<script src="/assets/js/help-render.js"></script>
-<script src="/assets/js/help-guide.js"></script>
+{#- defer (#170) — see the longer note in src/help.njk. The same reasoning
+    reaches this page through help-guide.js, which compares one guide's
+    data-guide-hash rather than the whole corpus's: a hash comparison does not
+    care when it runs, only that the element it reads is parsed, which is
+    exactly what `defer` guarantees. Driven in test/drive.js §7b and §7c(a). -#}
+<script src="/assets/js/help-render.js" defer></script>
+<script src="/assets/js/help-guide.js" defer></script>

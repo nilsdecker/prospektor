@@ -49,9 +49,10 @@ anonymous caller on the internet and was already spent.
 control** — bytes on the wire, render-blocking resources, cacheability,
 whether images reserve their space. Those are measurable today, they are what a
 lab tool would flag anyway, and unlike a field score they do not need traffic to
-become true. One of them — render-blocking scripts — **was** fixed in this
-thread (**F6**); cacheability (**R2**) and the two scripts left blocking on
-`/help/` (**R3**) are real costs with real fixes, and are ranked accordingly.
+become true. Render-blocking scripts are now closed on both halves — four of
+them in this thread (**F6**) and `/help/`'s remaining two by **#170** on 24 Aug,
+which also turned the defect into a check instead of a fact in a table.
+Cacheability (**R2**) is the one still open, and is ranked accordingly.
 There is no image-driven layout shift to fix and there cannot be: the site
 serves **zero `<img>` elements** — every graphic on it is inline SVG or CSS, and
 the only raster assets are the OG cards, which are never rendered by the page
@@ -191,7 +192,9 @@ instead of guaranteed partial.
 `/help/`'s two scripts are **deliberately left alone**: #136 tuned that page's
 render and stamped a corpus hash specifically to prevent a double render, and
 this thread has not verified that deferring them keeps that true. Ranked as
-**R3** below rather than done blind.
+**R3** below rather than done blind. *(#170 verified it and deferred them on
+24 Aug — R3 carries the measurement and the reason the stamp was never at
+risk.)*
 
 ### What was checked and was already right
 
@@ -289,6 +292,62 @@ applies. The heaviest single guide is `/help/workspace/` at 37 KB of HTML.
 **Fix:** verify the stamp still holds with `defer`, then defer them. **S** — one
 attribute each and a re-run of `test/help.test.js`, whose *"the browser would
 re-render on load"* assertion is the exact thing that must not break.
+
+**SHIPPED 24 Aug 2026 as #170 — and the guarantee held, for a reason worth
+writing down.** `defer` on all four tags (the hub's two, and `help-render.js` +
+`help-guide.js` on each of the eleven guide pages). The stamp survives because
+**it is a comparison of two hashes, not a race**: `help.js` reads
+`data-corpus-hash` off `#helpGuides` and returns without touching the DOM when
+the live corpus agrees; `help-guide.js` does the same with one guide's
+`data-guide-hash`. Neither cares *when* it runs, only that the element it reads
+is parsed — which `defer` guarantees where before it was merely likely. Order
+holds for the same kind of reason: deferred scripts run in document order, so
+`help-render.js` still defines `window.HelpRender` before the other two read it.
+
+*Verified, not reasoned:* `test/drive.js` §7 (*"an unchanged corpus re-renders
+nothing"*, alongside *"the live corpus was fetched"* — so the script demonstrably
+ran and demonstrably did nothing), §7b (*"an unchanged guide re-renders
+nothing"*), §7c(a)/(b) (#76's edited and brand-new guides still correct
+themselves at runtime) and §7d (the three generations of legacy `#anchor` still
+forward). 255 drive checks and 149 tests, both green.
+
+*Measured, and modestly.* Same build, twice, differing only by the attribute;
+Chromium at a 4× CPU throttle with 150 ms per asset standing in for a mobile
+round trip; median of nine. Lab and local, and labelled as such — there is still
+no field data and none was invented.
+
+| | `/help/` | `/help/workspace/` |
+|---|---|---|
+| `domInteractive`, blocking | 483 ms | 491 ms |
+| `domInteractive`, deferred | **66 ms** | **60 ms** |
+| First Contentful Paint, blocking | 508 ms | 544 ms |
+| First Contentful Paint, deferred | **464 ms** | **508 ms** |
+
+The honest reading: the parser finishes **~420 ms earlier**, because two
+blocking scripts cost two *serial* round trips plus the synchronous
+`buildIndex()` over the whole corpus before the parser may continue. **FCP moves
+only ~40 ms**, because first paint is gated by the stylesheet either way — so
+this is a real win and a small one, and F6's homepage framing (*"rendered
+nothing below it"*) overstates it here: on `/help/` the tags sit near the foot of
+the document, so what was blocked below them was the footer.
+
+The one behaviour that could have got worse was checked rather than assumed:
+#166's client-side forward for `/help/#guide-sharing` runs from `help.js`'s
+synchronous body, so deferring moves it after the parse. Measured the same way,
+814 ms blocking → 834 ms deferred — one step of run-to-run noise, on a legacy
+anchor. A server redirect could not do better; a fragment is never sent to the
+server.
+
+**And the gap this closed that the row did not name.** F6 was found by *reading
+the fact table by eye* — `tools/seo-audit.js` recorded `async`/`defer` per script
+and flagged no defect, and nothing in `npm test` pinned the four scripts #137
+did defer. So a fifth blocking script could have arrived tomorrow in silence.
+Both halves are checked now: `test/pages.test.js` fails on any built page
+serving a `<script src>` with neither `defer` nor `async` (derived from the
+build, never a list of filenames — adding a page or a script can only turn it
+red by adding a *blocking* one), and the audit flags the same defect against
+production. That flag is what produced this row's before-and-after:
+**24 findings across 12 pages before the deploy, 0 after.**
 
 ### R4 · Eleven help guides compete as one URL · **already filed as #166 · M**
 

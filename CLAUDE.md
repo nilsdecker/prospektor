@@ -140,6 +140,26 @@ with one article is a chip that selects one card and never appears in anybody's
 keep-reading block. Ten topics over twenty-three articles is the shape as of
 #159.
 
+## The script contract — nothing blocks the parser (#137 F6, #170)
+
+Every `<script src>` this site serves carries `defer` (or `async`, for a tag
+Netlify injects). A blocking script stops the parser where it sits, and on
+`/help/` — the heaviest page on the site — the two that stayed blocking cost
+two serial round trips plus a synchronous index build before the document could
+finish parsing.
+
+- **`test/pages.test.js` fails on any built page serving a blocking script**,
+  naming the page and the file. It is derived from the build, never from a list
+  of filenames: adding a page or a script can only turn it red by adding a
+  *blocking* one. Same rule as everywhere else here — friction points at the
+  defect, not at the work.
+- **`tools/seo-audit.js` flags the same defect against production**, because a
+  tag injected into the response is not in this repo's output at all.
+- The reason `/help/` was the exception until #170, and why it stopped being
+  one, is `SEO-AUDIT.md` **R3**: #136's no-double-render stamp is a comparison
+  of two hashes, not a race, so `defer` cannot break it — and the drive proves
+  it rather than the reasoning doing so.
+
 ## The sign-off
 
 When the deliverable is shipped, end the thread with exactly this shape and

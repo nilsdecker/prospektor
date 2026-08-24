@@ -140,5 +140,25 @@ faqs:
     corpus is compared against so the page is not re-rendered for nothing. -#}
 <script type="application/json" id="helpCorpus">{{ help.corpusJson | safe }}</script>
 
-<script src="/assets/js/help-render.js"></script>
-<script src="/assets/js/help.js"></script>
+{#- defer (#170, the remainder of #137's pass). These two are what that
+    pass deliberately left out, and here is why: #136 stamps a corpus hash on
+    #helpGuides specifically to stop the browser rendering a second time over
+    what the build already rendered, and that guarantee had not been
+    re-verified with `defer` on. It has been now, and it holds — because the
+    stamp is a comparison of two hashes, not a race. help.js reads
+    data-corpus-hash off an element the parser is guaranteed to have finished
+    with, and does nothing at all when the live corpus agrees with it.
+    `defer` makes that guarantee stronger rather than weaker: the element the
+    script looks up is certain to exist, where before it was merely likely to.
+
+    Order still holds, which is the other thing that had to be true: deferred
+    scripts run in document order, so help-render.js still defines
+    window.HelpRender before help.js reads it. help.js already returns if it
+    does not.
+
+    This is the heaviest page on the site — 85 KB of HTML, most of it the
+    embedded corpus that makes search answer with the studio down — so it is
+    where a parser stop cost most. Driven in test/drive.js §7 and §7c(b);
+    pinned for every page by test/pages.test.js. -#}
+<script src="/assets/js/help-render.js" defer></script>
+<script src="/assets/js/help.js" defer></script>
