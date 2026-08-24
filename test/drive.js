@@ -343,6 +343,132 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     }
   }
 
+  // 10 — the consent gate (#143). The two checks the studio's `drive:consent`
+  //      makes that matter here, ported: every request the browser makes stays
+  //      on this origin, and a gated script does not load before consent —
+  //      asserted against a real script tag pointing at a real URL, so a leak
+  //      shows up as a fetch rather than as an opinion.
+  {
+    // The transform the edge function really runs, imported rather than
+    // re-described, so this exercises the whole mechanism: Netlify's injected
+    // tag in, inert handoff out, consent.js the only way back to a live tag.
+    const { gateRumTag } = await import(
+      require('url').pathToFileURL(path.join(__dirname, '..', 'netlify', 'edge-functions', 'rum-consent.js')).href);
+
+    // Shaped exactly like the tag production serves, but pointing at a probe,
+    // so "did the gate hold" is a request count and not a judgement call.
+    const PROBE = '/__gated-probe.js';
+    const INJECTED = '<script async id="netlify-rum-container" src="' + PROBE
+      + '" data-netlify-cwv-token="probe-token"></script>';
+
+    async function consentPage(pathname) {
+      const page = await browser.newPage();
+      const offOrigin = [];
+      const probeHits = [];
+      page.on('request', r => {
+        const u = new URL(r.url());
+        if (u.host !== 'localhost:8899') offOrigin.push(r.url());
+      });
+      await page.route('**' + PROBE, route => {
+        probeHits.push(route.request().url());
+        return route.fulfill({ status: 200, contentType: 'text/javascript', body: 'window.__probeRan = true;' });
+      });
+      await page.route('http://localhost:8899' + pathname, route => {
+        const file = path.join(ROOT, pathname.replace(/\/$/, '/index.html'));
+        const served = fs.readFileSync(file, 'utf8').replace('</body>', INJECTED + '\n</body>');
+        const gated = gateRumTag(served);
+        return route.fulfill({ status: 200, contentType: 'text/html', body: gated === null ? served : gated });
+      });
+      await page.goto('http://localhost:8899' + pathname);
+      return { page, offOrigin, probeHits };
+    }
+
+    const ran = page => page.evaluate(() => window.__probeRan === true);
+
+    // 10a — first visit: the choice, and nothing loaded to go with it
+    {
+      const { page, offOrigin, probeHits } = await consentPage('/');
+      await page.waitForSelector('.ppsc-bar', { timeout: 5000 });
+      const buttons = await page.$$eval('.ppsc-bar .ppsc-btn, .ppsc-bar .ppsc-link', ns => ns.map(n => n.textContent));
+      check('the banner is a choice, not a notice — RUM is declared', buttons.includes('Accept') && buttons.includes('Reject'), buttons);
+      check('Accept and Reject are the same kind of button',
+        (await page.$$('.ppsc-bar .ppsc-btn')).length === 2
+        && (await page.$eval('.ppsc-bar .ppsc-btn', n => n.textContent)) === 'Reject', buttons);
+      check('the gated script has not been fetched before an answer', probeHits.length === 0, probeHits);
+      check('and it has not run', !(await ran(page)));
+      check('every request stays on this origin', offOrigin.length === 0, offOrigin);
+      await page.close();
+    }
+
+    // 10b — Reject: still nothing, and the answer sticks across a reload
+    {
+      const { page, probeHits } = await consentPage('/');
+      await page.waitForSelector('.ppsc-bar');
+      await page.click('.ppsc-bar .ppsc-btn-equal');
+      await page.waitForTimeout(300);
+      check('Reject loads nothing', probeHits.length === 0, probeHits);
+      check('the bar is gone once answered', !(await page.isVisible('.ppsc-bar').catch(() => false)));
+      await page.reload();
+      await page.waitForTimeout(700);
+      check('the answer is remembered, so the bar does not come back', (await page.$$('.ppsc-bar')).length === 0);
+      check('and a rejected script stays unloaded on the next page view', probeHits.length === 0, probeHits);
+      await page.close();
+    }
+
+    // 10c — Accept: the same tag now loads, from the same handoff
+    {
+      const { page, probeHits } = await consentPage('/');
+      await page.waitForSelector('.ppsc-bar');
+      await page.click('.ppsc-bar .ppsc-btn-primary');
+      await page.waitForFunction(() => window.__probeRan === true, null, { timeout: 5000 }).catch(() => {});
+      check('Accept loads the gated script', probeHits.length === 1, probeHits);
+      check('and it really executes — the gate was the only thing holding it', await ran(page));
+      await page.close();
+    }
+
+    // 10d — withdrawal is as easy as granting: the footer link, on a page
+    //       that is not the front page
+    {
+      const { page } = await consentPage('/help/');
+      await page.waitForSelector('.ppsc-bar');
+      await page.click('footer a[data-cookies]');
+      await page.waitForSelector('.ppsc-panel', { timeout: 5000 });
+      check('the footer Cookies link opens the panel', await page.isVisible('.ppsc-panel'));
+      const rows = await page.$$eval('.ppsc-table td:first-child', ns => ns.map(n => n.textContent));
+      check('the panel names every declared item', rows.length === 4, rows);
+      check('and names the one third party by name', rows.includes('Netlify Real User Metrics'), rows);
+      await page.close();
+    }
+
+    // 10e — the same check over every page rather than one, and the one that
+    //       earns its keep: it catches a font, a pixel or an SDK arriving by a
+    //       route nobody thought to grep for, because it counts requests
+    //       instead of reading source.
+    //
+    //       The allow-list is deliberately the audit's own (`audit-live.js`),
+    //       so the two cannot disagree about what "somewhere else" means:
+    //       localhost is where the built site is being served from, and
+    //       studio.prospektor.ai is Prospektor — /help/ renders the studio's
+    //       corpus over /api/help, which is a first-party call between two
+    //       origins with one controller, not a disclosure to anybody. Every
+    //       other host is a finding. Keep this list exact; a wildcard here
+    //       would quietly retire the check.
+    {
+      const OURS = ['localhost:8899', 'prospektor.ai', 'studio.prospektor.ai'];
+      const pages = ['/', '/privacy/', '/terms/', '/checkout/', '/help/', '/resources/', '/resources/who-to-approach/'];
+      const strays = [];
+      for (const pathname of pages) {
+        const page = await browser.newPage();
+        page.on('request', r => {
+          if (!OURS.includes(new URL(r.url()).host)) strays.push(pathname + ' → ' + r.url());
+        });
+        await page.goto('http://localhost:8899' + pathname, { waitUntil: 'networkidle' });
+        await page.close();
+      }
+      check('no page reaches a host that is not Prospektor', strays.length === 0, strays);
+    }
+  }
+
   await browser.close();
   server.close();
   console.log('\n' + pass + ' passed, ' + fail + ' failed');

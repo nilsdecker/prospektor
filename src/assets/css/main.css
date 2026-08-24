@@ -715,7 +715,14 @@ nav {
 /* ── FOOTER ── */
 footer {
   background: var(--ink); color: rgba(255,255,255,0.35);
-  padding: 1.5rem 2.5rem;
+  /* The consent bar (#143) is fixed to the bottom of the viewport and
+     publishes its own height as --ppsc-inset on <html>. The footer is the last
+     thing on the page, so a visitor scrolled to the end reads it through the
+     bar — and the link the bar's own panel tells them to use, Cookies, is one
+     of the ones underneath. Stepping over the inset is the website's half of
+     that contract; the studio's support panel does the same. It costs nothing
+     when the bar is gone: the variable is 0px, or absent and defaulted. */
+  padding: 1.5rem 2.5rem calc(1.5rem + var(--ppsc-inset, 0px));
   display: flex; align-items: center; justify-content: space-between;
   font-size: 0.76rem; flex-wrap: wrap; gap: 0.75rem;
 }
