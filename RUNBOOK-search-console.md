@@ -9,6 +9,10 @@ This is that. Steps 1–7 are the operator's; they take about fifteen minutes an
 need no deploy. Everything the repo owed was shipped with this file — see
 *What the repo already does for you* at the bottom, and don't redo it.
 
+There is a page version of this runbook — the same steps, easier to follow on
+a second screen while clicking through Google's console:
+<https://claude.ai/code/artifact/de7bbac5-f6c6-45dd-b079-380845db4662>
+
 > ## Status — 24 Aug 2026
 >
 > **Steps 1–5 are done.** The operator added the record and Google verified
@@ -196,7 +200,7 @@ queued behind this one.
 | `/app/` — *Page with redirect* | ✅ correct, it 301s to `/` |
 | Core Web Vitals — *not enough data* | ✅ expected for months at this traffic; it needs real visitors |
 | **Any 5xx, or *Server error (5xx)* on a sitemap URL** | 🚨 real. That's production down, not an SEO issue |
-| **A `/p/…` share URL listed anywhere** | 🚨 real, and urgent — a customer's unlisted work reached the index. Tell the STUDIO lane |
+| **A `/p/…` share URL listed anywhere** | 🚨 real. The gate keeps the pitch itself out of a crawler's reach, but it names the sender and the target company — that reached the index. Tell the STUDIO lane |
 | **`Couldn't fetch` on the sitemap** | 🚨 real. Check `https://prospektor.ai/sitemap.xml` returns 200 |
 
 ### Two things not to do
