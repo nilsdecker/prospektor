@@ -123,6 +123,48 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
   // ── CLAIM: the website hosts its own fonts (no Google Fonts) ──
   check('website makes no third-party requests', thirdParty.size===0, [...thirdParty].join(', ') || 'none');
 
+  // ── CLAIM: the consent gate is live on every page, and really gating (#143) ──
+  // These are asked of production because the two things that can go wrong
+  // here are invisible from inside a browser and invisible in the repo. The
+  // RUM tag is injected by Netlify into the response, not written by any
+  // template, so whether it is gated is a fact about what the CDN served this
+  // minute — and `netlify/edge-functions/rum-consent.js` deliberately fails
+  // open, which means a failure looks exactly like success from the page's
+  // own point of view. This check is the only thing that can tell them apart.
+  const CONSENT_PAGES = ['/', '/privacy/', '/terms/', '/checkout/', '/checkout/done/',
+    '/help/', '/resources/', '/404.html'];
+  const consentPages = {};
+  for (const p of CONSENT_PAGES) {
+    try { consentPages[p] = await (await fetch(SITE + p)).text(); }
+    catch (e) { RELAY_RETRIES.push(SITE + p); consentPages[p] = ''; }
+  }
+  const consentJs = await (async () => {
+    try { const r = await fetch(SITE + '/assets/js/consent.js'); return r.ok ? await r.text() : ''; }
+    catch (e) { return ''; }
+  })();
+  check('the consent script is served, and is the gate rather than a banner',
+    /window\.ppsConsent/.test(consentJs) && /gate: function/.test(consentJs),
+    consentJs ? consentJs.length + ' bytes' : 'not served');
+  check('every page loads the consent script',
+    Object.values(consentPages).every(h => h.includes('/assets/js/consent.js')),
+    Object.entries(consentPages).filter(([, h]) => !h.includes('/assets/js/consent.js')).map(([p]) => p).join(', '));
+  // Withdrawal has to be as easy as granting (Art. 7(3)), which means it has
+  // to be reachable from every page and not only from the visit that asked.
+  check('every page offers withdrawal from its footer',
+    Object.values(consentPages).every(h => /<a href="#cookies" data-cookies>Cookies<\/a>/.test(h)),
+    Object.entries(consentPages).filter(([, h]) => !/data-cookies/.test(h)).map(([p]) => p).join(', '));
+  const ungated = Object.entries(consentPages)
+    .filter(([, h]) => /<script[^>]*\bid="netlify-rum-container"/.test(h)).map(([p]) => p);
+  check('no page serves Netlify\u2019s measurement tag ungated', ungated.length === 0, ungated.join(', '));
+  // The other half of the same fact: gated, not lost. If the handoff stopped
+  // being emitted the tag would be gone and nobody would ever get the metrics
+  // back, which is a quieter failure than serving it ungated but still one.
+  const handedOff = Object.entries(consentPages)
+    .filter(([, h]) => h.includes('id="ppsc-gated-rum"')).map(([p]) => p);
+  check('and the measurement tag is held behind the gate rather than dropped',
+    handedOff.length === CONSENT_PAGES.length,
+    handedOff.length + '/' + CONSENT_PAGES.length + ' pages carry the handoff');
+
   // ── CLAIM: the origin with the buy form is not framable ──
   const shellHeaders = await (async () => {
     for (let i = 0; i < 3; i++) {
@@ -273,10 +315,21 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
   const mapRes = await fetch(SITE + '/sitemap.xml');
   const mapXml = await mapRes.text();
   const liveLocs = [...mapXml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m => m[1]);
-  check('sitemap.xml serves the three pages we want ranked',
-    mapRes.status === 200 && JSON.stringify(liveLocs) === JSON.stringify([
-      'https://prospektor.ai/', 'https://prospektor.ai/privacy/', 'https://prospektor.ai/terms/']),
-    liveLocs.join(' '));
+  // Two halves, matching the guarantee the drive holds over the built output.
+  // The static list is exact — that is what stops a page reaching the sitemap
+  // without its reason being argued (#135). The articles grow every time
+  // somebody writes one (#144), so they are checked by shape: everything past
+  // the static prefix must be a /resources/<slug>/ URL, and there must be at
+  // least one, because a hub with no articles behind it is a dead section.
+  const STATIC_LOCS = ['https://prospektor.ai/', 'https://prospektor.ai/privacy/',
+                       'https://prospektor.ai/terms/', 'https://prospektor.ai/resources/'];
+  const articleLocs = liveLocs.slice(STATIC_LOCS.length);
+  check('sitemap.xml serves exactly the static pages we want ranked',
+    mapRes.status === 200 && JSON.stringify(liveLocs.slice(0, STATIC_LOCS.length)) === JSON.stringify(STATIC_LOCS),
+    liveLocs.slice(0, STATIC_LOCS.length).join(' '));
+  check('everything else in the sitemap is a published article',
+    articleLocs.length > 0 && articleLocs.every(l => /^https:\/\/prospektor\.ai\/resources\/[a-z0-9-]+\/$/.test(l)),
+    `${articleLocs.length} article URL(s)`);
   check('the sitemap does not submit the checkout form as content',
     !liveLocs.some(l => l.includes('/checkout')));
   let mapBroken = [];

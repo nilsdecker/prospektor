@@ -2,7 +2,7 @@
 layout: base.njk
 title: Privacy
 description: What Prospektor collects, where it goes, who else sees it, and how long it stays. Written to be read, not to cover us.
-updated: 22 August 2026
+updated: 24 August 2026
 ---
 
 <header class="legal-hero">
@@ -29,7 +29,7 @@ updated: 22 August 2026
       <a href="#research"><span class="legal-toc-n">04</span> If your name came up in research</a>
       <a href="#network"><span class="legal-toc-n">05</span> If you're in someone's professional network</a>
       <a href="#viewers"><span class="legal-toc-n">06</span> If you opened a shared pitch</a>
-      <a href="#cookies"><span class="legal-toc-n">07</span> Cookies, tracking and providers</a>
+      <a href="#tracking"><span class="legal-toc-n">07</span> Cookies, tracking and providers</a>
       <a href="#retention"><span class="legal-toc-n">08</span> How long we keep it</a>
       <a href="#rights"><span class="legal-toc-n">09</span> Your rights, and how to use them</a>
       <a href="#separation"><span class="legal-toc-n">10</span> Keeping workspaces apart</a>
@@ -164,19 +164,53 @@ updated: 22 August 2026
     </section>
 
     <!-- 07 -->
-    <section class="legal-block" id="cookies">
+    <!-- The anchor is #tracking, not #cookies: `#cookies` is the whole
+         product's trigger for the consent panel (#131/#143) — consent.js opens
+         it on that hash and on any link ending in it, and the help corpus
+         documents it that way. A documentation section holding that id would
+         have swallowed the TOC link on this page and nothing else. -->
+    <section class="legal-block" id="tracking">
       <span class="legal-n">07</span>
       <div>
         <h2>Cookies, tracking, and who else touches the data</h2>
-        <p>No analytics. No advertising. No third-party trackers, no session recording, no fingerprinting. There's no cookie banner because there's nothing to ask you to consent to.</p>
+        <p>No advertising. No session recording. No fingerprinting. No third-party trackers. One thing measures anything at all, it is named below, and it is off until you allow it — the <a href="#cookies" data-cookies>Cookies</a> link in the footer of every page is where you answer, and where you take the answer back.</p>
+
+        <h3>This website</h3>
+        <p>It sets <strong>no cookies at all</strong>. It keeps three things in your own browser, and they never leave it:</p>
+        <ul class="legal-list">
+          <li><code>pps-consent</code> — your answer to the cookie notice, with the date you gave it, so we can show you were asked and so we stop asking. Kept 12 months, then we ask again.</li>
+          <li><code>prospektor.scan</code> — the scan you asked for, carried from the front page into the checkout form so you don't fill the same thing in twice. Gone when you close the tab.</li>
+          <li><code>prospektor.goal</code> — the sentence you typed about what you want the studio to find, so a reload doesn't lose it. Gone when you close the tab.</li>
+        </ul>
+        <p><strong>Netlify Real User Metrics</strong> is the optional one, and the only measurement anywhere on this site. It puts nothing on your device — no cookie, no browser storage of any kind — but as you leave a page it posts that page's load timings, along with your IP address, to Netlify, who host this site. <strong>It does not run unless you allow it.</strong> The tag is taken out of the page before the page reaches you, and your consent is the only thing that puts it back.</p>
+
+        <h3>The studio</h3>
         <p>The studio sets three cookies, all of them functional:</p>
         <ul class="legal-list">
           <li><code>pps_session</code> — signed, HttpOnly, Secure, SameSite=Lax, expires after 12 hours. Your name, email and picture URL sit inside the cookie itself; there's no session database behind it.</li>
           <li><code>pps_oauth_state</code> — 10 minutes, protects the sign-in against cross-site request forgery.</li>
           <li><code>pps_share</code> — 10 minutes, remembers which share link sent you to the sign-in page.</li>
         </ul>
-        <p>The last two are cleared as soon as sign-in finishes.</p>
-        <p>This website serves its fonts from its own server, so loading any page here makes no third-party request at all — nothing about your visit reaches anyone but us. The studio still loads its fonts from Google Fonts, which means your browser fetches them from Google and Google sees your IP address. That's the one remaining third-party request anywhere in the product, and the same fix is coming to the studio.</p>
+        <p>The last two are cleared as soon as sign-in finishes. The studio also keeps your light/dark choice and your library sort order in your own browser, and nothing else; its own <a href="https://studio.prospektor.ai/#cookies">Cookies</a> link lists every item.</p>
+
+        <h3>Fonts</h3>
+        <!-- Corrected 24 Aug 2026 (#89). What stood here said the studio loads
+             its fonts from Google's CDN and called that "the one remaining
+             third-party request anywhere in the product" — both false since
+             18 Aug 2026, when the studio's self-hosted fonts deployed.
+             Two traps for whoever edits this next:
+               1. Do not restore a whole-PRODUCT "no third-party request"
+                  claim. It is true of loading a page and not true of the
+                  studio's company-name autocomplete, which sends the typed
+                  name to Clearbit from our own server. Whether that earns a
+                  row in the table below is COMPLIANCE's call (#90) and is
+                  filed in HANDOVER-compliance.md — not this lane's to answer.
+               2. The 22 Aug replacement text offered in the handover ends
+                  "nothing about your visit reaches anyone but us", and that
+                  is no longer true of this website either: Netlify Real User
+                  Metrics posts to a Netlify host when it is allowed to run.
+                  Measured 24 Aug 2026. -->
+        <p>Both this website and the studio serve their own fonts. Google receives nothing when you load a page on either — that was always true here, and it has been true of the studio since 18 August 2026, when it stopped loading fonts from Google's CDN.</p>
 
         <h3 id="subprocessors">Providers who process data for us</h3>
         <div class="legal-table-wrap">
@@ -192,12 +226,12 @@ updated: 22 August 2026
               </tr>
               <tr>
                 <td>Netlify</td>
-                <td>Hosting, the code that runs the studio, all stored data, DNS for prospektor.ai, and the application form on this site.</td>
+                <td>Hosting, the code that runs the studio, all stored data, DNS for prospektor.ai, and the application form on this site. Separately, and only if you allow it: the load timings of pages you visit on this website, with your IP address (Real User Metrics).</td>
                 <td>Infrastructure</td>
               </tr>
               <tr>
                 <td>Google</td>
-                <td>Sign-in through OAuth. Separately, Google Fonts receives the IP address of anyone loading a studio page — not this website, which hosts its own fonts.</td>
+                <td>Sign-in through OAuth, and nothing else. (Google Fonts used to receive the IP address of anyone loading a studio page; since 18 August 2026 the studio serves its own fonts and Google receives nothing from a page load.)</td>
                 <td>Authentication, typography</td>
               </tr>
               <tr>

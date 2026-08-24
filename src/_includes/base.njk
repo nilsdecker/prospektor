@@ -40,6 +40,13 @@
 <link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/assets/css/fonts.css">
 <link rel="stylesheet" href="/assets/css/main.css">
+
+<!-- Cookie consent (#143), copied from the studio's #131. In the head and on
+     every page, because the gate has to be in place before anything optional
+     could run — Netlify's Real User Metrics tag is injected at the very end of
+     <body>, and netlify/edge-functions/rum-consent.js hands it to this script
+     rather than to the browser. Deferred, dependency-free, first-party. -->
+<script src="/assets/js/consent.js" defer></script>
 </head>
 <body>
 
@@ -76,6 +83,11 @@
     {% for item in site.legal %}
     <li><a href="{{ item.url }}">{{ item.label }}</a></li>
     {% endfor %}
+    {#- Not in site.legal, because it is not a page: consent.js catches the
+        click by delegation and opens the preferences panel. Withdrawal has to
+        be as easy as granting (GDPR Art. 7(3)), which means it has to be here,
+        on every page, and not only on the visit where the banner appeared. -#}
+    <li><a href="#cookies" data-cookies>Cookies</a></li>
   </ul>
   <span>{{ site.email }}</span>
 </footer>
