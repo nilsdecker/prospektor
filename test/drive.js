@@ -262,7 +262,10 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     // #144 adds one every time somebody writes one, so they are checked
     // structurally instead: every non-static entry must be an article that
     // exists in src/resources/, and every article must be listed.
-    const STATIC = ['https://prospektor.ai/', 'https://prospektor.ai/privacy/',
+    const STATIC = ['https://prospektor.ai/',
+                    'https://prospektor.ai/who-to-pitch/', 'https://prospektor.ai/what-to-send/',
+                    'https://prospektor.ai/pricing/',
+                    'https://prospektor.ai/privacy/',
                     'https://prospektor.ai/terms/', 'https://prospektor.ai/resources/',
                     'https://prospektor.ai/help/'];
     const articleLocs = locs.filter(l => !STATIC.includes(l));
@@ -455,7 +458,7 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     //       would quietly retire the check.
     {
       const OURS = ['localhost:8899', 'prospektor.ai', 'studio.prospektor.ai'];
-      const pages = ['/', '/privacy/', '/terms/', '/checkout/', '/help/', '/resources/', '/resources/who-to-approach/'];
+      const pages = ['/', '/who-to-pitch/', '/what-to-send/', '/pricing/', '/privacy/', '/terms/', '/checkout/', '/help/', '/resources/', '/resources/who-to-approach/'];
       const strays = [];
       for (const pathname of pages) {
         const page = await browser.newPage();
@@ -467,6 +470,98 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
       }
       check('no page reaches a host that is not Prospektor', strays.length === 0, strays);
     }
+  }
+
+  // 10 — the header, in a browser (#153). The nav used to be three anchors
+  //      onto the homepage; `test/pages.test.js` proves that from the built
+  //      HTML, and this proves the other half — that clicking them actually
+  //      arrives somewhere, and that the new /pricing/ page reaches Stripe by
+  //      the same one-field path the homepage tile uses. A pricing page that
+  //      looks right and quietly falls back to /checkout/ is the exact
+  //      regression CLAUDE.md records having shipped once already.
+  {
+    const site = require('../src/_data/site.json');
+    const page = await browser.newPage();
+    // /help/ fetches the studio; nothing here needs the live corpus.
+    await page.route('https://studio.prospektor.ai/api/help', route =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ files: [] }) }));
+
+    for (const item of site.nav) {
+      await page.goto('http://localhost:8899/');
+      await page.click(`.nav-links a[href="${item.url}"]`);
+      await page.waitForLoadState('domcontentloaded');
+      const landed = new URL(page.url()).pathname;
+      check(`nav "${item.label}" lands on ${item.url}`, landed === item.url, landed);
+      check(`and ${item.url} is a real page, not the homepage again`,
+        (await page.$$eval('h1', n => n.length)) > 0 && landed !== '/');
+    }
+
+    // The phone. .nav-links is display:none under 860px, so before #153 the
+    // header had no items at all there — cheap when they were anchors onto
+    // the page you were on, not cheap now that they are three pages.
+    const m = await browser.newPage({ viewport: { width: 390, height: 844 } });
+    await m.goto('http://localhost:8899/');
+    check('on a phone the nav is closed to start', !(await m.isVisible('.nav-links a')));
+    check('and the toggle is the way in', await m.isVisible('#navToggle'));
+    await m.click('#navToggle');
+    await m.waitForSelector('.nav-links.is-open', { timeout: 3000 });
+    for (const item of site.nav)
+      check(`phone menu offers "${item.label}"`, await m.isVisible(`.nav-links a[href="${item.url}"]`));
+    check('the toggle reports itself expanded',
+      (await m.getAttribute('#navToggle', 'aria-expanded')) === 'true');
+    await m.click('.nav-links a[href="/pricing/"]');
+    await m.waitForLoadState('domcontentloaded');
+    check('and following one arrives', new URL(m.url()).pathname === '/pricing/', m.url());
+    await m.click('#navToggle');
+    await m.keyboard.press('Escape');
+    check('Escape closes it', !(await m.isVisible('.nav-links a')));
+    await m.close();
+
+    await page.goto('http://localhost:8899/who-to-pitch/');
+    check('the WHO page offers the free scan', await page.isVisible('a[href="/#scan"]'));
+    await page.goto('http://localhost:8899/what-to-send/');
+    check('the WHAT page names every deliverable a run produces',
+      (await page.$$eval('.card-title', n => n.map(e => e.textContent))).length === 6);
+    await page.close();
+  }
+
+  // 11 — /pricing/ pays. Same mock as block 1, aimed at the new page.
+  {
+    const page = await browser.newPage();
+    const posts = [];
+    await page.route('**/.netlify/functions/create-checkout-session', async route => {
+      if (route.request().method() === 'GET')
+        return route.fulfill({ status: 200, body: JSON.stringify({ configured: true }) });
+      posts.push(JSON.parse(route.request().postData()));
+      return route.fulfill({ status: 200, contentType: 'application/json',
+        body: JSON.stringify({ url: 'https://checkout.stripe.com/c/pay/cs_live_1' }) });
+    });
+    await page.route('https://checkout.stripe.com/**', route =>
+      route.fulfill({ status: 200, contentType: 'text/html', body: '<h1>STRIPE CHECKOUT</h1>' }));
+
+    await page.goto('http://localhost:8899/pricing/');
+    await page.waitForSelector('#buyForm:not([hidden])', { timeout: 5000 });
+    check('/pricing/ reveals the one-field form when keys exist', await page.isVisible('#buyForm'));
+    check('/pricing/ hides the multi-step fallback link', !(await page.isVisible('#buyLink')));
+    await page.fill('#buyEmail', 'buyer@acme.com');
+    await page.click('#buyBtn');
+    await page.waitForURL(/checkout\.stripe\.com/, { timeout: 5000 });
+    check('/pricing/ goes straight to Stripe', page.url().startsWith('https://checkout.stripe.com/'), page.url());
+    check('carrying the email, once', posts.length === 1 && posts[0].email === 'buyer@acme.com', posts);
+    await page.close();
+  }
+
+  // 12 — no keys: /pricing/ degrades to the page that still works, exactly
+  //      as the homepage tile does.
+  {
+    const page = await browser.newPage();
+    await page.route('**/.netlify/functions/create-checkout-session', route =>
+      route.fulfill({ status: 503, body: JSON.stringify({ error: 'not open' }) }));
+    await page.goto('http://localhost:8899/pricing/');
+    await page.waitForTimeout(300);
+    check('/pricing/ without keys keeps the /checkout/ link visible', await page.isVisible('#buyLink'));
+    check('/pricing/ without keys shows no form', !(await page.isVisible('#buyForm')));
+    await page.close();
   }
 
   await browser.close();

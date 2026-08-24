@@ -7,18 +7,19 @@
   "email": "hello@prospektor.ai",
   "privacyEmail": "privacy@prospektor.ai",
   "description": "Prospektor Studio is your AI pre-sales team: it finds and researches companies worth pitching, enriches the decision-makers with sources, maps warm intros from your own network, and drafts the deck, emails, proposal and call prep in your voice. Claude does the heavy work — you stay the closer.",
+  "//nav": "#153, 24 Aug 2026. Every item is a real page. Three of the five used to be same-page anchors (/#what, /#how, /#pricing), so the header taught nothing and every click landed on the document you were already reading — the operator's words: \"the header is not concise/ good anymore now\". The first two are named after the two questions the product answers (CLAUDE.md, The product thesis: WHOM to approach, WHAT to send) rather than after themselves, so the nav carries the positioning instead of restating the word \"it\" twice. The homepage keeps its #what/#how/#pricing ids — deep links from elsewhere still land.",
   "nav": [
     {
-      "label": "What it does",
-      "url": "/#what"
+      "label": "Who to pitch",
+      "url": "/who-to-pitch/"
     },
     {
-      "label": "How it works",
-      "url": "/#how"
+      "label": "What to send",
+      "url": "/what-to-send/"
     },
     {
       "label": "Pricing",
-      "url": "/#pricing"
+      "url": "/pricing/"
     },
     {
       "label": "Resources",

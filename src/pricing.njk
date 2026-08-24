@@ -1,0 +1,126 @@
+---
+layout: base.njk
+permalink: /pricing/
+title: Pricing
+description: $999 per month, per workspace. Unlimited runs, your whole team in, no seats to count, money back if it doesn't earn its keep. What a workspace is, what is included, and what happens if you stop.
+---
+
+{#- #153, 24 Aug 2026. /#pricing was a nav item pointing at an anchor on the
+    homepage. This is the page it should have been.
+
+    THE ONE RULE THIS PAGE MUST NOT BREAK (CLAUDE.md, and the reason it is
+    written down there): the price CTA goes STRAIGHT TO STRIPE. It was once
+    asked for exactly that, built as a link to an onboarding page, and recorded
+    on the board as shipped for three days. So the markup here is the homepage
+    tile's markup, ids and all, driven by the same buy.js — one field, then
+    Stripe. The homepage tile stays where it is and keeps id="pricing", because
+    Stripe's own cancel_url returns to /#pricing and deep links still land. -#}
+
+<header class="page-hero">
+  <div class="page-hero-inner">
+    <span class="tag">pricing</span>
+    <h1 class="page-h1">One price. The whole box.</h1>
+    <p class="page-lede">
+      No seat maths, no credit meter, no sales call to find out the number.
+      One workspace, one price, everything in it.
+    </p>
+  </div>
+</header>
+
+<section class="pricing pricing-page">
+  <div class="pricing-card">
+    <div class="price-row">
+      <span class="price-num">$999</span>
+      <span class="price-per">/ month · per workspace</span>
+    </div>
+    <p class="price-line">Unlimited runs · your whole team in · money back if it doesn't earn its keep</p>
+
+    <ul class="pricing-list">
+      <li>Unlimited pitch runs — research, scoring and every deliverable</li>
+      <li>Up to 100 companies in one batch, drafted while the tab is closed</li>
+      <li>Decision-makers with sources, and the confidence rating on each name</li>
+      <li>Your network mapped to warm paths, with the intro request drafted</li>
+      <li>Call prep, inbound evaluation and the outcome log that teaches the next run</li>
+      <li>Every colleague on your work-email domain, at no extra cost</li>
+      <li>Share links, print and PDF export of any deliverable</li>
+    </ul>
+
+    <div class="buy" id="buy">
+      <a href="/checkout/" class="btn-cta" id="buyLink">Start my studio →</a>
+      <form class="reserve-form buy-form" id="buyForm" hidden novalidate>
+        <input class="reserve-input" id="buyEmail" type="email" autocomplete="email"
+               placeholder="you@yourcompany.com" aria-label="Your work email">
+        <button class="btn-cta" type="submit" id="buyBtn">Pay &amp; start &mdash; $999/mo →</button>
+      </form>
+      <input class="reserve-input buy-site" id="buySite" type="text" inputmode="url" autocomplete="url"
+             placeholder="yourcompany.com" aria-label="Your company website" hidden>
+      <p class="reserve-msg is-error" id="buyMsg" hidden></p>
+      <p class="buy-note">
+        <span id="buyLive" hidden>Next stop is Stripe. This address becomes your studio's sign-in — a work email brings your whole team in with you. </span>Pay first, money back if it doesn't earn its keep — no trial theater.
+      </p>
+    </div>
+  </div>
+</section>
+<script src="/assets/js/buy.js"></script>
+
+<section class="pricing-faq">
+  <div class="pricing-faq-inner">
+    <h2 class="sec-mid">The money questions.</h2>
+    <dl class="pricing-faq-list">
+      <div class="pricing-faq-item">
+        <dt>What counts as a workspace?</dt>
+        <dd>One company you are selling <em>for</em> — its brief, its voice, its
+          proof points, its pitches, its network. Selling for yourself means one
+          workspace. An agency selling on behalf of five clients keeps five, so
+          nobody's research, voice or network leaks into anybody else's.</dd>
+      </div>
+      <div class="pricing-faq-item">
+        <dt>How many seats do I get?</dt>
+        <dd>All of them. Pay with your work email and every colleague on that
+          domain signs straight in — there is nothing to count and nothing to
+          upgrade. Sign-in is Google or an emailed single-use link; there are no
+          passwords.</dd>
+      </div>
+      <div class="pricing-faq-item">
+        <dt>Is there a run limit or a credit meter?</dt>
+        <dd>No. Runs are unlimited, and a batch takes up to a hundred companies
+          at a time. We would rather you used it hard — a workspace that runs a
+          lot and records what happened is a workspace that gets visibly better
+          results, which is the point.</dd>
+      </div>
+      <div class="pricing-faq-item">
+        <dt>Is there a free trial?</dt>
+        <dd>There is a free scan instead: point it at your own site and see who
+          it would hunt for you, with no account and no card. Beyond that, pay
+          first and take the money back if it doesn't earn its keep — no trial
+          theater, no fourteen days of hoping you remember to cancel.</dd>
+      </div>
+      <div class="pricing-faq-item">
+        <dt>What does "money back if it doesn't earn its keep" mean?</dt>
+        <dd>Exactly what it says. Write to
+          <a href="mailto:{{ site.email }}">{{ site.email }}</a> and we refund
+          you. We would rather hear why than keep a month you regret.</dd>
+      </div>
+      <div class="pricing-faq-item">
+        <dt>What happens if I stop?</dt>
+        <dd>Nothing is held hostage. Export what you have, share the links you
+          have shared, print what you need — and the workspace and everything in
+          it is deleted when you ask. What we sell is next month's work, not
+          custody of last month's.</dd>
+      </div>
+      <div class="pricing-faq-item">
+        <dt>What happens to my data?</dt>
+        <dd>Workspaces are strictly separated — your research, pitches and
+          network are visible to your team only. Email addresses in a LinkedIn
+          export are deleted at import, and your network never travels on a
+          shared pitch. The <a href="/privacy/">privacy page</a> says the rest,
+          plainly.</dd>
+      </div>
+    </dl>
+  </div>
+</section>
+
+<section class="cta">
+  <h2 class="reveal">Not sure yet? See what it'd <span class="accent">hunt</span> for you.</h2>
+  <a href="/#scan" class="btn-cta reveal">Scan your site — free</a>
+</section>

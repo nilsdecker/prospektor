@@ -57,7 +57,7 @@
     </div>
     {{ site.name }}
   </a>
-  <ul class="nav-links">
+  <ul class="nav-links" id="navLinks">
     {% for item in site.nav %}
     <li><a href="{{ item.url }}">{{ item.label }}</a></li>
     {% endfor %}
@@ -66,6 +66,19 @@
     <span class="nav-ai-badge">AI_FIRST</span>
     <a href="https://studio.prospektor.ai" class="nav-signin">Sign in</a>
     <a href="/#scan" class="nav-cta">Scan your site</a>
+    {#- The phone's way in (#153). Until the nav became real pages, hiding it
+        under 860px cost a visitor three anchors onto the page they were
+        already reading — nothing. It now costs them /who-to-pitch/,
+        /what-to-send/ and /pricing/, so the header needs a door on a phone.
+        A <button> with aria-expanded rather than a checkbox hack, so it is
+        announced as what it is; the panel is the same <ul>, re-laid-out by
+        CSS, so there is exactly one nav in the markup and the tests that
+        derive from site.nav keep covering both. No JS, no panel. -#}
+    <button class="nav-toggle" id="navToggle" type="button"
+            aria-controls="navLinks" aria-expanded="false" aria-label="Menu">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18"></path><path d="M3 12h18"></path><path d="M3 18h18"></path></svg>
+      <svg class="nav-toggle-x" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 5l14 14"></path><path d="M19 5L5 19"></path></svg>
+    </button>
   </div>
 </nav>
 

@@ -371,23 +371,6 @@ nav {
   max-width: 580px;
 }
 
-/* ── THE GRIND, HANDLED ── */
-.grind-grid {
-  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 1.25rem; margin-top: 3.25rem;
-  width: 100%; max-width: 1180px;
-}
-
-.gcard {
-  background: var(--off-white); border-radius: 16px;
-  padding: 1.9rem 1.75rem;
-  transition: background .2s;
-}
-.gcard:hover { background: var(--stone); }
-.gcard svg { color: var(--ink); }
-.gcard h3 { font-size: 1.15rem; font-weight: 700; letter-spacing: -0.01em; margin: 0.85rem 0 0.45rem; }
-.gcard p { font-size: 0.88rem; color: var(--ink-mid); line-height: 1.6; }
-
 /* ── NAME A COMPANY — the run card, centered ── */
 .termsec { background: var(--off-white); }
 .termwrap { width: 100%; max-width: 860px; margin-top: 2.5rem; }
@@ -1110,7 +1093,6 @@ footer {
   .scan-hero { max-width: 100%; }
   .section { padding: 4rem 1.25rem; }
   .section-big { padding: 4.5rem 1.25rem; }
-  .grind-grid { grid-template-columns: 1fr 1fr; }
   .batch-flow { flex-direction: column; gap: 1rem; }
   .batch-arrow { transform: rotate(90deg); }
   .warm-flow { flex-direction: column; gap: 0.6rem; }
@@ -1125,7 +1107,6 @@ footer {
 @media (max-width: 480px) {
   .scan-form-label { display: none; }
   .scan-form { padding-left: 1rem; }
-  .grind-grid { grid-template-columns: 1fr; }
   .pricing-card { padding: 1.5rem; }
 }
 /* ══ /resources/ — the lead-generation blog (#144) ══════════════════════
@@ -1136,19 +1117,19 @@ footer {
    .help-hero, which is the precedent this section follows. */
 
 /* ── hub ── */
-.res-hub-hero {
+.res-hub-hero, .page-hero {
   background: var(--off-white);
   border-bottom: 1px solid var(--border);
   padding: 8.5rem 2.5rem 3.5rem;
   text-align: center;
 }
-.res-hub-hero-inner { max-width: 700px; margin: 0 auto; }
-.res-hub-h1 {
+.res-hub-hero-inner, .page-hero-inner { max-width: 700px; margin: 0 auto; }
+.res-hub-h1, .page-h1 {
   font-size: clamp(2rem, 4.2vw, 3rem);
   font-weight: 800; line-height: 1.08; letter-spacing: -0.04em;
   margin-top: 1rem; text-wrap: balance;
 }
-.res-hub-lede {
+.res-hub-lede, .page-lede {
   font-size: 0.95rem; color: var(--ink-mid); line-height: 1.75;
   margin-top: 1.15rem;
 }
@@ -1326,4 +1307,233 @@ footer {
   .res-hub, .res-body { padding-left: 1.4rem; padding-right: 1.4rem; }
   .res-hub-cta { padding: 3rem 1.4rem; }
   .res-cta { padding: 1.6rem 1.3rem 1.9rem; }
+}
+
+/* ══ #153 — the WHO/WHAT reframe, and the pages the nav used to fake ═════
+   Three of the five nav items were same-page anchors. `/who-to-pitch/`,
+   `/what-to-send/` and `/pricing/` are real pages now, and the homepage's
+   flat grid of four verbs became two labelled halves.
+
+   Nothing here invents a second visual language: the page heroes are grouped
+   onto `.res-hub-hero`'s rules (added at that selector, not copied), the
+   deliverables grid is the `.card` component #144 shipped and #145 reused,
+   and everything else is tokens. Same 8.5rem hero top padding as
+   `.help-hero` and `.res-hub-hero`, which is what clears the fixed 58px nav. */
+
+/* ── the marketing page hero (shares .res-hub-hero's rules above) ── */
+.page-hero-actions {
+  display: flex; gap: 0.85rem; justify-content: center;
+  flex-wrap: wrap; margin-top: 1.9rem;
+}
+
+/* ── THE TWO HALVES (homepage) ──
+   A two-up that must never read as "basic tier / better tier": both halves
+   are the product. The dark one is the WHAT, because that is the half
+   somebody is paying for and the eye should land there second and stay. */
+.halves-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
+  width: 100%; max-width: 1060px; margin-top: 2.75rem;
+  text-align: left;
+}
+
+.half {
+  border: 1px solid var(--border); border-radius: 18px;
+  background: var(--white); padding: 2rem 1.9rem 1.75rem;
+  display: flex; flex-direction: column;
+}
+
+.half.is-dark {
+  background: var(--ink); border-color: var(--ink);
+  color: var(--off-white);
+}
+
+.half-head { display: flex; align-items: center; gap: 0.7rem; }
+
+.half-n {
+  font-family: var(--mono); font-size: 0.68rem; font-weight: 500;
+  color: var(--ink-faint);
+}
+.half.is-dark .half-n { color: rgba(255,255,255,0.35); }
+
+.half-kicker {
+  font-family: var(--mono); font-size: 0.65rem; font-weight: 500;
+  letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--accent-dim);
+  background: var(--accent-bg); border: 1px solid rgba(0,179,126,0.2);
+  padding: 0.22rem 0.6rem; border-radius: 100px;
+}
+.half.is-dark .half-kicker {
+  color: var(--accent); background: rgba(0,179,126,0.12);
+  border-color: rgba(0,179,126,0.3);
+}
+
+.half-h {
+  font-size: 1.4rem; font-weight: 800; letter-spacing: -0.03em;
+  line-height: 1.2; margin-top: 1.1rem; text-wrap: balance;
+}
+
+.half-lede {
+  font-size: 0.9rem; color: var(--ink-mid); line-height: 1.7;
+  margin-top: 0.8rem;
+}
+.half.is-dark .half-lede { color: rgba(255,255,255,0.6); }
+
+.half-verbs {
+  list-style: none; margin-top: 1.5rem;
+  display: flex; flex-direction: column; gap: 0.9rem;
+  padding-top: 1.4rem; border-top: 1px solid var(--border);
+}
+.half.is-dark .half-verbs { border-top-color: rgba(255,255,255,0.12); }
+
+.half-verbs li { display: flex; align-items: flex-start; gap: 0.75rem; }
+.half-verbs svg { color: var(--ink); flex-shrink: 0; margin-top: 1px; }
+.half.is-dark .half-verbs svg { color: var(--accent); }
+.half-verbs span { font-size: 0.87rem; color: var(--ink-mid); line-height: 1.6; }
+.half-verbs strong { color: var(--ink); font-weight: 700; }
+.half.is-dark .half-verbs span { color: rgba(255,255,255,0.6); }
+.half.is-dark .half-verbs strong { color: var(--off-white); }
+
+/* margin-top:auto keeps the two links on the same baseline when one half's
+   copy runs a line longer than the other's. */
+.half-link {
+  margin-top: auto; padding-top: 1.5rem;
+  font-size: 0.87rem; font-weight: 700; color: var(--coral);
+  text-decoration: none; transition: color .15s;
+}
+.half-link:hover { color: var(--coral-hover); }
+.half.is-dark .half-link { color: var(--accent); }
+.half.is-dark .half-link:hover { color: #6ee7b7; }
+
+.half-foot {
+  font-family: var(--mono); font-size: 0.68rem; color: var(--ink-faint);
+  margin-top: 0.55rem;
+}
+.half.is-dark .half-foot { color: rgba(255,255,255,0.35); }
+
+/* ── THE NUMBERED FLOW (/who-to-pitch/, /what-to-send/) ── */
+.flow { background: var(--white); padding: 4.5rem 2.5rem 1rem; }
+.flow-inner { max-width: 720px; margin: 0 auto; }
+
+.flowstep {
+  display: grid; grid-template-columns: 3.5rem 1fr;
+  border-top: 1px solid var(--border); padding: 2.5rem 0;
+}
+.flowstep:first-child { border-top: none; padding-top: 0.5rem; }
+
+.flowstep-n {
+  font-family: var(--mono); font-size: 0.72rem; font-weight: 500;
+  color: var(--accent-dim); padding-top: 0.35rem;
+}
+
+.flowstep-body h2 {
+  font-size: 1.35rem; font-weight: 800; letter-spacing: -0.03em;
+  line-height: 1.22; text-wrap: balance;
+}
+.flowstep-body p {
+  font-size: 0.92rem; color: var(--ink-mid); line-height: 1.78;
+  margin-top: 0.9rem;
+}
+.flowstep-body strong { color: var(--ink); font-weight: 700; }
+.flowstep-body em { color: var(--ink); font-style: normal; font-weight: 600; }
+
+.flowstep-proof {
+  font-family: var(--mono); font-size: 0.72rem !important;
+  line-height: 1.65 !important; color: var(--ink-faint) !important;
+  border-left: 2px solid var(--accent); padding-left: 0.85rem;
+  margin-top: 1.35rem !important;
+}
+
+/* ── THE CLOSING SPLIT (both product pages) ── */
+.page-split {
+  background: var(--off-white); border-top: 1px solid var(--border);
+  margin-top: 4rem; padding: 4.5rem 2.5rem; text-align: center;
+}
+.page-split-inner { max-width: 620px; margin: 0 auto; }
+.page-split-inner h2 {
+  font-size: clamp(1.5rem, 3vw, 2.1rem); font-weight: 800;
+  letter-spacing: -0.03em; line-height: 1.14;
+  margin-top: 1rem; text-wrap: balance;
+}
+.page-split-inner p {
+  font-size: 0.93rem; color: var(--ink-mid); line-height: 1.75;
+  margin-top: 1.1rem;
+}
+.page-split-inner .btn-cta { margin-top: 1.9rem; }
+
+/* ── WHAT COMES OUT OF A RUN (/what-to-send/) ──
+   .card without an <a>: the six deliverables are facts, not destinations. */
+.deliverables { padding: 4.5rem 2.5rem 0; }
+.deliverables-inner { max-width: 1080px; margin: 0 auto; }
+.deliverables .sec-mid { text-align: center; margin-bottom: 2.25rem; }
+.card > .card-body {
+  display: flex; flex-direction: column; gap: 0.5rem;
+  padding: 1.5rem 1.5rem 1.35rem; height: 100%;
+}
+.card.is-static:hover { transform: none; border-color: var(--border); }
+
+/* ── /pricing/ ── */
+.pricing-page { border-top: none; padding-top: 3.5rem; }
+.pricing-page .pricing-card { margin: 0 auto; }
+.pricing-page .pricing-list { margin-top: 1.6rem; }
+.pricing-page .buy { margin-top: 1.9rem; }
+
+.pricing-faq { background: var(--white); padding: 4.5rem 2.5rem; }
+.pricing-faq-inner { max-width: 720px; margin: 0 auto; }
+.pricing-faq .sec-mid { text-align: center; margin-bottom: 2rem; }
+.pricing-faq-item { border-top: 1px solid var(--border); padding: 1.5rem 0; }
+.pricing-faq-item:first-child { border-top: none; }
+.pricing-faq-item dt {
+  font-size: 1rem; font-weight: 700; color: var(--ink); letter-spacing: -0.015em;
+}
+.pricing-faq-item dd {
+  font-size: 0.9rem; color: var(--ink-mid); line-height: 1.78; margin: 0.6rem 0 0;
+}
+.pricing-faq-item dd em { color: var(--ink); font-style: normal; font-weight: 600; }
+.pricing-faq-item dd a {
+  color: var(--ink); text-decoration: none;
+  border-bottom: 1px solid var(--accent); font-weight: 600;
+}
+.pricing-faq-item dd a:hover { color: var(--accent-dim); }
+
+/* The mobile header. `.nav-links` is display:none above 860px in the base
+   rules; here it becomes a panel under the bar, opened by .nav-toggle. Every
+   override in this block sits AFTER the base rules on purpose — media queries
+   add no specificity, so a responsive rule declared earlier in the file loses
+   to a later base rule. The two-up halves lost exactly that way once. */
+.nav-toggle {
+  display: none; background: none; border: none; padding: 0.35rem;
+  color: var(--ink-mid); cursor: pointer; line-height: 0;
+}
+.nav-toggle .nav-toggle-x,
+.nav-toggle[aria-expanded="true"] svg:first-of-type { display: none; }
+.nav-toggle[aria-expanded="true"] .nav-toggle-x { display: block; }
+
+@media (max-width: 860px) {
+  .nav-toggle { display: block; }
+  .nav-signin { display: none; }
+  /* The bar is 58px; the panel hangs off its bottom edge. */
+  .nav-links {
+    display: none;
+    position: absolute; top: 58px; left: 0; right: 0;
+    flex-direction: column; gap: 0;
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 0.35rem 1.25rem 0.9rem;
+    font-size: 0.95rem;
+    max-height: calc(100vh - 58px); overflow-y: auto;
+  }
+  .nav-links.is-open { display: flex; }
+  .nav-links li { border-top: 1px solid var(--border); }
+  .nav-links li:first-child { border-top: none; }
+  .nav-links a { display: block; padding: 0.85rem 0; font-weight: 600; color: var(--ink); }
+
+  .halves-grid { grid-template-columns: 1fr; gap: 1rem; }
+  .page-hero { padding: 8rem 1.25rem 3rem; }
+  .flow { padding: 3.5rem 1.25rem 0; }
+  .flowstep { grid-template-columns: 1fr; }
+  .flowstep-n { padding-top: 0; margin-bottom: 0.5rem; }
+  .page-split { padding: 3.5rem 1.25rem; }
+  .deliverables { padding: 3.5rem 1.25rem 0; }
+  .pricing-faq { padding: 3.5rem 1.25rem; }
+  .half { padding: 1.6rem 1.4rem 1.4rem; }
 }

@@ -9,8 +9,11 @@ layout: base.njk
   <!-- The headline sits inside .hero-rest so a scan's focus mode still
        collapses it: from the moment a scan starts, the scan is the page. -->
   <div class="hero-rest" id="heroRest">
-    <h1>Your AI <span class="accent">pre-sales</span> team.</h1>
-    <p class="hero-sub">It finds the companies, the people and the words. You close.</p>
+    <!-- #153: the two questions, in the order the product answers them. The
+         accent lands on the second half deliberately — the WHO is the free
+         half and the hook, the WHAT is what anyone is actually paying for. -->
+    <h1>Who to pitch.<br><span class="accent">What to send.</span></h1>
+    <p class="hero-sub">The two questions in front of every deal. Your studio answers both — and shows its work.</p>
   </div>
 
   <!-- The scan field: POST /api/scan, poll, render the proposal. scan.js drives it. -->
@@ -51,30 +54,60 @@ layout: base.njk
 </section>
 <script src="/assets/js/scan.js"></script>
 
-<!-- THE GRIND, HANDLED -->
-<section class="section-big" id="what">
-  <h2 class="sec-big reveal">The grind, handled.</h2>
-  <div class="grind-grid reveal d1">
-    <div class="gcard">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.3-4.3"></path></svg>
-      <h3>Find</h3>
-      <p>Lookalikes worth pitching, scored against your goal.</p>
-    </div>
-    <div class="gcard">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-      <h3>Enrich</h3>
-      <p>Decision-makers with sources. No source, no name.</p>
-    </div>
-    <div class="gcard">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
-      <h3>Draft</h3>
-      <p>Deck, one-pager, emails, proposal — your voice.</p>
-    </div>
-    <div class="gcard">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z"></path></svg>
-      <h3>Prep</h3>
-      <p>The call sheet: the objection, and the answer.</p>
-    </div>
+<!-- THE TWO HALVES — the reframe (#153) -->
+<!-- This section used to be "The grind, handled.": one flat grid of four verbs
+     with nothing to say about which of them is the hard one. The four verbs
+     survive; what is new is that they are sorted into the two questions the
+     product exists to answer, which is the frame the whole company is run on
+     (CLAUDE.md, The product thesis). Keeps id="what" so old deep links land. -->
+<section class="section-big halves" id="what">
+  <h2 class="sec-big reveal">Two questions. Both answered.</h2>
+  <p class="sec-sub reveal">Anyone can hand you a list. The hard half is what goes in the email.</p>
+
+  <div class="halves-grid reveal d1">
+
+    <article class="half">
+      <div class="half-head">
+        <span class="half-n">01</span>
+        <span class="half-kicker">Who to pitch</span>
+      </div>
+      <h3 class="half-h">The companies worth your week.</h3>
+      <p class="half-lede">It reads a company's own site before it says a word about them, then scores fit against your brief — with the case for, the case against, and the same-named companies it ruled out.</p>
+      <ul class="half-verbs">
+        <li>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.3-4.3"></path></svg>
+          <span><strong>Find</strong> — lookalikes worth pitching, scored against your goal.</span>
+        </li>
+        <li>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          <span><strong>Enrich</strong> — decision-makers with sources. No source, no name.</span>
+        </li>
+      </ul>
+      <a class="half-link" href="/who-to-pitch/">How it picks them →</a>
+      <p class="half-foot">Free. Start here.</p>
+    </article>
+
+    <article class="half is-dark">
+      <div class="half-head">
+        <span class="half-n">02</span>
+        <span class="half-kicker">What to send</span>
+      </div>
+      <h3 class="half-h">The thing you actually have to write.</h3>
+      <p class="half-lede">The deck, the emails, the proposal and the call sheet — in your voice, about their business, grounded in what has already worked for you. No invented numbers.</p>
+      <ul class="half-verbs">
+        <li>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
+          <span><strong>Draft</strong> — deck, one-pager, emails, proposal — your voice.</span>
+        </li>
+        <li>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z"></path></svg>
+          <span><strong>Prep</strong> — the call sheet: the objection, and the answer.</span>
+        </li>
+      </ul>
+      <a class="half-link" href="/what-to-send/">What comes out →</a>
+      <p class="half-foot">This is the half that's hard.</p>
+    </article>
+
   </div>
 </section>
 
@@ -186,6 +219,7 @@ layout: base.njk
       <p class="buy-note">
         <span id="buyLive" hidden>Next stop is Stripe. This address becomes your studio's sign-in — a work email brings your whole team in with you. </span>Pay first, money back if it doesn't earn its keep — no trial theater.
       </p>
+      <p class="buy-note"><a href="/pricing/">What a workspace is, what's included, what happens if you stop →</a></p>
     </div>
   </div>
 </section>
