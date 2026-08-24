@@ -329,6 +329,41 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
    */
   const robotsRes = await fetch(SITE + '/robots.txt');
   const robotsTxt = await robotsRes.text();
+  // ── CLAIM: the header is pages, not anchors (#153) ──
+  //    Asked of production because the whole row was a header that looked
+  //    finished and went nowhere. The nav is read off the served homepage, so
+  //    this catches a stale build as readily as a bad edit.
+  {
+    const home = await (await fetch(SITE + '/')).text();
+    const navItems = [...home.matchAll(/<ul class="nav-links"[^>]*>([\s\S]*?)<\/ul>/g)]
+      .flatMap(m => [...m[1].matchAll(/<a href="([^"]+)">([^<]+)<\/a>/g)].map(a => ({ url: a[1], label: a[2] })));
+    check('the live header has items at all', navItems.length >= 4, navItems.length + ' item(s)');
+    check('and not one of them is a same-page anchor',
+      navItems.every(i => !i.url.includes('#')),
+      navItems.filter(i => i.url.includes('#')).map(i => i.label + ' → ' + i.url).join(', '));
+
+    for (const item of navItems) {
+      const r = await fetch(SITE + item.url);
+      const body = r.ok ? await r.text() : '';
+      check(`header item "${item.label}" serves a real page`,
+        r.status === 200 && /<h1[^>]*>/.test(body), r.status + (r.ok ? '' : ' — ' + item.url));
+    }
+
+    check('the homepage h1 asks both questions (#153)',
+      /Who to pitch\./.test(home) && /What to send\./.test(home),
+      (home.match(/<h1>([\s\S]*?)<\/h1>/) || [, '(none)'])[1].replace(/\s+/g, ' ').trim());
+
+    // The trap CLAUDE.md names: a pricing page that looks right and quietly
+    // degrades to the multi-step /checkout/ page is the regression that
+    // shipped once and was recorded as done.
+    const pricing = await (await fetch(SITE + '/pricing/')).text();
+    const missingIds = ['buy','buyLink','buyForm','buyEmail','buyBtn','buySite','buyMsg','buyLive']
+      .filter(id => !pricing.includes('id="' + id + '"'));
+    check('/pricing/ serves the whole direct-to-Stripe form',
+      missingIds.length === 0 && /assets\/js\/buy\.js/.test(pricing),
+      missingIds.length ? 'missing #' + missingIds.join(', #') : '');
+  }
+
   check('robots.txt is a real robots.txt, not the app shell',
     robotsRes.status === 200 && /^\s*User-agent:/m.test(robotsTxt) && !/<html/i.test(robotsTxt),
     `HTTP ${robotsRes.status}`);
@@ -347,7 +382,10 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
   // kept out of the sitemap while it served a crawler the word "Loading…", and
   // it is prerendered now, so it belongs in. The live sitemap said so before
   // this list did, which is exactly the direction this audit is meant to catch.
-  const STATIC_LOCS = ['https://prospektor.ai/', 'https://prospektor.ai/privacy/',
+  const STATIC_LOCS = ['https://prospektor.ai/',
+                       'https://prospektor.ai/who-to-pitch/', 'https://prospektor.ai/what-to-send/',
+                       'https://prospektor.ai/pricing/',
+                       'https://prospektor.ai/privacy/',
                        'https://prospektor.ai/terms/', 'https://prospektor.ai/resources/',
                        'https://prospektor.ai/help/'];
   const articleLocs = liveLocs.slice(STATIC_LOCS.length);
