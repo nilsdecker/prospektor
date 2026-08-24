@@ -255,6 +255,55 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
     buyRes.status === 200 ? String(buyBody?.url || '').slice(0, 48) + '…'
       : `HTTP ${buyRes.status} ${JSON.stringify(buyBody)} — Stripe's own reason is in the Netlify function log for create-checkout-session`);
 
+
+  /* --- CLAIM: what a crawler is actually served (#135) -----------------
+   *
+   * Search Console reads robots.txt and the sitemap as our own statement of
+   * what is worth ranking, so both are product surface the day a property is
+   * verified. A sitemap that lists a URL production does not serve is the
+   * error Google reports days later and nobody sees in a build.
+   */
+  const robotsRes = await fetch(SITE + '/robots.txt');
+  const robotsTxt = await robotsRes.text();
+  check('robots.txt is a real robots.txt, not the app shell',
+    robotsRes.status === 200 && /^\s*User-agent:/m.test(robotsTxt) && !/<html/i.test(robotsTxt),
+    `HTTP ${robotsRes.status}`);
+  check('robots.txt names the sitemap', /Sitemap:\s*https:\/\/prospektor\.ai\/sitemap\.xml/.test(robotsTxt));
+
+  const mapRes = await fetch(SITE + '/sitemap.xml');
+  const mapXml = await mapRes.text();
+  const liveLocs = [...mapXml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m => m[1]);
+  check('sitemap.xml serves the three pages we want ranked',
+    mapRes.status === 200 && JSON.stringify(liveLocs) === JSON.stringify([
+      'https://prospektor.ai/', 'https://prospektor.ai/privacy/', 'https://prospektor.ai/terms/']),
+    liveLocs.join(' '));
+  check('the sitemap does not submit the checkout form as content',
+    !liveLocs.some(l => l.includes('/checkout')));
+  let mapBroken = [];
+  for (const loc of liveLocs) {
+    const r = await fetch(loc);
+    const body = await r.text();
+    if (r.status !== 200) mapBroken.push(`${loc} → HTTP ${r.status}`);
+    else if (/name="robots"[^>]*noindex/.test(body)) mapBroken.push(`${loc} → noindex`);
+  }
+  check('every URL in the sitemap is served and indexable', mapBroken.length === 0, mapBroken.join(', '));
+
+  /* The property recommended in RUNBOOK-search-console.md is a DOMAIN
+   * property, which covers studio.prospektor.ai as well. The studio answers
+   * 200 with the same 400KB app shell for every path it does not recognise,
+   * so without a refusal of its own it would fill the coverage report with
+   * duplicates of one page — and a share link that ever leaked could be
+   * indexed. Both are asked here because the report they protect is read
+   * from this lane. */
+  const studioRobotsRes = await fetch('https://studio.prospektor.ai/robots.txt');
+  const studioRobots = await studioRobotsRes.text();
+  check('the studio serves a real robots.txt, not its app shell',
+    studioRobotsRes.status === 200 && /^\s*User-agent:/m.test(studioRobots) && !/<html/i.test(studioRobots),
+    `HTTP ${studioRobotsRes.status}, ${studioRobots.length} bytes`);
+  check('the studio origin is noindex at the header, share links included',
+    /noindex/i.test((await fetch('https://studio.prospektor.ai/')).headers.get('x-robots-tag') || ''),
+    (await fetch('https://studio.prospektor.ai/p/audit-probe')).headers.get('x-robots-tag') || 'absent');
+
   await browser.close();
   const bad = R.filter(r=>!r.ok);
   console.log(`\n${R.length-bad.length}/${R.length} claims held`);

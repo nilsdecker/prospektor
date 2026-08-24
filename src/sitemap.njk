@@ -3,18 +3,37 @@ permalink: /sitemap.xml
 eleventyExcludeFromCollections: true
 pages:
   - /
-  - /checkout/
   - /privacy/
   - /terms/
   - /resources/
 ---
 {#-
-  /help/ is deliberately absent: it is a client-rendered shell whose crawlable
-  body is the word "Loading…" (board #136). Submitting it would be asking a
-  crawler to index an empty page. It goes in once #136 gives it real content.
+  The list of pages we want ranked — not a list of pages that exist. Search
+  Console reads this as our own statement of what matters, so anything in here
+  that is thin, transactional or half-rendered costs more than it earns.
 
-  Articles carry <lastmod> because they get revised; the static pages do not,
-  because a lastmod that never changes is worse than none at all.
+  Deliberately out, each for its own reason:
+    /checkout/       a form, not an answer to any search. Left crawlable and
+                     linked from the homepage CTA, so nothing is lost; if
+                     Search Console ever shows it earning buy-intent
+                     impressions, #137 can put it back with evidence rather
+                     than on a hunch. (Decided #135, 24 Aug 2026.)
+    /help/           real long-tail content, but the served HTML is still a
+                     shell whose body copy is the word "Loading…" — the corpus
+                     arrives from the studio after load. Listing that is worse
+                     than omitting it. One line to add here the day #136
+                     prerenders the corpus.
+    /checkout/done/  noindex — what a buyer reads seconds after paying.
+    /404.html        noindex.
+    /app/            301s to /; whether that page has a future is W2's
+                     question and a sitemap should not pre-empt it.
+
+  <lastmod>, added by #144 on exactly the terms #135 set. The static pages
+  still carry none, because a build-time stamp would claim every page changed
+  on every deploy and Google ignores a date it cannot trust. The articles carry
+  one because theirs is real: it is the article's own published/updated date
+  from its frontmatter, it moves only when the article does, and it is the
+  thing a crawler should come back for.
 -#}
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
