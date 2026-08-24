@@ -206,9 +206,32 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
 
     const xml = fs.readFileSync(path.join(ROOT, 'sitemap.xml'), 'utf8');
     const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m => m[1]);
-    check('sitemap lists exactly the pages we want ranked',
-      JSON.stringify(locs) === JSON.stringify([
-        'https://prospektor.ai/', 'https://prospektor.ai/privacy/', 'https://prospektor.ai/terms/']), locs);
+    // Two halves, because one of them grows. The STATIC list stays an exact
+    // match — that is what stops a page slipping into the sitemap without its
+    // reason being argued (#135). The articles cannot be an exact list, since
+    // #144 adds one every time somebody writes one, so they are checked
+    // structurally instead: every non-static entry must be an article that
+    // exists in src/resources/, and every article must be listed.
+    const STATIC = ['https://prospektor.ai/', 'https://prospektor.ai/privacy/',
+                    'https://prospektor.ai/terms/', 'https://prospektor.ai/resources/'];
+    const articleLocs = locs.filter(l => !STATIC.includes(l));
+    check('sitemap lists exactly the static pages we want ranked',
+      JSON.stringify(locs.slice(0, STATIC.length)) === JSON.stringify(STATIC), locs);
+
+    const slugs = fs.readdirSync(path.join(__dirname, '..', 'src', 'resources'))
+      .filter(f => f.endsWith('.md')).map(f => f.replace(/\.md$/, ''));
+    check('sitemap lists every /resources/ article and nothing else besides',
+      articleLocs.length === slugs.length
+      && slugs.every(s => articleLocs.includes('https://prospektor.ai/resources/' + s + '/')),
+      { listed: articleLocs.length, onDisk: slugs.length });
+
+    // A <lastmod> is a promise a crawler acts on, so it has to be a real date
+    // rather than a build stamp — the terms #135 set for adding them at all.
+    check('every article carries a real lastmod, and no static page does',
+      [...xml.matchAll(/<loc>([^<]+)<\/loc>(<lastmod>[^<]+<\/lastmod>)?/g)]
+        .every(([, loc, mod]) => STATIC.includes(loc)
+          ? mod === undefined
+          : /<lastmod>\d{4}-\d{2}-\d{2}<\/lastmod>/.test(mod || '')), xml);
 
     // Each of these is out for a reason written into src/sitemap.njk. If one
     // comes back, that reason has to be argued, not lost in a rebase.
