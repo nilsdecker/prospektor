@@ -29,6 +29,34 @@
   const fallbackMsg = document.getElementById('scanFallbackMsg');
   const fallbackCta = document.getElementById('scanFallbackCta');
 
+  // ── Arriving at #scan means "I want to scan" ──
+  // #201: the fragment jump moves the viewport and nothing else — keyboard
+  // focus stays on <body>, so somebody who follows "Scan your site" and then
+  // presses Tab starts again at the nav rather than in the field the link
+  // just promised them. Put the caret where the link said it would be.
+  // preventScroll because the navigation has already done the scrolling and
+  // focus must not second-guess it. Skipped on coarse pointers: springing the
+  // on-screen keyboard open would shove the hero straight back off the
+  // screen, which is the shape of the bug this came from.
+  const focusField = () => {
+    if (window.matchMedia && window.matchMedia('(pointer: coarse)').matches) return;
+    // Next frame, never this one. The browser's own fragment handling runs
+    // after both the deferred script and the click that caused it: it scrolls
+    // to the target and, because a <section> is not focusable, resets focus
+    // to <body>. Focusing synchronously is measurably undone a moment later.
+    requestAnimationFrame(() => {
+      try { input.focus({ preventScroll: true }); } catch (e) { input.focus(); }
+    });
+  };
+  const wantsScan = () => location.hash === '#scan';
+  if (wantsScan()) focusField();
+  window.addEventListener('hashchange', () => { if (wantsScan()) focusField(); });
+  // A /#scan link pressed while the hash is already #scan fires no
+  // hashchange, and the mid-page CTA is exactly that press.
+  document.addEventListener('click', e => {
+    if (e.target.closest && e.target.closest('a[href$="#scan"]')) focusField();
+  });
+
   // Bumped on every submit; stale polls and status tickers check it and stop.
   let generation = 0;
   let statusTimer = null;

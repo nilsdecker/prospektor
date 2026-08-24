@@ -129,6 +129,59 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     await page.close();
   }
 
+  // 6b — #201: where /#scan actually parks the viewport. This is the check
+  //      that would have caught the bug, and no static assertion could: the
+  //      id was valid, the link was valid, and the browser did exactly what
+  //      it was told — it scrolled .scan-hero's top edge to y=0, which is
+  //      where the fixed nav is. Measured, at the two widths that differ.
+  {
+    for (const vp of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+      const page = await browser.newPage({ viewport: vp });
+      await page.goto('http://localhost:8899/#scan');
+      await page.waitForTimeout(1200); // html { scroll-behavior: smooth }
+      const m = await page.evaluate(() => {
+        const b = el => el.getBoundingClientRect();
+        return {
+          navBottom: b(document.querySelector('nav')).bottom,
+          formTop: b(document.querySelector('.scan-form')).top,
+          formBottom: b(document.querySelector('.scan-form')).bottom,
+          h1Top: b(document.querySelector('.hero h1')).top,
+          vh: window.innerHeight,
+        };
+      });
+      const w = `${vp.width}px`;
+      check(`#scan leaves the field clear of the nav (${w})`,
+        m.formTop >= m.navBottom, m);
+      check(`#scan leaves the whole field on screen (${w})`,
+        m.formBottom <= m.vh, m);
+      check(`#scan keeps the headline in view (${w})`,
+        m.h1Top >= m.navBottom && m.h1Top < m.vh, m);
+      await page.close();
+    }
+    // The caret lands in the field on a pointer that has a keyboard, and the
+    // fragment jump alone does not do that — a <section> is not focusable, so
+    // without scan.js focus stays on <body> and Tab restarts at the nav.
+    {
+      const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+      await page.goto('http://localhost:8899/#scan');
+      await page.waitForTimeout(1200);
+      check('#scan puts the caret in the scan field',
+        (await page.evaluate(() => document.activeElement.id)) === 'scanInput');
+      await page.close();
+    }
+    // ...and does not, on a touch device, where it would spring the on-screen
+    // keyboard open and shove the hero back off the screen.
+    {
+      const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+      const page = await ctx.newPage();
+      await page.goto('http://localhost:8899/#scan');
+      await page.waitForTimeout(1200);
+      check('#scan does not open the keyboard on touch',
+        (await page.evaluate(() => document.activeElement.id)) !== 'scanInput');
+      await ctx.close();
+    }
+  }
+
   // 7 — the help hub, and search answering the operator's own question
   //     (#145/#136, re-pointed by #166). Nothing is mocked before the first
   //     assertions on purpose: everything here has to be true of the HTML the

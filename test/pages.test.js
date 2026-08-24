@@ -87,6 +87,21 @@ describe('the header, and the pages behind it', () => {
     }
   });
 
+  // #201. Eight links on this site are /#scan, and the id decides where all
+  // eight land. On .scan-hero — the last child of a flex-centred 100vh hero —
+  // the browser parked the form's top edge at y=0, dead behind the fixed 58px
+  // nav, with the headline off the top and empty hero padding below: the grey
+  // with nothing to press. The geometry is asserted in the drive; this is the
+  // cheap tripwire that says which element owns the anchor.
+  test('/#scan targets the hero, not the field buried at the foot of it', () => {
+    const home = read('index.html');
+    assert.match(home, /<section class="hero" id="scan">/,
+      'the hero no longer carries id="scan" — /#scan lands wherever the id went');
+    assert.doesNotMatch(home, /class="scan-hero" id="scan"|id="scan" class="scan-hero"/,
+      'id="scan" is back on .scan-hero, which parks the field behind the nav');
+    assert.equal((home.match(/id="scan"/g) || []).length, 1, 'id="scan" is not unique');
+  });
+
   test('the two product pages point at each other, and end somewhere', () => {
     assert.match(read('who-to-pitch/index.html'), /href="\/what-to-send\/"/);
     assert.match(read('what-to-send/index.html'), /href="\/who-to-pitch\/"/);

@@ -4,7 +4,25 @@ description: "Find the B2B companies worth pitching, then send them something wo
 ---
 
 <!-- HERO -->
-<section class="hero">
+<!-- #201 — the anchor is the SECTION, not the field inside it. Every "Scan
+     your site" on this site is a /#scan jump, and while the id sat on
+     .scan-hero — the last child of a flex-centred min-height:100vh hero —
+     the browser did exactly what it was told: it parked that div's top edge
+     at y=0, which is precisely where the fixed 58px nav is. Measured at
+     1440/1280/390: the form's top was 0 and its bottom 58, so the one
+     control the anchor exists to reach was wholly behind the nav; the
+     headline was ~300px above the fold; and a fifth to a quarter of what
+     was left was the hero's own empty bottom padding — the grey the
+     operator landed in with nothing to press.
+
+     The hero is the first thing in the document, so targeting it resolves
+     to scroll 0 and the headline and the field arrive together, which is
+     the composition the page was drawn with. No scroll-margin-top here on
+     purpose: the hero's 7rem top padding already clears the nav, and a rule
+     that changes nothing is a rule the next person has to disprove. The
+     other in-page targets (#what, #how, #pricing, #try) all carry 7rem of
+     their own and were never affected. -->
+<section class="hero" id="scan">
   <div class="hero-ai-tag">Prospektor Studio</div>
 
   <!-- The headline sits inside .hero-rest so a scan's focus mode still
@@ -18,7 +36,7 @@ description: "Find the B2B companies worth pitching, then send them something wo
   </div>
 
   <!-- The scan field: POST /api/scan, poll, render the proposal. scan.js drives it. -->
-  <div class="scan-hero" id="scan">
+  <div class="scan-hero">
     <form class="scan-form" id="scanForm" novalidate>
       <span class="scan-form-label">$&nbsp;scan</span>
       <input class="scan-input" id="scanInput" type="text" inputmode="url" autocomplete="url"
