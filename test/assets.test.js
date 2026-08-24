@@ -156,6 +156,47 @@ describe('the cache headers and the hashing are one change', () => {
   });
 });
 
+describe('nothing that asks production names an asset by its old URL', () => {
+  // The mistake this exists to catch was made while shipping #169 itself:
+  // `npm run audit` asserted `/assets/js/buy.js` appears in the served
+  // /pricing/ HTML, and after the deploy that URL does not exist — the claim
+  // failed while the page was perfectly fine, which is the worst kind of
+  // failure because it teaches you to distrust the audit.
+  //
+  // The rule: a file that fetches from a live origin may never spell an
+  // unhashed css, js or font URL, because production does not serve one. It
+  // matches by what it does — anything reading AUDIT_SITE — rather than by a
+  // list of filenames, so the next production-checking tool is covered on the
+  // day it is written. A hash-tolerant pattern such as
+  // `consent(?:\.[0-9a-f]+)?\.js` is exactly what these should use, and is
+  // not a finding.
+  const dirs = ['test', 'tools'];
+  const sources = dirs.flatMap(d => fs.readdirSync(path.join(ROOT, d))
+    .filter(f => f.endsWith('.js'))
+    .map(f => ({ rel: `${d}/${f}`, text: fs.readFileSync(path.join(ROOT, d, f), 'utf8') })))
+    // Reads AUDIT_SITE *and* fetches: that is what makes a file one that talks
+    // to a live origin, rather than one that merely mentions the variable —
+    // this file does, a few lines up.
+    .filter(f => f.text.includes('AUDIT_SITE') && /\bfetch\s*\(/.test(f.text));
+
+  test('and there is something asking production in the first place', () => {
+    assert.ok(sources.length >= 2, `only ${sources.length} file(s) read AUDIT_SITE`);
+  });
+
+  test('every asset URL they spell allows for the hash', () => {
+    // The optional-hash group is blanked to a token no filename can contain,
+    // so a pattern written to tolerate a hash cannot look like a literal.
+    const LITERAL = /\/assets\\?\/(?:css|js|fonts)\\?\/[A-Za-z0-9_-]+\\?\.(?:css|js|woff2)/g;
+    const stale = [];
+    for (const { rel, text } of sources) {
+      const masked = text.split('(?:\\.[0-9a-f]+)?').join('\u00ab\u00bb');
+      for (const m of masked.match(LITERAL) || []) stale.push(`${rel} → ${m}`);
+    }
+    assert.deepEqual(stale, [],
+      'production serves no such URL since #169 — allow for the content hash');
+  });
+});
+
 describe('the manifest is a function of the bytes', () => {
   test('the same source tree produces the same names', () => {
     assert.deepEqual([...A.build().manifest], [...A.build().manifest]);

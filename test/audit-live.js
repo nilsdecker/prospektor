@@ -426,8 +426,9 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
     const missingIds = ['buy','buyLink','buyForm','buyEmail','buyBtn','buySite','buyMsg','buyLive']
       .filter(id => !pricing.includes('id="' + id + '"'));
     check('/pricing/ serves the whole direct-to-Stripe form',
-      missingIds.length === 0 && /assets\/js\/buy\.js/.test(pricing),
-      missingIds.length ? 'missing #' + missingIds.join(', #') : '');
+      missingIds.length === 0 && /assets\/js\/buy(?:\.[0-9a-f]+)?\.js/.test(pricing),
+      missingIds.length ? 'missing #' + missingIds.join(', #')
+        : (/assets\/js\/buy(?:\.[0-9a-f]+)?\.js/.test(pricing) ? '' : 'the ids are there but buy.js is not loaded'));
   }
 
   check('robots.txt is a real robots.txt, not the app shell',

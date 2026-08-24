@@ -4,7 +4,7 @@ Three commands, in the order a thread uses them.
 
 | Command | What it asks | Needs |
 |---|---|---|
-| `npm test` | Do the functions behave, and does the site build what it claims? 164 tests over the guards, the fail-open policy, the webhook, `/resources/` (including the learnings ledger), `/help/` (the hub, and the per-guide pages #166 split it into) and the content-hashed assets #169 introduced. | Nothing — no network, no keys (`HELP_CORPUS_OFFLINE=1` is set for you, so the help corpus comes from the committed snapshot) |
+| `npm test` | Do the functions behave, and does the site build what it claims? 166 tests over the guards, the fail-open policy, the webhook, `/resources/` (including the learnings ledger), `/help/` (the hub, and the per-guide pages #166 split it into) and the content-hashed assets #169 introduced. | Nothing — no network, no keys (`HELP_CORPUS_OFFLINE=1` is set for you, so the help corpus comes from the committed snapshot) |
 | `npm run drive` | Does the built site wire up in a real browser? 263 checks over the pay form, the ownership block, the website ask and both fallbacks, the help hub and its search, a guide on its own URL and the anchors that forward to it, the /resources topic filter, and what a crawler is served — with the functions and the studio mocked. | Chromium (`CHROME_PATH` to override) |
 | `npm run audit` | Is **production** still what the board says it is? Every claim on this lane's board rows, fetched from the live site — the count grows with the board, so it is deliberately not promised here (#135's lesson about the runbook's fixed URL count). Read-only — it runs a real scan and reads pages, and never posts anything that charges. | Chromium, network (`AUDIT_SITE` to point elsewhere) |
 
@@ -50,6 +50,14 @@ are bugs: a hashed tree with no long cache buys a repeat visitor nothing, and a
 long immutable cache on an unhashed name serves a stale file for a year. It also
 recomputes the hash in every served filename from that file's own contents, so a
 manifest that has gone stale cannot pass.
+
+It also guards `npm run audit` and `tools/seo-audit.js` against the mistake made
+while shipping #169 itself: the audit asserted `/assets/js/buy.js` appears in the
+served `/pricing/` HTML, and after the deploy that URL does not exist — so the
+claim failed on a page that was perfectly fine, which is the worst kind of
+failure because it teaches you to distrust the audit. Any file that reads
+`AUDIT_SITE` and fetches may no longer spell an unhashed css, js or font URL; a
+hash-tolerant pattern is what those should use.
 
 See *The asset contract* in `CLAUDE.md`. Like the learnings ledger, nothing in
 it counts anything — adding an asset only turns it red by being unhashed or
