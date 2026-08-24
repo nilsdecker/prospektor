@@ -1,6 +1,6 @@
 # SEO audit — prospektor.ai
 
-**Board item #137** (WEBSITE · ops), 24 August 2026. Queued deliberately behind
+**Board item #137** (WEBSITE · ops), 24 August 2026. The rows it filed are **#168**, **#169** and **#170**; the per-guide-help-URL row it refers to is **#166** (renumbered from #158 by a parallel thread while this ran). Queued deliberately behind
 **#135** (Search Console) and **#136** (`/help/` prerendered), because an audit
 run before those two would have measured a site that was about to change.
 
@@ -49,8 +49,13 @@ anonymous caller on the internet and was already spent.
 control** — bytes on the wire, render-blocking resources, cacheability,
 whether images reserve their space. Those are measurable today, they are what a
 lab tool would flag anyway, and unlike a field score they do not need traffic to
-become true. One of them (**R2**) was fixed in this thread; the other (**R3**)
-is a real cost with a real fix and is ranked accordingly.
+become true. One of them — render-blocking scripts — **was** fixed in this
+thread (**F6**); cacheability (**R2**) and the two scripts left blocking on
+`/help/` (**R3**) are real costs with real fixes, and are ranked accordingly.
+There is no image-driven layout shift to fix and there cannot be: the site
+serves **zero `<img>` elements** — every graphic on it is inline SVG or CSS, and
+the only raster assets are the OG cards, which are never rendered by the page
+that names them.
 
 **A note on what "lab data" would have been worth here.** Chromium is installed
 in this environment but has no outbound network — the existing `npm run audit`
@@ -213,7 +218,7 @@ now fixed. Revisit with query data, not before.
 Ranked by expected value, which at this traffic means *"how much does this change
 what a stranger finds and believes"*, not by how easy it is.
 
-### R1 · The site is written in a vocabulary nobody searches · **CEO lane · S to implement, blocked on evidence**
+### R1 · The site is written in a vocabulary nobody searches · **#168 · CEO lane · S to implement, blocked on evidence**
 
 **This is the biggest SEO fact about prospektor.ai and it is not a bug.**
 
@@ -244,7 +249,7 @@ prospektor.ai **already** earns impressions on → then decide, with evidence,
 whether the homepage should meet those words or keep its own. Filed as a board
 row rather than acted on.
 
-### R2 · Assets cannot be cached, so every repeat visit revalidates all of them · **M**
+### R2 · Assets cannot be cached, so every repeat visit revalidates all of them · **#169 · M**
 
 Measured on production: `/assets/css/main.css` answers
 `cache-control: public, max-age=0, must-revalidate`. So does every other asset.
@@ -263,7 +268,7 @@ most likely to buy.
 OG-card tooling, and it wants the drive re-run. Worth doing before any paid
 traffic arrives, not urgent while traffic is what it is.
 
-### R3 · `/help/`'s two scripts still block, on the heaviest page on the site · **S**
+### R3 · `/help/`'s two scripts still block, on the heaviest page on the site · **#170 · S**
 
 `/help/` is **127 KB** of HTML (31 KB compressed) — the whole help corpus,
 prerendered by #136, which is correct and is why it can rank. Its two scripts
@@ -274,21 +279,21 @@ double render and that guarantee was not re-verified here.
 attribute each and a re-run of `test/help.test.js`, whose *"the browser would
 re-render on load"* assertion is the exact thing that must not break.
 
-### R4 · Eleven help guides compete as one URL · **already filed as #158 · M**
+### R4 · Eleven help guides compete as one URL · **already filed as #166 · M**
 
 `/help/` is one 24,000-pixel page holding eleven guides, so *"Sharing a pitch"*
 and *"Billing, pausing, deleting"* cannot rank separately for the different
 questions they answer. Per-guide URLs (`/help/<slug>/`) are the better long-tail
 shape.
 
-**Unchanged by this audit, and #158's own reasoning still stands:** it wants
+**Unchanged by this audit, and #166's own reasoning still stands:** it wants
 Search Console data on which guides actually earn impressions, and it has a real
 cost against #76 (a guide the studio adds would have no page until the next
 website build, where today the runtime fetch shows it immediately). **This audit
 adds one input:** `/help/` is now the only page on the site carrying long-tail
 content that is *not* individually addressable — the nine articles each have
 their own URL, their own title, their own description and their own OG card.
-That asymmetry is the argument for #158, and it is still an argument to settle
+That asymmetry is the argument for #166, and it is still an argument to settle
 with data.
 
 ### R5 · `hreflang` — nothing to do yet · **blocked on #113/#114**
