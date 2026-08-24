@@ -157,6 +157,11 @@
   <span>{{ site.email }}</span>
 </footer>
 
-<script src="/assets/js/main.js"></script>
+{#- defer (#137). This sat mid-document without it, so the parser stopped
+    here and rendered nothing below until the script had been fetched and
+    run. Every one of these is an IIFE that looks its elements up by id and
+    returns if they are absent, so deferring is not only cheaper — it is the
+    case the guard was written for, with the DOM guaranteed complete. -#}
+<script src="/assets/js/main.js" defer></script>
 </body>
 </html>
