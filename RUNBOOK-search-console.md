@@ -158,9 +158,12 @@ and un-verifies the property if it's gone.
 1. Left sidebar → **Sitemaps**.
 2. In *Add a new sitemap*, type `sitemap.xml` (the domain prefix is already
    filled in) → **Submit**.
-3. Expect status **Success** and **3 discovered URLs** — `/`, `/privacy/`,
-   `/terms/`. Any other number means the site changed and this runbook didn't;
-   say so rather than assuming.
+3. Expect status **Success**, and a URL count that isn't zero. The number
+   itself moves — `/resources/` (#144) adds one every time an article is
+   published. As of 24 Aug 2026 it is **13**: the homepage, `/privacy/`,
+   `/terms/`, the `/resources/` hub and nine articles. What matters is
+   *Success* with no errors beside it; a *Couldn't fetch* or a count of 0 is
+   a real problem.
 4. Paste `https://prospektor.ai/` into the search box at the very top
    (URL Inspection) → **Request indexing**. This is a nudge, not a guarantee,
    and it only needs doing once.
@@ -180,8 +183,8 @@ history, but the reports this is for need Google to crawl and collect. Two
 appointments, and then leave it alone:
 
 **In 2–3 days — Pages (left sidebar, *Indexing → Pages*).** You are looking
-for one thing: are `/`, `/privacy/` and `/terms/` indexed? Everything else on
-that screen is noise until they are.
+for one thing: is the homepage indexed, and are the `/resources/` articles
+being picked up? Everything else on that screen is noise until they are.
 
 **In 2–3 weeks — Performance.** Queries, impressions, average position. This
 is the data board item **#137** (the full SEO audit) is waiting for, and the
@@ -229,9 +232,11 @@ never — it costs nothing either way.
 Shipped and live before this runbook; you do not need to touch any of it.
 
 - **`/robots.txt`** — allows crawling, names the sitemap. Live since 18 Aug.
-- **`/sitemap.xml`** — generated from `src/sitemap.njk`. Since #135 it lists
-  exactly the three pages worth ranking; that file records why `/checkout/`,
-  `/help/`, `/checkout/done/`, `/404` and `/app/` are each deliberately out.
+- **`/sitemap.xml`** — generated from `src/sitemap.njk`, and it lists what we
+  want *ranked* rather than what exists: the homepage, `/privacy/`, `/terms/`,
+  the `/resources/` hub and every published article. That file records why
+  `/checkout/`, `/help/`, `/checkout/done/`, `/404` and `/app/` are each
+  deliberately out.
 - **A canonical URL, `og:`/`twitter:` cards and a description on every page** —
   since 18 Aug.
 - **`noindex` on `/checkout/done/` and the 404 page.**

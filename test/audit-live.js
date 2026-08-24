@@ -273,10 +273,21 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
   const mapRes = await fetch(SITE + '/sitemap.xml');
   const mapXml = await mapRes.text();
   const liveLocs = [...mapXml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m => m[1]);
-  check('sitemap.xml serves the three pages we want ranked',
-    mapRes.status === 200 && JSON.stringify(liveLocs) === JSON.stringify([
-      'https://prospektor.ai/', 'https://prospektor.ai/privacy/', 'https://prospektor.ai/terms/']),
-    liveLocs.join(' '));
+  // Two halves, matching the guarantee the drive holds over the built output.
+  // The static list is exact — that is what stops a page reaching the sitemap
+  // without its reason being argued (#135). The articles grow every time
+  // somebody writes one (#144), so they are checked by shape: everything past
+  // the static prefix must be a /resources/<slug>/ URL, and there must be at
+  // least one, because a hub with no articles behind it is a dead section.
+  const STATIC_LOCS = ['https://prospektor.ai/', 'https://prospektor.ai/privacy/',
+                       'https://prospektor.ai/terms/', 'https://prospektor.ai/resources/'];
+  const articleLocs = liveLocs.slice(STATIC_LOCS.length);
+  check('sitemap.xml serves exactly the static pages we want ranked',
+    mapRes.status === 200 && JSON.stringify(liveLocs.slice(0, STATIC_LOCS.length)) === JSON.stringify(STATIC_LOCS),
+    liveLocs.slice(0, STATIC_LOCS.length).join(' '));
+  check('everything else in the sitemap is a published article',
+    articleLocs.length > 0 && articleLocs.every(l => /^https:\/\/prospektor\.ai\/resources\/[a-z0-9-]+\/$/.test(l)),
+    `${articleLocs.length} article URL(s)`);
   check('the sitemap does not submit the checkout form as content',
     !liveLocs.some(l => l.includes('/checkout')));
   let mapBroken = [];
