@@ -129,7 +129,7 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     await page.close();
   }
 
-  // 6b — #205: where /#scan actually parks the viewport. This is the check
+  // 6b — #207: where /#scan actually parks the viewport. This is the check
   //      that would have caught the bug, and no static assertion could: the
   //      id was valid, the link was valid, and the browser did exactly what
   //      it was told — it scrolled .scan-hero's top edge to y=0, which is
