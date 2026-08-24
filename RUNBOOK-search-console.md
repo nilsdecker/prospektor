@@ -159,8 +159,12 @@ and un-verifies the property if it's gone.
 ### 6 · Submit the sitemap, and ask for the homepage
 
 1. Left sidebar → **Sitemaps**.
-2. In *Add a new sitemap*, type `sitemap.xml` (the domain prefix is already
-   filled in) → **Submit**.
+2. In *Add a new sitemap*, enter **`https://prospektor.ai/sitemap.xml`** →
+   **Submit**. What the field wants depends on what it shows: a URL-prefix
+   property pre-fills the domain and leaves a short box, where `sitemap.xml`
+   on its own is enough; a **Domain** property — which is what this is —
+   covers several hosts, so the box is often full-width and empty and wants
+   the whole URL. Same file either way.
 3. Expect status **Success**, and a URL count that isn't zero. The number
    itself moves — `/resources/` (#144) adds one every time an article is
    published. As of 24 Aug 2026 it is **13**: the homepage, `/privacy/`,
