@@ -1,7 +1,8 @@
 ---
 title: "When a partnership is a strategy, and when it is a wish"
+seoTitle: "When a partnership is a strategy"
 dek: "Their customers love you. You win their app-store search. They still will not return your emails — and there is a structural reason that has nothing to do with your product."
-description: "Two questions that predict whether a B2B partnership will ever happen: relative revenue scale, and whether the partner has a public strategic mandate you are the answer to."
+description: "Two questions that predict whether a B2B partnership will ever happen: relative revenue scale, and whether the partner has a mandate you are the answer to."
 topic: partnerships
 date: 2026-08-17
 readingTime: 6

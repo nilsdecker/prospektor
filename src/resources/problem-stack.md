@@ -1,7 +1,8 @@
 ---
 title: "What to say when everyone already knows the problem"
+seoTitle: "What to say when everyone knows the problem"
 dek: "Naming a pain your prospect discusses openly proves nothing — they hear it from every vendor in the category. There are two deeper levels, and the third one is where deals are actually won."
-description: "The Problem Stack: known-said, known-unsaid and unknown-unsaid problems, and how to write outreach that reaches past the obvious pain everyone in your market already names."
+description: "The Problem Stack: known-said, known-unsaid and unknown-unsaid problems, and how to write outreach that reaches past the pain everyone in your market names."
 topic: messaging
 date: 2026-08-22
 readingTime: 6

@@ -1,5 +1,6 @@
 ---
 layout: base.njk
+description: "Find the B2B companies worth pitching, then send them something worth reading: research, decision-makers with sources, and a deck and emails in your voice."
 ---
 
 <!-- HERO -->
@@ -37,7 +38,13 @@ layout: base.njk
         <div class="scan-result-meta" id="scanResultMeta"></div>
         <div class="scan-facts" id="scanFacts" hidden></div>
         <p class="scan-lead">Here's what Prospektor will find for you:</p>
-        <h3 class="scan-guess" id="scanGuess"></h3>
+        {#- Not a heading (#137). This is the scan's answer, written by scan.js after
+         the fetch returns; as an <h3> it was an EMPTY heading sitting between the
+         <h1> and the first <h2>, so every crawler read the homepage outline as
+         h1 → h3(blank) → h2. A <p> says what it is — a line of result text that
+         happens to be large — and the styling is unchanged because .scan-guess
+         was always a class rule, never an element one. -#}
+        <p class="scan-guess" id="scanGuess" role="status" aria-live="polite"></p>
         <ul class="scan-signals" id="scanSignals"></ul>
         <div class="scan-cta-row">
           <a class="btn-cta" id="scanCta" href="/checkout/">Start my studio →</a>

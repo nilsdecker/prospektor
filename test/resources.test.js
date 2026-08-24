@@ -58,10 +58,14 @@ describe('/resources/', () => {
   test('every article carries valid Article JSON-LD', () => {
     for (const slug of slugs()) {
       const html = read(`resources/${slug}/index.html`);
-      const m = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
-      assert.ok(m, `${slug} has no JSON-LD`);
-      const ld = JSON.parse(m[1]);           // throws if the template emitted bad JSON
-      assert.equal(ld['@type'], 'Article', `${slug} is not typed as an Article`);
+      // Every block is parsed (so bad JSON in any of them still throws), and
+      // the Article one is found by type — since #137 a page also carries the
+      // sitewide Organization/WebSite graph and its own BreadcrumbList.
+      const blocks = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)]
+        .map(m => JSON.parse(m[1]));
+      assert.ok(blocks.length, `${slug} has no JSON-LD`);
+      const ld = blocks.find(v => v['@type'] === 'Article');
+      assert.ok(ld, `${slug} is not typed as an Article`);
       assert.ok(ld.headline, `${slug} has no headline`);
       assert.match(ld.datePublished, /^\d{4}-\d{2}-\d{2}$/, `${slug} has no usable date`);
       assert.equal(ld.mainEntityOfPage['@id'], `https://prospektor.ai/resources/${slug}/`);

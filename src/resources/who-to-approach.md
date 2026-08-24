@@ -1,7 +1,7 @@
 ---
 title: "The only prospects worth emailing this quarter"
 dek: "Most lost deals were never deals. They were people who agreed the problem was real, took the meeting, and then went back to the two things their job actually depends on."
-description: "Why qualified prospects still go quiet, how to tell a slow deal from a no, and the one signal that separates a company that could want your product from a person who is activated on it right now."
+description: "Why qualified prospects go quiet, how to tell a slow deal from a no, and the one signal that separates a company that could want you from one that is ready."
 topic: qualification
 date: 2026-08-23
 readingTime: 7

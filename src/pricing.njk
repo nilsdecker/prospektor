@@ -2,7 +2,7 @@
 layout: base.njk
 permalink: /pricing/
 title: Pricing
-description: $999 per month, per workspace. Unlimited runs, your whole team in, no seats to count, money back if it doesn't earn its keep. What a workspace is, what is included, and what happens if you stop.
+description: "$999 a month, per workspace. Unlimited runs, your whole team in, no seats to count, money back if it doesn't earn its keep. What's in it, and what isn't."
 ---
 
 {#- #153, 24 Aug 2026. /#pricing was a nav item pointing at an anchor on the
@@ -15,6 +15,47 @@ description: $999 per month, per workspace. Unlimited runs, your whole team in, 
     tile's markup, ids and all, driven by the same buy.js — one field, then
     Stripe. The homepage tile stays where it is and keeps id="pricing", because
     Stripe's own cancel_url returns to /#pricing and deep links still land. -#}
+
+{#- The one page on this site with a price on it, and until #137 the only
+    machine-readable thing about it was the word "Pricing" in the <title>.
+    `Product` + `Offer` is the type Google shows a price for, and the numbers
+    here are not transcribed from the copy above: `99900` USD is what
+    netlify/functions/create-checkout-session.js actually sends to Stripe
+    (`unit_amount` and `currency`), which is the only figure that cannot drift
+    away from what a buyer is charged. test/seo.test.js pins the two together,
+    so changing the price in one place and not the other fails the suite.
+
+    `brand` and `seller` point at the Organization node base.njk puts on every
+    page. `priceValidUntil` is deliberately absent: it is optional for a
+    subscription that has no end date, and an invented one expires. -#}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "Prospektor Studio",
+  "description": "A Prospektor Studio workspace: unlimited pitch runs, research, decision-makers with sources, warm-intro mapping and every deliverable drafted in your voice.",
+  "brand": { "@id": "{{ site.url }}/#organization" },
+  "url": "{{ site.url }}/pricing/",
+  "image": "{{ site.url }}/assets/img/og.png",
+  "offers": {
+    "@type": "Offer",
+    "url": "{{ site.url }}/pricing/",
+    "price": "999.00",
+    "priceCurrency": "USD",
+    "availability": "https://schema.org/InStock",
+    "seller": { "@id": "{{ site.url }}/#organization" },
+    "priceSpecification": {
+      "@type": "UnitPriceSpecification",
+      "price": "999.00",
+      "priceCurrency": "USD",
+      "billingIncrement": 1,
+      "unitText": "workspace",
+      "billingDuration": 1,
+      "billingPeriod": "P1M"
+    }
+  }
+}
+</script>
 
 <header class="page-hero">
   <div class="page-hero-inner">
