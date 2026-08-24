@@ -19,11 +19,24 @@ description: Field notes on finding and winning B2B customers — how to pick wh
 </header>
 
 <section class="res-hub">
-  {% set articles = collections.resources | related('', 99) %}
+  {% set articles = collections.resources | related('', 999) %}
   {% if articles.length %}
-  <ul class="res-grid">
+  {#- The filter row is derived from the articles by the `topics` filter, and
+      ships hidden: resources.js is what reveals it, so a reader without JS gets
+      the whole list instead of buttons that do nothing (#159). -#}
+  {#- A div, not a <nav>: main.css styles the bare `nav` element as the site's
+      fixed header, so a <nav> here gets pinned over the logo. This is a group of
+      toggle buttons rather than site navigation anyway. -#}
+  <div class="res-filter" role="group" data-topic-filter hidden aria-label="Filter articles by topic">
+    <button type="button" class="res-chip is-on" data-filter="" aria-pressed="true">Everything</button>
+    {%- for t in collections.resources | topics %}
+    <button type="button" class="res-chip" data-filter="{{ t.topic }}" aria-pressed="false">{{ t.topic }} <span class="res-chip-n">{{ t.count }}</span></button>
+    {%- endfor %}
+  </div>
+  <p class="res-filter-count" data-filter-count aria-live="polite"></p>
+  <ul class="res-grid" data-article-grid>
     {%- for a in articles %}
-    <li class="res-card">
+    <li class="res-card" data-topic="{{ a.data.topic or "lead generation" }}">
       <a href="{{ a.url }}">
         <span class="res-card-topic">{{ a.data.topic or "lead generation" }}</span>
         <h2 class="res-card-title">{{ a.data.title }}</h2>
@@ -51,3 +64,5 @@ description: Field notes on finding and winning B2B customers — how to pick wh
     <a class="btn-cta" href="/#scan">Scan your site</a>
   </div>
 </section>
+
+<script src="/assets/js/resources.js" defer></script>

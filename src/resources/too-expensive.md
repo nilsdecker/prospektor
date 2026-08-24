@@ -3,6 +3,7 @@ title: "\"Too expensive\" is never why they left"
 dek: "It is the most common answer on every cancellation survey and every lost-deal note, and it is almost always false — because the customer already decided the price was acceptable when they bought."
 description: "Why 'too expensive' is the wrong diagnosis for churn and lost deals, what customers actually mean when they say it, and the cancellation flow that surfaces the real reason."
 topic: retention
+learnings: too-expensive
 date: 2026-08-16
 readingTime: 6
 ogImage: /assets/img/og/too-expensive.png

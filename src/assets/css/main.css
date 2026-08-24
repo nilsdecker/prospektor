@@ -1179,6 +1179,34 @@ footer {
 .res-dot { margin: 0 0.4rem; }
 .res-empty { color: var(--ink-mid); text-align: center; padding: 2rem 0; }
 
+/* ── the topic filter (#159) ──
+   Ships hidden and is revealed by resources.js, so no-JS readers see the whole
+   grid rather than dead buttons. `hidden` on the row and on a filtered-out card
+   is the mechanism; these rules only style what survives. */
+.res-filter {
+  display: flex; flex-wrap: wrap; gap: 0.5rem;
+  margin-bottom: 1.75rem;
+}
+.res-filter[hidden] { display: none; }
+.res-chip {
+  font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.04em;
+  text-transform: uppercase; color: var(--ink-mid);
+  background: var(--white); border: 1px solid var(--border);
+  border-radius: 999px; padding: 0.42rem 0.85rem; cursor: pointer;
+  transition: border-color .15s, color .15s, background .15s;
+}
+.res-chip:hover { border-color: var(--ink-faint); color: var(--ink); }
+.res-chip.is-on {
+  background: var(--ink); border-color: var(--ink); color: var(--white);
+}
+.res-chip-n { opacity: 0.55; margin-left: 0.35rem; }
+.res-filter-count {
+  font-family: var(--mono); font-size: 0.68rem; color: var(--ink-faint);
+  margin: -1.1rem 0 1.4rem;
+}
+.res-filter-count:empty { display: none; }
+.res-card[hidden] { display: none; }
+
 .res-hub-cta {
   border-top: 1px solid var(--border); margin-top: 3.5rem;
   background: var(--off-white); padding: 4rem 2.5rem; text-align: center;

@@ -16,6 +16,7 @@ const assert = require('node:assert');
 const { execFileSync } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
+const { articles } = require('../tools/learning-coverage.js');
 
 const ROOT = path.join(__dirname, '..');
 const SITE = path.join(ROOT, '_site');
@@ -90,6 +91,46 @@ describe('/resources/', () => {
     // The per-article og:type is a conditional in base.njk; this is the other
     // branch, which nothing else would notice breaking.
     assert.match(read('index.html'), /<meta property="og:type" content="website">/);
+  });
+
+  test('keep-reading prefers the same topic, not merely the newest (#159)', () => {
+    // `related` was date-only when the section had nine articles, which meant
+    // every article recommended the same three most recent posts. At this size
+    // that is not a recommendation, it is a sidebar.
+    const byTopic = new Map();
+    for (const a of articles()) {
+      if (!byTopic.has(a.topic)) byTopic.set(a.topic, []);
+      byTopic.get(a.topic).push(a.slug);
+    }
+    let checked = 0;
+    for (const a of articles()) {
+      const siblings = byTopic.get(a.topic).filter(s => s !== a.slug);
+      if (!siblings.length) continue;          // nothing to prefer; date order is right
+      const html = read(`resources/${a.slug}/index.html`);
+      const block = html.split('res-more-list')[1] || '';
+      const first = (block.match(/href="\/resources\/([a-z0-9-]+)\//) || [])[1];
+      assert.ok(first, `${a.slug} has no keep-reading links`);
+      assert.ok(siblings.includes(first),
+        `${a.slug} (${a.topic}) recommends ${first} first, but ${siblings.join(', ')} ` +
+        `share its topic — related() is not preferring topic`);
+      checked++;
+    }
+    assert.ok(checked > 0, 'no article had a same-topic sibling to check');
+  });
+
+  test('the hub filter row is derived from the articles and ships hidden', () => {
+    const hub = read('resources/index.html');
+    const topics = [...new Set(articles().map(a => a.topic))];
+    assert.match(hub, /<div class="res-filter" role="group" data-topic-filter hidden/,
+      'the filter row must ship hidden — resources.js reveals it, so a reader ' +
+      'without JS gets the whole grid rather than buttons that do nothing');
+    assert.match(hub, /<script src="\/assets\/js\/resources\.js" defer><\/script>/);
+    for (const t of topics) {
+      assert.ok(hub.includes(`data-filter="${t}"`), `the hub has no filter chip for "${t}"`);
+    }
+    for (const a of articles()) {
+      assert.ok(hub.includes(`data-topic="${a.topic}"`), `no card carries the topic "${a.topic}"`);
+    }
   });
 
   test('the sitemap is parseable and lists the hub and every article', () => {

@@ -20,7 +20,7 @@ them without reading the studio's code.
    attached in scope — until the operator either restores public
    visibility or changes this protocol, a session that cannot read it
    should say so and stop rather than guess at the contract.
-3. **Before pushing: `npm test`** (86 tests, no network, no keys).
+3. **Before pushing: `npm test`** (124 tests, no network, no keys).
    If the change touches a page or a client flow, also `npm run drive` —
    it builds and drives the built site in a browser with the functions
    mocked. `npm run build` must of course succeed.
@@ -32,6 +32,12 @@ them without reading the studio's code.
    copy of the studio's help corpus that `/help/` falls back to when the studio
    cannot be reached at build time (#136). Run it when the studio ships help
    changes; the build prefers the live endpoint and never fails without it.
+   **`npm run learnings`** prints the `/resources` coverage report — see
+   *The resources contract* below. **`npm run og`** re-renders the article
+   Open Graph cards with Playwright and commits the PNGs; run it after adding
+   or retitling an article, or after changing a `topic:`, since the card shows
+   it. It is an authoring step, never a build step — the Netlify build must
+   not need a browser.
 4. A deliverable is not shipped until the handover file in the studio repo
    is updated to record what was built and what was decided — that update
    is a STUDIO-repo commit, named in the sign-off.
@@ -56,6 +62,42 @@ them without reading the studio's code.
 8. **Secrets stay server-side.** `STUDIO_PROVISION_SECRET` lives in this
    site's server env and is used only from webhook/function code — never in
    browser-delivered JavaScript, page source, or client-side config.
+
+## The resources contract — one article per useful learning
+
+`/resources/` is not a blog with a content calendar. The operator's definition,
+24 Aug 2026: *"we should create one article per useful learning under /resources
+or /blog on the website"*. #144 shipped the section with a fixed list of nine
+articles; **#159 made the list derived**, because a fixed list drifts in silence
+— a learning lands in the research, nobody writes it up, and nothing goes red.
+
+- **`data/learnings.json` is the ledger.** One row per learning, each carrying
+  the source `ref` that finds it in
+  `prospektor-ai/studio` → `docs/research/growth-playbook.md`, and a verdict:
+  `article` (naming the article that covers it) or `not-publishable` (carrying a
+  **written reason** — an exclusion is somebody's argument, never a silent
+  omission).
+- **Each article declares the ids it covers** in its `learnings:` frontmatter.
+- **`test/learnings.test.js` binds the two**, in both directions: a row that
+  names a missing article fails, an article that does not declare a row that
+  points at it fails, an article with no learning at all fails, and an id no row
+  carries fails. `npm run learnings` prints the same report on demand.
+- **Nothing in the check counts articles or rows.** Writing more never turns the
+  suite red — that is the #131 lesson, where a pinned file count made adding a
+  help article break an unrelated test, which is friction pointing exactly the
+  wrong way.
+
+**The one thing no test can catch, said plainly:** this repo cannot see the
+research. A learning added to the playbook and never entered in the ledger is
+invisible here. Adding the row is the job of the thread that adds the learning.
+
+Two mechanics the section's size depends on, both in `.eleventy.js`:
+the `related` filter puts **same topic first**, then newest (date-only stopped
+meaning anything once every article recommended the same three most recent
+posts), and the `topics` filter derives the hub's filter row from the articles
+themselves. Keep topics few and populated — a topic with one article is a chip
+that selects one card and a `related` pick that falls straight through to date
+order. Ten topics over twenty-three articles is the shape as of #159.
 
 ## The sign-off
 
