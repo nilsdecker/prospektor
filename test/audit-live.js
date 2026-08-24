@@ -343,8 +343,13 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
   // somebody writes one (#144), so they are checked by shape: everything past
   // the static prefix must be a /resources/<slug>/ URL, and there must be at
   // least one, because a hub with no articles behind it is a dead section.
+  // /help/ joined this list with #136, which is what that row was for: it was
+  // kept out of the sitemap while it served a crawler the word "Loading…", and
+  // it is prerendered now, so it belongs in. The live sitemap said so before
+  // this list did, which is exactly the direction this audit is meant to catch.
   const STATIC_LOCS = ['https://prospektor.ai/', 'https://prospektor.ai/privacy/',
-                       'https://prospektor.ai/terms/', 'https://prospektor.ai/resources/'];
+                       'https://prospektor.ai/terms/', 'https://prospektor.ai/resources/',
+                       'https://prospektor.ai/help/'];
   const articleLocs = liveLocs.slice(STATIC_LOCS.length);
   check('sitemap.xml serves exactly the static pages we want ranked',
     mapRes.status === 200 && JSON.stringify(liveLocs.slice(0, STATIC_LOCS.length)) === JSON.stringify(STATIC_LOCS),
