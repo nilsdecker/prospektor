@@ -397,6 +397,35 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
     `${articleLocs.length} article URL(s)`);
   check('the sitemap does not submit the checkout form as content',
     !liveLocs.some(l => l.includes('/checkout')));
+
+  /* #159 — /resources is one article per useful learning, and the ledger in
+     data/learnings.json is what keeps it honest. The ledger cannot be asked of
+     production; what can is that every article it claims is actually served,
+     and that the hub's topic filter reached the live build intact — including
+     the part that only matters when JavaScript does not run. */
+  {
+    const { report } = require('../tools/learning-coverage.js');
+    const r = report();
+    check('the learnings ledger is internally consistent before we ask production anything',
+      r.problems.length === 0, r.problems.join(' · '));
+    const wanted = new Set(r.problems.length ? [] :
+      require('../tools/learning-coverage.js').articles().map(a => a.slug));
+    const hubRes = await fetch(SITE + '/resources/');
+    const hub = await hubRes.text();
+    const missing = [...wanted].filter(slug => !hub.includes(`href="/resources/${slug}/"`));
+    check('every article the ledger covers is listed on the live hub',
+      hubRes.status === 200 && wanted.size > 0 && missing.length === 0,
+      missing.length ? 'missing ' + missing.join(', ') : `${wanted.size} article(s)`);
+    const chips = [...new Set([...hub.matchAll(/data-filter="([^"]*)"/g)].map(m => m[1]))]
+      .filter(Boolean);
+    check('the live hub carries a topic chip per topic, and ships the row hidden',
+      chips.length > 1 && /data-topic-filter hidden/.test(hub),
+      chips.join(', '));
+    const jsRes = await fetch(SITE + '/assets/js/resources.js');
+    check('and the script that reveals it is served',
+      jsRes.status === 200 && /data-topic-filter/.test(await jsRes.text()),
+      `HTTP ${jsRes.status}`);
+  }
   let mapBroken = [];
   for (const loc of liveLocs) {
     const r = await fetch(loc);

@@ -45,6 +45,12 @@ corpus learned the hard way in #131.
 - Functions read `process.env` inside their handler, so tests set env per case
   without busting the require cache. `stubFetch` returns the calls that were
   made, which is what makes "it refused *before* Stripe" testable.
+- `npm run audit` retries a request whose connection drops. It does **not** retry
+  a response that arrives *truncated*, and that happens too: on 24 Aug the
+  consent claims failed for `/checkout/done/` and `/resources/` on one run and
+  held on the next, with `curl` showing `consent.js` present on both pages
+  throughout. **Re-run before believing a consent or per-page-content claim** —
+  and a claim that fails twice is real.
 - `npm run audit` retries a request whose connection drops. This session's
   egress loses roughly one request in six — always a dead connection, never a
   5xx from the app — and a single blip once reported two claims as broken. A
