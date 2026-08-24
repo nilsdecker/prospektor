@@ -132,5 +132,5 @@ eleventyComputed:
     data-guide-hash rather than the whole corpus's: a hash comparison does not
     care when it runs, only that the element it reads is parsed, which is
     exactly what `defer` guarantees. Driven in test/drive.js §7b and §7c(a). -#}
-<script src="/assets/js/help-render.js" defer></script>
-<script src="/assets/js/help-guide.js" defer></script>
+<script src="{{ '/assets/js/help-render.js' | asset }}" defer></script>
+<script src="{{ '/assets/js/help-guide.js' | asset }}" defer></script>

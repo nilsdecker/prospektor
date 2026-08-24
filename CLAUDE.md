@@ -150,6 +150,39 @@ with one article is a chip that selects one card and never appears in anybody's
 keep-reading block. Ten topics over twenty-three articles is the shape as of
 #159.
 
+## The asset contract — the name carries the bytes (#169)
+
+Every asset used to answer `public, max-age=0, must-revalidate`, because a
+filename like `main.css` cannot safely be cached: a long cache on it serves a
+stale stylesheet after the next deploy. That never cost bandwidth — an `ETag`
+made each one a 304 — it cost a repeat visitor **eight conditional round trips
+before anything rendered**, on exactly the visitor most likely to buy.
+
+- **The build names css, js and fonts after their contents.** `lib/assets.js`
+  is the whole mechanism and carries the reasoning; `.eleventy.js` writes the
+  output and exposes one `asset` filter. Assets are no longer passthrough-
+  copied.
+- **Every reference in a template goes through `{{ '/assets/…' | asset }}`** —
+  including the ones served verbatim, which resolve to themselves. A path the
+  build does not produce throws at build time instead of 404ing in a browser,
+  which is how a missing Open Graph card gets found before it is a blank card
+  in somebody's Slack.
+- **`fonts.css` is rewritten before it is hashed**, because it names the four
+  woff2 files by URL. Hashing it first would publish a stylesheet whose name no
+  longer matched its contents — the one failure this exists to prevent.
+- **The hashing and the `netlify.toml` headers are ONE change.** `immutable` on
+  a tree whose names are not hashed serves stale files for a year; hashing with
+  no header buys nothing. `test/assets.test.js` fails in **both** directions,
+  and `tools/seo-audit.js` plus `npm run audit` ask production the same.
+- **Images are deliberately excluded, and that is not a TODO.** The OG cards
+  are referenced by absolute URL from caches this repo does not control, so
+  their URLs must not move; `/assets/img/*` gets a day's cache and no
+  `immutable`. `test/assets.test.js` pins that too, so a later thread that
+  "finishes the job" by hashing them has to argue with a red test first.
+- **Nothing counts assets.** Adding a stylesheet, a script or a font can only
+  turn the suite red by being unhashed or unreferenced — the #131 rule, that
+  friction points at the defect and never at the work.
+
 ## The script contract — nothing blocks the parser (#137 F6, #170)
 
 Every `<script src>` this site serves carries `defer` (or `async`, for a tag

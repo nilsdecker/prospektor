@@ -38,12 +38,51 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
 
-# A wildcard on the static font files. It was added when app.prospektor.ai
-# loaded them cross-origin; that subdomain is gone and the studio serves its
-# own fonts now, so nothing depends on this today — kept because it is
-# harmless on public font files and the long cache header beside it is not.
+# ── Asset caching (#169) ───────────────────────────────────────────────
+# Every asset used to answer `public, max-age=0, must-revalidate`, because the
+# filenames carried no content hash and a long cache on `main.css` would serve
+# a stale stylesheet after the next deploy. An ETag made each one a cheap 304,
+# so this never cost bandwidth — it cost a repeat visitor EIGHT conditional
+# round trips before anything rendered, which is an LCP tax on exactly the
+# person most likely to buy.
+#
+# Since #169 the build writes css, js and fonts under a filename carrying a
+# hash of their bytes (`lib/assets.js`), so a changed file is a different URL
+# and these three trees can be cached forever. **These rules and the hashing
+# are one change, not two**: `max-age=31536000, immutable` on a tree whose
+# names are NOT hashed serves stale files for a year. `test/assets.test.js`
+# fails if a hashed tree loses its header, or if a header here promises
+# `immutable` for a tree the build does not hash.
+#
+# The CORS header was added when app.prospektor.ai loaded these fonts
+# cross-origin; that subdomain is gone and the studio serves its own fonts now,
+# so nothing depends on it today — kept because it is harmless on public font
+# files. `LICENSE.txt` is the one unhashed file under this rule; a year-long
+# cache on a font licence is not worth a second rule.
 [[headers]]
   for = "/assets/fonts/*"
   [headers.values]
     Access-Control-Allow-Origin = "*"
-    Cache-Control = "public, max-age=31536000"
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/assets/css/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/assets/js/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Images are deliberately NOT hashed and deliberately NOT immutable. The Open
+# Graph cards are referenced by absolute URL from other people’s caches —
+# Slack, X, LinkedIn, and every link already shared — so changing their URLs
+# would blank cards that render today. They also cost a reader almost nothing:
+# a social crawler fetches the cards, a visitor fetches only the favicon. A day
+# takes the favicon off the repeat visitor’s request list while a re-rendered
+# card still reaches the crawlers within a day.
+[[headers]]
+  for = "/assets/img/*"
+  [headers.values]
+    Cache-Control = "public, max-age=86400"

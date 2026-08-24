@@ -1,6 +1,35 @@
+const assets = require("./lib/assets.js");
+
 module.exports = function(eleventyConfig) {
-  eleventyConfig.addPassthroughCopy("src/assets");
+  // ── Content-hashed assets (#169) ──────────────────────────────────────
+  // Assets are NOT passthrough-copied any more: css, js and fonts are served
+  // under a filename carrying a hash of their bytes, so `netlify.toml` can
+  // answer `immutable` for them and a repeat visitor stops paying eight
+  // conditional round trips before anything renders. `lib/assets.js` explains
+  // where the line between hashed and verbatim is drawn, and why.
+  //
+  // The manifest is rebuilt on every run rather than once at config load, so
+  // `eleventy --serve` picks up an edited stylesheet without a restart.
+  let built = assets.build();
+  eleventyConfig.on("eleventy.before", () => { built = assets.build(); });
+  // The output directory is taken from what Eleventy just WROTE, not from
+  // `dir.output`: `--output=<dir>` sets Eleventy's own `rawOutput` and leaves
+  // the config's `dir.output` saying `_site`, so trusting it would write every
+  // asset into the repo while the tests built into a temp directory — a suite
+  // that passes locally and ships a site with no stylesheet.
+  eleventyConfig.on("eleventy.after", (ev) => assets.emit(assets.outputRoot(ev), built));
   eleventyConfig.addWatchTarget("src/assets/");
+
+  // Every asset reference in a template goes through this — including the ones
+  // that are served verbatim, which resolve to themselves. That is the point:
+  // a path this build does not produce throws here, at build time, instead of
+  // 404ing in a browser. A missing Open Graph card is a blank card everywhere
+  // a link is shared, and nothing else on the page would have noticed.
+  eleventyConfig.addFilter("asset", url => {
+    const served = built.manifest.get(url);
+    if (!served) throw new Error(`asset: nothing built at ${url} — check src${url}`);
+    return served;
+  });
 
   // ── /resources/ (#144) ────────────────────────────────────────────────
   // Three filters rather than clever template expressions. Nunjucks has no

@@ -69,7 +69,22 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
   });
 
   // ── CLAIM: secrets never reach the browser (CLAUDE.md rule 8) ──
-  const jsFiles = ['/assets/js/main.js','/assets/js/scan.js','/assets/js/checkout.js','/assets/js/buy.js','/assets/js/help.js'];
+  // The script URLs are read off the served pages rather than listed here:
+  // since #169 their filenames carry a content hash, so a hard-coded list
+  // would 404 on every deploy and quietly stop checking anything. Reading the
+  // pages is also the stronger claim — it covers whatever production actually
+  // serves, including a script this repo has not heard of.
+  const SCRIPT_HOSTS = ['/', '/pricing/', '/checkout/', '/help/', '/resources/'];
+  const scriptSrcs = new Set();
+  for (const p of SCRIPT_HOSTS) {
+    try {
+      const html = await (await fetch(SITE + p)).text();
+      for (const m of html.matchAll(/<script\b[^>]*\ssrc=["'](\/assets\/[^"']+)["']/gi)) scriptSrcs.add(m[1]);
+    } catch (e) { RELAY_RETRIES.push(SITE + p); }
+  }
+  const jsFiles = [...scriptSrcs];
+  check('the pages name the scripts they load, and every one is served',
+    jsFiles.length >= 5, `${jsFiles.length} distinct script(s)`);
   let leaked = [];
   for (const f of jsFiles) {
     const t = await (await fetch(SITE+f)).text();
@@ -154,16 +169,21 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
     try { consentPages[p] = await (await fetch(SITE + p)).text(); }
     catch (e) { RELAY_RETRIES.push(SITE + p); consentPages[p] = ''; }
   }
+  // Hash-tolerant since #169: the gate is found by what it is, not by a
+  // filename the build is now allowed to change on every edit.
+  const CONSENT_SRC = /\/assets\/js\/consent(?:\.[0-9a-f]+)?\.js/;
+  const consentUrl = (Object.values(consentPages).map(h => (h.match(CONSENT_SRC) || [])[0]).find(Boolean));
   const consentJs = await (async () => {
-    try { const r = await fetch(SITE + '/assets/js/consent.js'); return r.ok ? await r.text() : ''; }
+    if (!consentUrl) return '';
+    try { const r = await fetch(SITE + consentUrl); return r.ok ? await r.text() : ''; }
     catch (e) { return ''; }
   })();
   check('the consent script is served, and is the gate rather than a banner',
     /window\.ppsConsent/.test(consentJs) && /gate: function/.test(consentJs),
     consentJs ? consentJs.length + ' bytes' : 'not served');
   check('every page loads the consent script',
-    Object.values(consentPages).every(h => h.includes('/assets/js/consent.js')),
-    Object.entries(consentPages).filter(([, h]) => !h.includes('/assets/js/consent.js')).map(([p]) => p).join(', '));
+    Object.values(consentPages).every(h => CONSENT_SRC.test(h)),
+    Object.entries(consentPages).filter(([, h]) => !CONSENT_SRC.test(h)).map(([p]) => p).join(', '));
   // Withdrawal has to be as easy as granting (Art. 7(3)), which means it has
   // to be reachable from every page and not only from the visit that asked.
   check('every page offers withdrawal from its footer',
@@ -477,10 +497,11 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
     check('the live hub carries a topic chip per topic, and ships the row hidden',
       chips.length > 1 && /data-topic-filter hidden/.test(hub),
       chips.join(', '));
-    const jsRes = await fetch(SITE + '/assets/js/resources.js');
+    const resourcesSrc = (hub.match(/\/assets\/js\/resources(?:\.[0-9a-f]+)?\.js/) || [])[0];
+    const jsRes = resourcesSrc ? await fetch(SITE + resourcesSrc) : { status: 404, text: async () => '' };
     check('and the script that reveals it is served',
       jsRes.status === 200 && /data-topic-filter/.test(await jsRes.text()),
-      `HTTP ${jsRes.status}`);
+      resourcesSrc ? `HTTP ${jsRes.status}` : 'the hub names no resources script');
   }
   let mapBroken = [];
   for (const loc of liveLocs) {
@@ -490,6 +511,35 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
     else if (/name="robots"[^>]*noindex/.test(body)) mapBroken.push(`${loc} → noindex`);
   }
   check('every URL in the sitemap is served and indexable', mapBroken.length === 0, mapBroken.join(', '));
+
+  /* #169: the two halves of the cache fix, asked of production together.
+   * The row's cost was eight conditional round trips before a repeat visitor
+   * saw anything. Hashing without the header buys nothing, and the header
+   * without hashing is worse than doing neither — a stale stylesheet served
+   * for a year — so both are one claim, and the second is checked in the
+   * dangerous direction as well: nothing immutable may carry an unhashed
+   * name. The list is whatever the homepage actually blocks on. */
+  const homeForAssets = await (await fetch(SITE + '/')).text();
+  const blocking = [...new Set([
+    ...[...homeForAssets.matchAll(/<link\b[^>]*\srel=["'](?:stylesheet|preload)["'][^>]*>/gi)]
+      .map(m => (m[0].match(/\shref=["']([^"']*)["']/i) || [])[1]),
+    ...[...homeForAssets.matchAll(/<script\b[^>]*\ssrc=["']([^"']+)["']/gi)].map(m => m[1]),
+  ])].filter(u => u && /^\/assets\/(?:css|js|fonts)\//.test(u));
+  const cacheFaults = [];
+  for (const ref of blocking) {
+    let cc, status;
+    try { const r = await fetch(SITE + ref); status = r.status; cc = r.headers.get('cache-control') || ''; }
+    catch (e) { cacheFaults.push(`${ref} unreachable`); continue; }
+    if (status !== 200) { cacheFaults.push(`${ref} → HTTP ${status}`); continue; }
+    const hashed = /\.[0-9a-f]{8,}\.(?:css|js|woff2)$/.test(ref);
+    const immutable = /\bimmutable\b/.test(cc) && Number((cc.match(/max-age=(\d+)/) || [])[1] || 0) >= 2592000;
+    if (!hashed) cacheFaults.push(`${ref} carries no content hash`);
+    if (hashed && !immutable) cacheFaults.push(`${ref} → ${cc || 'no cache-control'}`);
+    if (!hashed && /\bimmutable\b/.test(cc)) cacheFaults.push(`${ref} is immutable WITHOUT a hash — stale for a year`);
+  }
+  check('every asset the homepage blocks on is content-hashed and cached forever',
+    blocking.length >= 4 && cacheFaults.length === 0,
+    cacheFaults.length ? cacheFaults.join('; ') : `${blocking.length} asset(s), max-age=31536000, immutable`);
 
   /* The property recommended in RUNBOOK-search-console.md is a DOMAIN
    * property, which covers studio.prospektor.ai as well. The studio answers

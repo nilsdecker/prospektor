@@ -36,7 +36,7 @@ description: "$999 a month, per workspace. Unlimited runs, your whole team in, n
   "description": "A Prospektor Studio workspace: unlimited pitch runs, research, decision-makers with sources, warm-intro mapping and every deliverable drafted in your voice.",
   "brand": { "@id": "{{ site.url }}/#organization" },
   "url": "{{ site.url }}/pricing/",
-  "image": "{{ site.url }}/assets/img/og.png",
+  "image": "{{ site.url }}{{ '/assets/img/og.png' | asset }}",
   "offers": {
     "@type": "Offer",
     "url": "{{ site.url }}/pricing/",
@@ -107,7 +107,7 @@ description: "$999 a month, per workspace. Unlimited runs, your whole team in, n
     run. Every one of these is an IIFE that looks its elements up by id and
     returns if they are absent, so deferring is not only cheaper — it is the
     case the guard was written for, with the DOM guaranteed complete. -#}
-<script src="/assets/js/buy.js" defer></script>
+<script src="{{ '/assets/js/buy.js' | asset }}" defer></script>
 
 <section class="pricing-faq">
   <div class="pricing-faq-inner">

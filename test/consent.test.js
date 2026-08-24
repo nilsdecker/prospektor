@@ -19,6 +19,7 @@ const assert = require('node:assert');
 const { execFileSync } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
+const { served } = require('../lib/assets.js');
 
 const ROOT = path.join(__dirname, '..');
 const CONSENT_SRC = fs.readFileSync(path.join(ROOT, 'src', 'assets', 'js', 'consent.js'), 'utf8');
@@ -48,7 +49,10 @@ describe('consent gate', () => {
     for (const p of pages) {
       const html = fs.readFileSync(p, 'utf8');
       const rel = path.relative(SITE, p);
-      if (!html.includes('<script src="/assets/js/consent.js" defer></script>')) missingScript.push(rel);
+      // Asked of the manifest rather than of a filename: since #169 the served
+      // name carries a content hash, so a literal `/assets/js/consent.js` here
+      // would pin the one thing that is now allowed to change.
+      if (!html.includes(`<script src="${served('/assets/js/consent.js')}" defer></script>`)) missingScript.push(rel);
       // The exact anchor the script picks up by delegation, per the handover.
       if (!/<a href="#cookies" data-cookies>Cookies<\/a>/.test(html)) missingLink.push(rel);
     }

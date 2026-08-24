@@ -28,7 +28,7 @@
 <meta property="og:title" content="{% if title %}{{ title }} — {% endif %}{{ site.name }}">
 <meta property="og:description" content="{{ description or site.description }}">
 <meta property="og:url" content="{{ site.url }}{{ page.url }}">
-<meta property="og:image" content="{{ site.url }}{{ ogImage or '/assets/img/og.png' }}">
+<meta property="og:image" content="{{ site.url }}{{ (ogImage or '/assets/img/og.png') | asset }}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 {% if ogType == "article" %}<meta property="og:image:alt" content="{{ title }} — Prospektor">
@@ -36,22 +36,22 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{% if title %}{{ title }} — {% endif %}{{ site.name }}">
 <meta name="twitter:description" content="{{ description or site.description }}">
-<meta name="twitter:image" content="{{ site.url }}{{ ogImage or '/assets/img/og.png' }}">
+<meta name="twitter:image" content="{{ site.url }}{{ (ogImage or '/assets/img/og.png') | asset }}">
 
-<link rel="icon" href="/assets/img/favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="/assets/img/favicon.svg">
+<link rel="icon" href="{{ '/assets/img/favicon.svg' | asset }}" type="image/svg+xml">
+<link rel="apple-touch-icon" href="{{ '/assets/img/favicon.svg' | asset }}">
 <meta name="theme-color" content="#1A1A18">
-<link rel="preload" href="/assets/fonts/plus-jakarta-sans-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="/assets/fonts/jetbrains-mono-latin.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/assets/css/fonts.css">
-<link rel="stylesheet" href="/assets/css/main.css">
+<link rel="preload" href="{{ '/assets/fonts/plus-jakarta-sans-latin.woff2' | asset }}" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="{{ '/assets/fonts/jetbrains-mono-latin.woff2' | asset }}" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="{{ '/assets/css/fonts.css' | asset }}">
+<link rel="stylesheet" href="{{ '/assets/css/main.css' | asset }}">
 
 <!-- Cookie consent (#143), copied from the studio's #131. In the head and on
      every page, because the gate has to be in place before anything optional
      could run — Netlify's Real User Metrics tag is injected at the very end of
      <body>, and netlify/edge-functions/rum-consent.js hands it to this script
      rather than to the browser. Deferred, dependency-free, first-party. -->
-<script src="/assets/js/consent.js" defer></script>
+<script src="{{ '/assets/js/consent.js' | asset }}" defer></script>
 
 {#- Sitewide structured data (#137). The audit found none of this: eight of the
     seventeen indexable pages carried no structured data at all, and the only
@@ -83,9 +83,9 @@
       "email": "{{ site.email }}",
       "logo": {
         "@type": "ImageObject",
-        "url": "{{ site.url }}/assets/img/favicon.svg"
+        "url": "{{ site.url }}{{ '/assets/img/favicon.svg' | asset }}"
       },
-      "image": "{{ site.url }}/assets/img/og.png"
+      "image": "{{ site.url }}{{ '/assets/img/og.png' | asset }}"
     },
     {
       "@type": "WebSite",
@@ -162,6 +162,6 @@
     run. Every one of these is an IIFE that looks its elements up by id and
     returns if they are absent, so deferring is not only cheaper — it is the
     case the guard was written for, with the DOM guaranteed complete. -#}
-<script src="/assets/js/main.js" defer></script>
+<script src="{{ '/assets/js/main.js' | asset }}" defer></script>
 </body>
 </html>

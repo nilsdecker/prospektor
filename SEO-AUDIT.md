@@ -52,7 +52,10 @@ lab tool would flag anyway, and unlike a field score they do not need traffic to
 become true. Render-blocking scripts are now closed on both halves — four of
 them in this thread (**F6**) and `/help/`'s remaining two by **#170** on 24 Aug,
 which also turned the defect into a check instead of a fact in a table.
-Cacheability (**R2**) is the one still open, and is ranked accordingly.
+Cacheability (**R2**) closed on 24 Aug as **#169** — css, js and fonts are
+served under content-hashed filenames and cached `immutable` for a year, and
+`tools/seo-audit.js` now asks production the same question rather than leaving
+it to a reader of this document.
 There is no image-driven layout shift to fix and there cannot be: the site
 serves **zero `<img>` elements** — every graphic on it is inline SVG or CSS, and
 the only raster assets are the OG cards, which are never rendered by the page
@@ -252,7 +255,7 @@ prospektor.ai **already** earns impressions on → then decide, with evidence,
 whether the homepage should meet those words or keep its own. Filed as a board
 row rather than acted on.
 
-### R2 · Assets cannot be cached, so every repeat visit revalidates all of them · **#169 · M**
+### ~~R2 · Assets cannot be cached, so every repeat visit revalidates all of them~~ · **#169 · SHIPPED 24 Aug 2026**
 
 Measured on production: `/assets/css/main.css` answers
 `cache-control: public, max-age=0, must-revalidate`. So does every other asset.
@@ -265,11 +268,31 @@ payloads are healthy: homepage **6.2 KB**, `main.css` **11.4 KB**, `scan.js`
 repeat visitor sees anything**, which is a real LCP tax on exactly the visitor
 most likely to buy.
 
-**Fix:** content-hashed asset filenames at build time plus
-`Cache-Control: public, max-age=31536000, immutable` for `/assets/*` in
-`netlify.toml`. **M** — it touches the build, every template reference, and the
-OG-card tooling, and it wants the drive re-run. Worth doing before any paid
-traffic arrives, not urgent while traffic is what it is.
+**Fixed as specified, with one deliberate narrowing.** `lib/assets.js` writes
+css, js and fonts under a filename carrying a hash of their bytes, every
+template reference goes through an `asset` filter that throws on a path the
+build does not produce, and `netlify.toml` answers
+`public, max-age=31536000, immutable` for those three trees. A repeat visitor's
+eight conditional round trips are now **one** — the HTML, which must revalidate
+and always did.
+
+**The narrowing: images are not hashed, and are not immutable.** The row said
+`/assets/*`, and `/assets/img/*` is the part of that which would have been a
+bug. The Open Graph cards are referenced by absolute URL from caches this repo
+does not control — Slack, X, LinkedIn, and every link already shared — so moving
+their URLs blanks cards that render today, and a year-long immutable cache on an
+unhashed name is exactly the staleness the hashing exists to prevent. They get
+`max-age=86400` instead, which takes the favicon off the repeat visitor's
+request list and still lets a re-rendered card reach the crawlers within a day.
+The OG-card tooling therefore did not need to change at all.
+
+**Both halves are checked, in both directions.** `test/assets.test.js` fails if
+a hashed tree loses its header, if a header promises `immutable` for a tree the
+build does not hash, if a page names an asset the build does not write, or if a
+served filename's hash does not match its own bytes. `tools/seo-audit.js` and
+`npm run audit` ask production the same. Nothing counts assets — adding a
+stylesheet, a script or a font can only turn the suite red by being unhashed or
+unreferenced.
 
 ### R3 · `/help/`'s two scripts still block, on the heaviest page on the site · **#170 · S**
 
@@ -413,8 +436,8 @@ common way a translated site loses the ranking the English one already had.
 
 Steps 6 and 7 of `RUNBOOK-search-console.md`. Then the *Core Web Vitals* report
 will say *"not enough data"* for months, which is the correct and expected
-answer at this traffic — it is not a problem to fix, and R2 is the thing to do
-in the meantime because it does not need traffic to be true.
+answer at this traffic — it is not a problem to fix. R2 was the thing to do in
+the meantime because it did not need traffic to be true, and it is done.
 
 ---
 

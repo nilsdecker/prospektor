@@ -107,6 +107,10 @@ function parse(html, url) {
     .map(m => ({ src: m[1], async: /\sasync\b/i.test(m[0]), defer: /\sdefer\b/i.test(m[0]) }));
   p.stylesheets = [...html.matchAll(/<link\b[^>]*\srel=["']stylesheet["'][^>]*>/gi)]
     .map(m => (m[0].match(/\shref=["']([^"']*)["']/i) || [])[1]);
+  // Everything the browser fetches before it can paint, so #169's cache
+  // policy can be asked of the same list rather than of a hand-kept one.
+  p.preloads = [...html.matchAll(/<link\b[^>]*\srel=["']preload["'][^>]*>/gi)]
+    .map(m => (m[0].match(/\shref=["']([^"']*)["']/i) || [])[1]);
   p.inlineStyleBytes = [...html.matchAll(/<style\b[^>]*>([\s\S]*?)<\/style>/gi)]
     .reduce((n, m) => n + Buffer.byteLength(m[1]), 0);
   p.inlineScriptBytes = [...html.matchAll(/<script\b(?![^>]*\ssrc=)[^>]*>([\s\S]*?)<\/script>/gi)]
@@ -211,6 +215,36 @@ function parse(html, url) {
       flag('MAJOR', path, 'orphan — no other audited page links to it');
   }
 
+  // ── #169: the assets a page blocks on, and how they are cached ────────
+  // The board row's cost was eight conditional round trips for a repeat
+  // visitor — every asset answering `max-age=0, must-revalidate` because no
+  // filename carried a content hash. Both halves of the fix are asked of
+  // production here, and the second one is the dangerous direction: a long
+  // `immutable` cache on a name with no hash serves a stale file for a year,
+  // and no page-level check would ever see it.
+  const HASHED_TREE = /^\/assets\/(?:css|js|fonts)\//;
+  const HASHED_NAME = /\.[0-9a-f]{8,}\.(?:css|js|woff2)$/;
+  const assetRefs = [...new Set(Object.values(pages).flatMap(p =>
+    [...(p.stylesheets || []), ...(p.preloads || []), ...(p.scripts || []).map(x => x.src)]))]
+    .filter(u => u && u.startsWith('/assets/'));
+  const assetCache = {};
+  for (const ref of assetRefs) {
+    let r;
+    try { r = await get(SITE + ref, 2); } catch (e) { flag('MAJOR', ref, `asset unreachable: ${e.message}`); continue; }
+    const cc = r.headers.get('cache-control') || '';
+    assetCache[ref] = { status: r.status, cc };
+    if (r.status !== 200) { flag('BLOCKER', ref, `blocking asset answers ${r.status}`); continue; }
+    const hashed = HASHED_NAME.test(ref);
+    const immutable = /\bimmutable\b/.test(cc);
+    const maxAge = Number((cc.match(/max-age=(\d+)/) || [])[1] || 0);
+    if (immutable && !hashed)
+      flag('BLOCKER', ref, `immutable cache on a filename with no content hash — a stale copy lives for a year (${cc})`);
+    if (HASHED_TREE.test(ref) && !hashed)
+      flag('MAJOR', ref, 'no content hash, so it can never be cached (#169)');
+    if (hashed && (!immutable || maxAge < 2592000))
+      flag('MAJOR', ref, `hashed but re-validated on every visit — the round trip #169 removed is back (${cc || 'no cache-control'})`);
+  }
+
   const order = { BLOCKER: 0, MAJOR: 1, MINOR: 2 };
   F.sort((a, b) => order[a.sev] - order[b.sev] || a.page.localeCompare(b.page));
 
@@ -223,6 +257,9 @@ function parse(html, url) {
       String(p.h1s.length).padStart(2), String(p.words).padStart(5),
       String(Math.round(p.bytes / 1024)).padStart(3), (p.jsonldTypes.join(',') || '—'));
   }
+  console.log('\nBLOCKING ASSET'.padEnd(52), 'CACHE-CONTROL');
+  for (const [ref, a] of Object.entries(assetCache))
+    console.log(('  ' + ref).padEnd(52), a.status === 200 ? (a.cc || '—') : `HTTP ${a.status}`);
   console.log(`\n${F.length} findings\n`);
   for (const f of F) console.log(`  ${f.sev.padEnd(7)} ${f.page.padEnd(44)} ${f.what}`);
   const blockers = F.filter(f => f.sev === 'BLOCKER').length;

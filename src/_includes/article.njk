@@ -23,7 +23,7 @@ layout: base.njk
   "dateModified": "{{ (updated or date) | isoDate }}",
   "author": { "@id": "{{ site.url }}/#organization" },
   "publisher": { "@id": "{{ site.url }}/#organization" },
-  "image": "{{ site.url }}{{ ogImage or '/assets/img/og.png' }}",
+  "image": "{{ site.url }}{{ (ogImage or '/assets/img/og.png') | asset }}",
   "mainEntityOfPage": { "@type": "WebPage", "@id": "{{ site.url }}{{ page.url }}" },
   "isAccessibleForFree": true,
   "articleSection": {{ (topic or "lead generation") | dump | safe }},

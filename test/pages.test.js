@@ -33,6 +33,7 @@ const os = require('node:os');
 
 const ROOT = path.join(__dirname, '..');
 const site = require('../src/_data/site.json');
+const { served } = require('../lib/assets.js');
 
 // Built into a directory of this file's own — /resources/ and the consent gate
 // build too, and Node runs test files in parallel. Same reasoning, same shape.
@@ -103,7 +104,8 @@ describe('the header, and the pages behind it', () => {
     // Attributes allowed — the claim is that the page LOADS buy.js, which is
     // the regression CLAUDE.md names. #137 added `defer` to it, and pinning
     // the exact tag turned that into a failure about the wrong thing.
-    assert.match(html, /<script src="\/assets\/js\/buy\.js"[^>]*><\/script>/, '/pricing/ never loads buy.js');
+    assert.match(html, new RegExp(`<script src="${served('/assets/js/buy.js')}"[^>]*></script>`),
+      '/pricing/ never loads buy.js');
     assert.match(html, /\$999/, '/pricing/ does not name the price');
   });
 
@@ -181,6 +183,9 @@ describe('the header, and the pages behind it', () => {
       const html = fs.readFileSync(p, 'utf8');
       for (const m of html.matchAll(/href="(\/[^"#?]*)(?:[#?][^"]*)?"/g)) {
         const href = m[1];
+        // Assets have their own check since #169 — their names are computed
+        // now, so `test/assets.test.js` resolves every one of them (src as
+        // well as href) against the build rather than assuming they exist.
         if (href.startsWith('/assets/') || href.startsWith('/.netlify/')) continue;
         if (REDIRECTED.some(r => href.startsWith(r))) continue;
         const target = /\.[a-z0-9]+$/i.test(href)

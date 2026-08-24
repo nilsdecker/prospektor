@@ -17,6 +17,7 @@ const { execFileSync } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 const { articles } = require('../tools/learning-coverage.js');
+const { served } = require('../lib/assets.js');
 
 const ROOT = path.join(__dirname, '..');
 const SITE = path.join(ROOT, '_site');
@@ -127,7 +128,7 @@ describe('/resources/', () => {
     assert.match(hub, /<div class="res-filter" role="group" data-topic-filter hidden/,
       'the filter row must ship hidden — resources.js reveals it, so a reader ' +
       'without JS gets the whole grid rather than buttons that do nothing');
-    assert.match(hub, /<script src="\/assets\/js\/resources\.js" defer><\/script>/);
+    assert.match(hub, new RegExp(`<script src="${served('/assets/js/resources.js')}" defer></script>`));
     for (const t of topics) {
       assert.ok(hub.includes(`data-filter="${t}"`), `the hub has no filter chip for "${t}"`);
     }
