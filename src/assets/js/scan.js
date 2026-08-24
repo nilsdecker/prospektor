@@ -30,7 +30,7 @@
   const fallbackCta = document.getElementById('scanFallbackCta');
 
   // ── Arriving at #scan means "I want to scan" ──
-  // #201: the fragment jump moves the viewport and nothing else — keyboard
+  // #205: the fragment jump moves the viewport and nothing else — keyboard
   // focus stays on <body>, so somebody who follows "Scan your site" and then
   // presses Tab starts again at the nav rather than in the field the link
   // just promised them. Put the caret where the link said it would be.
