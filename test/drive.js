@@ -129,10 +129,11 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     await page.close();
   }
 
-  // 7 — the help hub is served whole, and search answers the operator's own
-  //     question (#145/#136). Nothing is mocked before the first assertions on
-  //     purpose: everything here has to be true of the HTML the build wrote,
-  //     because that is what a crawler and a reader with a slow studio get.
+  // 7 — the help hub, and search answering the operator's own question
+  //     (#145/#136, re-pointed by #166). Nothing is mocked before the first
+  //     assertions on purpose: everything here has to be true of the HTML the
+  //     build wrote, because that is what a crawler and a reader with a slow
+  //     studio get.
   {
     const SNAPSHOT = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'help-corpus.json'), 'utf8'));
     const page = await browser.newPage();
@@ -147,17 +148,14 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     await page.goto('http://localhost:8899/help/');
 
     const guides = SNAPSHOT.files.length;
-    check('every guide is in the served HTML before any fetch',
-      (await page.$$eval('.help-guide', n => n.length)) === guides);
     check('the hub shows a card per guide',
       (await page.$$eval('.card', n => n.length)) === guides);
+    check('and every card is a link to that guide\'s own page (#166)',
+      (await page.$$eval('.card > a', as => as.map(a => a.getAttribute('href'))))
+        .every(h => /^\/help\/[a-z0-9-]+\/$/.test(h)));
+    check('nothing is stacked on the hub any more',
+      (await page.$$eval('#helpGuides .help-guide', n => n.length)) === 0);
     check('the search box the operator kept is present', await page.isVisible('#helpSearch'));
-    check('a guide body is real text, not a placeholder',
-      /New client workspace/.test(await page.textContent('#guide-workspace')));
-    check('tables render', await page.isVisible('.help-guide table'));
-    check('nested list renders', await page.isVisible('.help-guide li ul li'));
-    check('studio-relative links point at the studio',
-      (await page.getAttribute('.help-guide a[target="_blank"]', 'href') || '').startsWith('https://studio.prospektor.ai/'));
 
     // The bug this row exists for.
     await page.fill('#helpSearch', 'how can I create a new workspace');
@@ -166,18 +164,19 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     check("the operator's question finds the workspace guide", /Workspace settings/.test(results), results.slice(0, 120));
     check('the answer is in the snippet', /client workspace/i.test(results));
     check('search marks the matched words', await page.isVisible('#helpResults mark'));
-    check('the guides step aside while searching', await page.isHidden('#helpGuides'));
-    check('so does the card hub', await page.isHidden('#helpHub'));
+    check('the card hub steps aside while searching', await page.isHidden('#helpHub'));
 
+    // A hit is a navigation now, not a scroll — and it still has to land on
+    // the SECTION. Accepting the guide's own URL here would hide the same
+    // undefined-anchor bug the pre-#166 check was written for.
     await page.click('#helpResults .help-hit-snippet');
-    await page.waitForSelector('#helpGuides:not([hidden])', { timeout: 5000 });
-    check('a result click restores the guides, search cleared',
-      (await page.inputValue('#helpSearch')) === '');
-    // The section anchor, not just the guide: `workspace--<heading>`. Accepting
-    // `guide-workspace` here hid an undefined anchor once already.
-    check('and lands on the section, not the top of a 21k-character guide',
-      /#workspace--/.test(page.url()), page.url());
+    await page.waitForURL(/\/help\/workspace\//, { timeout: 5000 });
+    check('a result click opens the guide on its own URL',
+      /\/help\/workspace\/#workspace--/.test(page.url()), page.url());
+    check('and the section it named is really on that page',
+      await page.isVisible('#' + decodeURIComponent(page.url().split('#')[1])));
 
+    await page.goBack();
     await page.fill('#helpSearch', 'zzzunfindable');
     await page.waitForSelector('#helpResults:not([hidden])');
     check('a miss says so instead of an empty pane', /Nothing in the guides/.test(await page.textContent('#helpResults')));
@@ -191,33 +190,130 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     check('the live corpus was fetched', calls >= 1);
     check('an unchanged corpus re-renders nothing',
       (await page.getAttribute('#helpGuides', 'data-corpus-source')) !== 'runtime');
-    check('and nothing was duplicated',
-      (await page.$$eval('.help-guide', n => n.length)) === guides);
+    check('and no guide was pulled back onto the hub',
+      (await page.$$eval('#helpGuides .help-guide', n => n.length)) === 0);
     await page.close();
   }
 
-  // 7b — the studio HAS moved on since the build: the runtime fetch is still
-  //      what keeps a help change live for a human the moment the studio
-  //      deploys (#76), so a changed corpus must actually replace the page.
+  // 7b — a guide on its own URL (#166): the page a search result now opens,
+  //      and the reason the row could be built without giving up #76.
   {
     const SNAPSHOT = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'help-corpus.json'), 'utf8'));
-    const moved = { files: SNAPSHOT.files.concat([{ name: '99-brand-new.md', text: '# A brand new guide\n\nShipped by the studio after this site was built.\n' }]) };
     const page = await browser.newPage();
     await page.route('https://studio.prospektor.ai/api/help', route =>
-      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(moved) }));
-    await page.goto('http://localhost:8899/help/');
-    await page.waitForFunction(
-      n => document.querySelectorAll('.help-guide').length === n,
-      moved.files.length, { timeout: 5000 });
-    check('a corpus that moved is picked up at runtime',
-      (await page.$$eval('.help-guide', n => n.length)) === moved.files.length);
-    check('the new guide is on the page', await page.isVisible('#guide-brand-new'));
-    check('the hub gained its card',
-      (await page.$$eval('.card', n => n.length)) === moved.files.length);
-    check('and the reconcile said so',
-      (await page.getAttribute('#helpGuides', 'data-corpus-source')) === 'runtime');
-    check('an unknown guide still gets a card',
-      /Guide/.test(await page.textContent('#guide-brand-new .help-guide-topic')));
+      route.fulfill({ status: 200, contentType: 'application/json',
+        body: JSON.stringify({ files: SNAPSHOT.files }) }));
+    await page.goto('http://localhost:8899/help/workspace/');
+
+    check('the guide is served whole, before any fetch',
+      /New client workspace/.test(await page.textContent('#guide-workspace')));
+    check('its title is the page\'s h1, said once',
+      (await page.$$eval('h1', hs => hs.map(h => h.textContent.trim())))
+        .join('|') === 'Workspace settings, members, billing');
+    check('studio-relative links point at the studio',
+      (await page.getAttribute('.help-guide a[target="_blank"]', 'href') || '').startsWith('https://studio.prospektor.ai/'));
+    check('there is a way back to the hub', await page.isVisible('.res-back'));
+    check('and three sibling guides to keep reading',
+      (await page.$$eval('.help-more .res-more-list a', as => as.length)) === 3);
+
+    // The renderer's two structural outputs, checked on whichever guide
+    // actually uses them rather than on a slug written down here — the corpus
+    // is the studio's and it moves.
+    const guideUsing = re => {
+      const f = SNAPSHOT.files.find(f => re.test(f.text));
+      return f && f.name.replace(/^\d+-/, '').replace(/\.md$/, '');
+    };
+    for (const [what, slug, selector] of [
+      ['tables', guideUsing(/^\|[\s:|-]+\|?\s*$/m), '.help-guide table'],
+      ['nested lists', guideUsing(/^\s{2,}[-*]\s+\S/m), '.help-guide li ul li'],
+    ]) {
+      if (!slug) { check(what + ' — no guide in the corpus uses them', true); continue; }
+      await page.goto('http://localhost:8899/help/' + slug + '/');
+      check(what + ' render, on /help/' + slug + '/', await page.isVisible(selector));
+    }
+    await page.goto('http://localhost:8899/help/workspace/');
+    await page.waitForTimeout(200);
+    check('an unchanged guide re-renders nothing',
+      (await page.getAttribute('#guide-workspace', 'data-guide-source')) !== 'runtime');
+    await page.close();
+  }
+
+  // 7c — the studio HAS moved on since the build. This is #76's property and
+  //      #166 was not allowed to cost it: a help change is live for a reader
+  //      the moment the STUDIO deploys, with no website publish in between.
+  //      Two shapes, and they are handled differently on purpose.
+  {
+    const SNAPSHOT = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'help-corpus.json'), 'utf8'));
+
+    // (a) an EDITED guide — it has a page, so the page corrects itself.
+    {
+      const edited = {
+        files: SNAPSHOT.files.map(f => f.name.indexOf('workspace') > -1
+          ? { name: f.name, text: f.text + '\n\n## Freshly added section\n\nShipped by the studio after this site was built.\n' }
+          : f),
+      };
+      const page = await browser.newPage();
+      await page.route('https://studio.prospektor.ai/api/help', route =>
+        route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(edited) }));
+      await page.goto('http://localhost:8899/help/workspace/');
+      await page.waitForSelector('#workspace--freshly-added-section', { timeout: 5000 });
+      check('an edited guide is corrected on its own page at runtime (#76)',
+        await page.isVisible('#workspace--freshly-added-section'));
+      check('and the page says the copy on screen came from the studio',
+        (await page.getAttribute('#guide-workspace', 'data-guide-source')) === 'runtime');
+      check('the title is still said exactly once after a re-render',
+        (await page.$$eval('h1', hs => hs.length)) === 1
+        && (await page.$$eval('#guide-workspace h2', hs => hs.map(h => h.textContent)))
+             .every(t => t !== 'Workspace settings, members, billing'));
+      await page.close();
+    }
+
+    // (b) a NEW guide — it has no page until the next build, so the hub
+    //     renders it inline and links it by anchor. That is the whole answer
+    //     to the cost the board row put against this work.
+    {
+      const moved = { files: SNAPSHOT.files.concat([{ name: '99-brand-new.md', text: '# A brand new guide\n\nShipped by the studio after this site was built.\n' }]) };
+      const page = await browser.newPage();
+      await page.route('https://studio.prospektor.ai/api/help', route =>
+        route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(moved) }));
+      await page.goto('http://localhost:8899/help/');
+      await page.waitForSelector('#guide-brand-new', { timeout: 5000 });
+      check('a guide the build never saw is readable immediately (#76)',
+        /Shipped by the studio/.test(await page.textContent('#guide-brand-new')));
+      check('the hub gained its card',
+        (await page.$$eval('.card', n => n.length)) === moved.files.length);
+      check('and that card points at the anchor, having no page yet',
+        (await page.getAttribute('.card:last-child > a', 'href')) === '#guide-brand-new');
+      check('while the guides that DO have pages are still linked to them',
+        (await page.getAttribute('.card:first-child > a', 'href')) === '/help/getting-started/');
+      check('and none of them was pulled back onto the hub',
+        (await page.$$eval('#helpGuides .help-guide', n => n.length)) === 1);
+      check('the reconcile said so',
+        (await page.getAttribute('#helpGuides', 'data-corpus-source')) === 'runtime');
+      check('an unknown guide still gets a card',
+        /Guide/.test(await page.textContent('#guide-brand-new .help-guide-topic')));
+      await page.close();
+    }
+  }
+
+  // 7d — the old anchors still land somewhere real. Three generations of link
+  //      exist in the wild (the studio's docs, the FAQ, anything anyone
+  //      bookmarked), and #166 moved what they pointed at.
+  {
+    const page = await browser.newPage();
+    await page.route('https://studio.prospektor.ai/api/help', route =>
+      route.fulfill({ status: 502, body: 'bad gateway' }));
+
+    for (const [from, to] of [
+      ['#guide-sharing', '/help/sharing/'],
+      ['#sharing', '/help/sharing/'],
+      ['#workspace--members-and-access', '/help/workspace/#workspace--members-and-access'],
+    ]) {
+      await page.goto('http://localhost:8899/help/' + from);
+      await page.waitForURL(u => u.pathname !== '/help/', { timeout: 5000 }).catch(() => {});
+      const got = page.url().replace('http://localhost:8899', '');
+      check('/help/' + from + ' forwards to ' + to, got === to, got);
+    }
     await page.close();
   }
 
@@ -229,12 +325,17 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     const page = await browser.newPage();
     await page.route('https://studio.prospektor.ai/api/help', route =>
       route.fulfill({ status: 502, body: 'bad gateway' }));
-    await page.goto('http://localhost:8899/help/');
-    await page.waitForSelector('.help-guide', { timeout: 5000 });
-    check('a dead studio leaves the prerendered guides on screen',
-      (await page.$$eval('.help-guide', n => n.length)) > 0);
-    check('and shows no error over them',
+
+    await page.goto('http://localhost:8899/help/workspace/');
+    check('a dead studio leaves the prerendered guide on screen',
+      /New client workspace/.test(await page.textContent('#guide-workspace')));
+    check('and shows no error over it',
       !/could not be loaded/.test(await page.textContent('body')));
+
+    await page.goto('http://localhost:8899/help/');
+    await page.waitForSelector('.card', { timeout: 5000 });
+    check('and the hub still lists every guide',
+      (await page.$$eval('.card', n => n.length)) > 0);
     check('search still works with the studio down',
       await (async () => {
         await page.fill('#helpSearch', 'how can I create a new workspace');
@@ -271,7 +372,9 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
                     'https://prospektor.ai/privacy/',
                     'https://prospektor.ai/terms/', 'https://prospektor.ai/resources/',
                     'https://prospektor.ai/help/'];
-    const articleLocs = locs.filter(l => !STATIC.includes(l));
+    const derived = locs.filter(l => !STATIC.includes(l));
+    const guideLocs = derived.filter(l => l.startsWith('https://prospektor.ai/help/'));
+    const articleLocs = derived.filter(l => !l.startsWith('https://prospektor.ai/help/'));
     check('sitemap lists exactly the static pages we want ranked',
       JSON.stringify(locs.slice(0, STATIC.length)) === JSON.stringify(STATIC), locs);
 
@@ -282,11 +385,23 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
       && slugs.every(s => articleLocs.includes('https://prospektor.ai/resources/' + s + '/')),
       { listed: articleLocs.length, onDisk: slugs.length });
 
+    // The guide URLs, the same way (#166): derived from the corpus rather than
+    // listed, so a guide the studio adds is submitted at the next build and one
+    // it retires stops being submitted, with nobody editing sitemap.njk.
+    const guideSlugs = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'help-corpus.json'), 'utf8'))
+      .files.map(f => f.name.replace(/^\d+-/, '').replace(/\.md$/, ''));
+    check('sitemap lists every help guide and nothing else under /help/',
+      guideLocs.length === guideSlugs.length
+      && guideSlugs.every(g => guideLocs.includes('https://prospektor.ai/help/' + g + '/')),
+      { listed: guideLocs.length, inCorpus: guideSlugs.length });
+
     // A <lastmod> is a promise a crawler acts on, so it has to be a real date
     // rather than a build stamp — the terms #135 set for adding them at all.
-    check('every article carries a real lastmod, and no static page does',
+    // The guides carry none, and deliberately: the corpus has no dates, and a
+    // stamp taken at build time would claim every guide changed on every deploy.
+    check('every article carries a real lastmod, and no static or guide page does',
       [...xml.matchAll(/<loc>([^<]+)<\/loc>(<lastmod>[^<]+<\/lastmod>)?/g)]
-        .every(([, loc, mod]) => STATIC.includes(loc)
+        .every(([, loc, mod]) => STATIC.includes(loc) || guideLocs.includes(loc)
           ? mod === undefined
           : /<lastmod>\d{4}-\d{2}-\d{2}<\/lastmod>/.test(mod || '')), xml);
 
@@ -302,12 +417,15 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     // /help/ is in the sitemap as of #136, and the reason it may be there is
     // that the guides are in the served bytes. Listing it while it is a shell
     // again would be the exact mistake #135 refused to make, so the sitemap
-    // entry and the guarantee behind it are checked together.
+    // entry and the guarantee behind it are checked together. Since #166 the
+    // guides are on their own URLs, so the guarantee is checked there.
     const helpHtml = fs.readFileSync(path.join(ROOT, 'help', 'index.html'), 'utf8');
+    const workspaceHtml = fs.readFileSync(path.join(ROOT, 'help', 'workspace', 'index.html'), 'utf8');
     check('sitemap lists /help/ now that it serves real content (#136)',
       locs.includes('https://prospektor.ai/help/'));
-    check('and /help/ is not a Loading… shell any more',
-      !/Loading…/.test(helpHtml) && /id="guide-workspace"/.test(helpHtml));
+    check('and neither the hub nor a guide is a Loading… shell',
+      !/Loading…/.test(helpHtml) && !/Loading…/.test(workspaceHtml)
+      && /New client workspace/.test(workspaceHtml));
 
     // Every listed URL must actually be served, and none of them may be
     // noindex — submitting a page we tell Google not to index is a
@@ -461,7 +579,7 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     //       would quietly retire the check.
     {
       const OURS = ['localhost:8899', 'prospektor.ai', 'studio.prospektor.ai'];
-      const pages = ['/', '/who-to-pitch/', '/what-to-send/', '/pricing/', '/privacy/', '/terms/', '/checkout/', '/help/', '/resources/', '/resources/who-to-approach/'];
+      const pages = ['/', '/who-to-pitch/', '/what-to-send/', '/pricing/', '/privacy/', '/terms/', '/checkout/', '/help/', '/help/workspace/', '/resources/', '/resources/who-to-approach/'];
       const strays = [];
       for (const pathname of pages) {
         const page = await browser.newPage();

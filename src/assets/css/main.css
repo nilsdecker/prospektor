@@ -913,6 +913,10 @@ footer {
 /* Every guide, stacked and in the served HTML (#136). A crawler was being
    handed the word "Loading…"; now it is handed all ten. */
 .help-guides { max-width: 760px; margin: 0 auto; padding: 1.5rem 2.5rem 4rem; }
+/* On the hub this element is normally empty since #166 — it holds only guides
+   the studio has added since the last build. Empty, it must take no room, or
+   the hub carries a 5.5rem gap between the cards and the FAQ for nothing. */
+.help-guides:empty { padding: 0; }
 .help-guide {
   padding-top: 3rem; margin-top: 3rem;
   border-top: 1px solid var(--border); scroll-margin-top: 74px;
@@ -924,8 +928,13 @@ footer {
   margin-bottom: 0.75rem;
 }
 /* The guide's own title. render() emits it as an h2 so the document keeps a
-   single h1 — the page's question — with ten guides stacked under it. */
-.help-guide > h2:first-of-type {
+   single h1 — the page's question — with the guides stacked under it.
+
+   Scoped away from `.help-guides-single` since #166: on /help/<slug>/ the
+   title IS the page's h1 and bodyOf() has taken it out of the body, so the
+   first h2 there is a real section heading and dressing it as a title would
+   make the second section look like the start of the guide. */
+.help-guides:not(.help-guides-single) .help-guide > h2:first-of-type {
   font-size: 1.55rem; font-weight: 800; letter-spacing: -0.03em;
   line-height: 1.15; margin: 0 0 1.25rem; padding-top: 0; border-top: none;
 }
@@ -1062,6 +1071,22 @@ footer {
 
 /* Search-result trimmings the hub adds: the guide's emoji beside its title,
    and the line that owns up to a partial match instead of implying a full one. */
+/* ── one guide, on its own URL (#166) ──
+   The hero, the h1 and the dek are grouped onto `.res-hero`'s rules above
+   rather than restated, so an article and a guide page cannot drift apart.
+   These three are all this page needs beyond that. */
+.help-guides-single { padding-top: 3rem; }
+/* Whatever the guide opens with sits directly under the hero — no rule, no
+   gap held for a title that is now the <h1> two elements up. */
+.help-guides-single .help-guide > *:first-child {
+  margin-top: 0; padding-top: 0; border-top: none;
+}
+.help-more { border-top: 1px solid var(--border); background: var(--off-white); padding: 3rem 0 3.5rem; }
+.help-more-inner { max-width: 760px; margin: 0 auto; padding: 0 2.5rem; }
+.help-more-all { margin-top: 1.5rem; }
+.help-more-all a { color: var(--ink-mid); text-decoration: none; border-bottom: 1px solid var(--accent); }
+.help-more-all a:hover { color: var(--ink); }
+
 .help-hit-emoji { margin-right: 0.5rem; }
 .help-results-note { margin-bottom: 1.25rem; }
 
@@ -1222,12 +1247,12 @@ footer {
 }
 
 /* ── article ── */
-.res-hero {
+.res-hero, .help-guide-hero {
   background: var(--off-white);
   border-bottom: 1px solid var(--border);
   padding: 8.5rem 2.5rem 3rem;
 }
-.res-hero-inner { max-width: 720px; margin: 0 auto; }
+.res-hero-inner, .help-guide-hero-inner { max-width: 720px; margin: 0 auto; }
 .res-back {
   /* Its own line above the topic tag — both are inline-level and collided. */
   display: flex; width: fit-content; align-items: center; gap: 5px;
@@ -1237,7 +1262,7 @@ footer {
 }
 .res-back:hover { color: var(--ink-mid); }
 .res-back svg { width: 13px; height: 13px; }
-.res-h1 {
+.res-h1, .help-guide-h1 {
   font-size: clamp(1.9rem, 4vw, 2.85rem);
   font-weight: 800; line-height: 1.09; letter-spacing: -0.04em;
   margin-top: 0.35rem; text-wrap: balance;
@@ -1331,7 +1356,7 @@ footer {
 .res-more-list a:hover .res-more-title { color: var(--accent-dim); }
 
 @media (max-width: 640px) {
-  .res-hub-hero, .res-hero { padding: 7rem 1.4rem 2.5rem; }
+  .res-hub-hero, .res-hero, .help-guide-hero { padding: 7rem 1.4rem 2.5rem; }
   .res-hub, .res-body { padding-left: 1.4rem; padding-right: 1.4rem; }
   .res-hub-cta { padding: 3rem 1.4rem; }
   .res-cta { padding: 1.6rem 1.3rem 1.9rem; }

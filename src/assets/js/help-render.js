@@ -187,7 +187,8 @@
   /* One line of description for a card: the guide's first real paragraph,
      cut at a word boundary. Derived rather than authored, so a guide added
      in the studio gets a card without anyone editing this repo. */
-  function dekFor(md) {
+  function dekFor(md, max) {
+    var limit = max || 116;
     // A list marker is a dash/star/number followed by a space. "**Share this
     // pitch** on a finished pitch's Summary…" is a paragraph, not a bullet,
     // and reading it as one skipped to the third line of 04-sharing.md and
@@ -211,12 +212,33 @@
         para.push(next);
       }
       var text = plainText(para.join(' ')).text;
-      if (text.length <= 116) return text;
-      var cut = text.slice(0, 116);
+      if (text.length <= limit) return text;
+      // A whole sentence beats a cut one. Google shows the description as the
+      // snippet, and "…drafts partner pitches. You…" reads as a page that was
+      // scraped rather than written — so if a full stop lands anywhere useful
+      // inside the budget, the description ends there instead.
+      var cut = text.slice(0, limit);
+      var stop = cut.lastIndexOf('. ');
+      if (stop > limit * 0.55) return cut.slice(0, stop + 1);
       var space = cut.lastIndexOf(' ');
       return (space > 40 ? cut.slice(0, space) : cut).replace(/[,;:.]+$/, '') + '…';
     }
     return '';
+  }
+
+  /* The guide's rendered HTML minus its own title (#166).
+
+     render() turns a guide's `# Title` into an <h2>, because on the hub every
+     guide is stacked under the page's one <h1> ("How can we help?"). On its
+     own URL the guide's title IS the <h1>, so that leading <h2> would say the
+     same words twice — bad for a reader and, since #137 pinned one <h1> and no
+     empty headings, exactly the kind of outline defect that suite exists for.
+
+     Only the FIRST heading is dropped, and only when it is the h1-turned-h2:
+     every id the search hands out comes from a level-2-or-deeper heading (see
+     plainText), so nothing that is ever linked to is removed here. */
+  function bodyOf(html) {
+    return String(html).replace(/^<h2\b[^>]*>[\s\S]*?<\/h2>\n?/, '');
   }
 
   /* ── the card face of each guide ──
@@ -535,6 +557,7 @@
     render: render,
     plainText: plainText,
     dekFor: dekFor,
+    bodyOf: bodyOf,
     cardFor: cardFor,
     buildIndex: buildIndex,
     corpusHash: corpusHash,

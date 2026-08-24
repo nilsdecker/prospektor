@@ -220,31 +220,61 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
   check('studio /api/help serves the corpus cross-origin',
     !!apiHelp && apiHelp.status===200 && apiHelp.cors==='*' && (apiHelp.body.files||[]).length>=10,
     apiHelp ? `HTTP ${apiHelp.status}, cors ${apiHelp.cors}, ${(apiHelp.body.files||[]).length} files` : 'unreachable ×3');
-  // ── CLAIM (#136): /help/ is prerendered, so the guides are in the bytes ──
-  // Asked of the raw response, before a browser runs anything: this is what a
+  // ── CLAIM (#136, split by #166): the guides are in the bytes ──
+  // Asked of the raw responses, before a browser runs anything: this is what a
   // crawler is handed, and the whole of #136 is that it used to be the word
   // "Loading…". A browser check would pass on the old page too.
-  const helpRaw = await (async () => {
+  //
+  // #166 moved that text to one URL per guide, so the claim is asked of the
+  // section rather than of the hub, and of the LIVE corpus's slugs rather than
+  // a list written here — a guide the studio has added and this site has not
+  // rebuilt for should show up as a missing page, which is the one failure
+  // this claim exists to catch.
+  const getRaw = async (url) => {
     for (let i = 0; i < 3; i++) {
-      try { const r = await fetch(SITE+'/help/'); return await r.text(); }
-      catch (e) { RELAY_RETRIES.push(SITE+'/help/'); }
+      try { const r = await fetch(url); return { status: r.status, text: await r.text() }; }
+      catch (e) { RELAY_RETRIES.push(url); }
     }
     return null;
-  })();
-  const helpBody = (helpRaw||'')
+  };
+  const bodyOf = html => (html||'')
     .replace(/<script[\s\S]*?<\/script>/g, ' ')
     .replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
-  check('/help/ serves the guides in its HTML, not a Loading… shell',
-    !!helpRaw && !/Loading…/.test(helpRaw) && helpBody.length > 20000,
-    helpRaw ? `${helpBody.length} chars of body copy` : 'unreachable ×3');
+
+  const helpRes = await getRaw(SITE+'/help/');
+  const helpRaw = helpRes && helpRes.text;
+  const liveSlugs = ((apiHelp && apiHelp.body.files) || [])
+    .map(f => f.name.replace(/^\d+-/, '').replace(/\.md$/, ''));
+
+  check('/help/ is the hub, not a Loading… shell',
+    !!helpRaw && !/Loading…/.test(helpRaw) && /helpSearch/.test(helpRaw),
+    helpRaw ? `${bodyOf(helpRaw).length} chars of hub copy` : 'unreachable ×3');
+
+  const guidePages = [];
+  for (const slug of liveSlugs) {
+    const res = await getRaw(SITE+'/help/'+slug+'/');
+    guidePages.push({ slug, ok: !!res && res.status === 200, chars: bodyOf(res && res.text).length,
+      shell: !!res && /Loading…/.test(res.text) });
+  }
+  const missingGuides = guidePages.filter(g => !g.ok).map(g => g.slug);
+  const totalChars = guidePages.reduce((n, g) => n + g.chars, 0);
+  check('every guide the studio publishes has its own URL (#166)',
+    guidePages.length > 0 && !missingGuides.length,
+    missingGuides.length ? `missing: ${missingGuides.join(', ')}` : `${guidePages.length} guides served`);
+  check('and the section still carries the long-tail content #136 bought',
+    totalChars > 20000 && !guidePages.some(g => g.shell), `${totalChars} chars across the guides`);
   check('/help/ answers the question the search bug hid (#145)',
-    !!helpRaw && /New client workspace/.test(helpRaw));
+    guidePages.some(g => g.slug === 'workspace') &&
+    /New client workspace/.test((await getRaw(SITE+'/help/workspace/') || {}).text || ''));
 
   const hp = await ctx.newPage();
   await hp.goto(SITE+'/help/', { waitUntil: 'domcontentloaded' });
   let helpCards = 0;
   try { await hp.waitForSelector('.card', { timeout: 15000 }); helpCards = await hp.$$eval('.card', n => n.length); } catch (e) {}
   check('/help renders the card hub over the live corpus', helpCards >= 10, String(helpCards));
+  check('and every card opens a guide on its own URL (#166)',
+    (await hp.$$eval('.card > a', as => as.map(a => a.getAttribute('href'))))
+      .every(h => /^\/help\/[a-z0-9-]+\/$/.test(h)));
   // The operator's own screenshot query — the regression this row exists for.
   await hp.fill('#helpSearch', 'how can I create a new workspace');
   let helpHit = '';

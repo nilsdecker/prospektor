@@ -20,7 +20,7 @@ them without reading the studio's code.
    attached in scope — until the operator either restores public
    visibility or changes this protocol, a session that cannot read it
    should say so and stop rather than guess at the contract.
-3. **Before pushing: `npm test`** (137 tests, no network, no keys).
+3. **Before pushing: `npm test`** (148 tests, no network, no keys).
    If the change touches a page or a client flow, also `npm run drive` —
    it builds and drives the built site in a browser with the functions
    mocked. `npm run build` must of course succeed.
@@ -32,6 +32,12 @@ them without reading the studio's code.
    copy of the studio's help corpus that `/help/` falls back to when the studio
    cannot be reached at build time (#136). Run it when the studio ships help
    changes; the build prefers the live endpoint and never fails without it.
+   **Since #166 the snapshot decides how many PAGES the build writes**, not just
+   what one page says: every guide in the corpus gets `/help/<slug>/` and a
+   sitemap entry. A stale snapshot is therefore a stale set of URLs — the site
+   still shows a newly-added guide (the hub renders it inline at runtime, and an
+   edited guide corrects itself on its own page), but it has no URL of its own
+   until the next build. See *The help contract* below.
    **`npm run learnings`** prints the `/resources` coverage report — see
    *The resources contract* below. **`npm run og`** re-renders the article
    Open Graph cards with Playwright and commits the PNGs; run it after adding
@@ -62,6 +68,37 @@ them without reading the studio's code.
 8. **Secrets stay server-side.** `STUDIO_PROVISION_SECRET` lives in this
    site's server env and is used only from webhook/function code — never in
    browser-delivered JavaScript, page source, or client-side config.
+
+## The help contract — one URL per guide, all of it derived (#136, #166)
+
+`/help/` is not written here. The corpus is the **studio's** `docs/help/`, served
+at `studio.prospektor.ai/api/help`, and this repo only ever renders it — which is
+what makes the two halves of the contract worth stating.
+
+- **Nothing about the help section is hand-listed.** `src/_data/help.js` fetches
+  the corpus at build time, `src/help-guide.njk` paginates over it to write one
+  page per guide at `/help/<slug>/`, `src/help.njk` is the hub over them, and
+  `src/sitemap.njk` derives its `/help/` entries from the same array. A guide the
+  studio adds gets a page, a card, three inbound links and a sitemap entry with
+  nobody editing this repo; a guide it retires loses all four the same way.
+- **A studio outage must never break a website deploy.** `src/_data/help.js` has
+  no code path that throws: live endpoint → committed snapshot → empty corpus,
+  every fallback logged loudly. An empty corpus ships the hub runtime-only and
+  writes **no** guide pages, which is correct — a sitemap must not ask for URLs
+  the build did not write.
+- **#76's property survived the split, and that is the interesting part.** A help
+  change is live for a reader the moment the *studio* deploys, with no website
+  publish in between. Two mechanisms keep it: the hub renders a guide the build
+  never saw *inline* and links it by anchor (`data-pages` on `#helpGuides` is the
+  build's list of slugs that do have a page), and each guide page reconciles its
+  own markdown against the live corpus by hash. Both are driven in `test/drive.js`
+  §7c and neither may be dropped without putting #76 back on the table.
+- **A guide's text must live on exactly one URL.** Leaving the stacked copy on
+  the hub as well would recreate the duplication #166 removed, silently and
+  without failing anything else. `test/help.test.js` asserts it directly.
+- **Nothing in the checks counts guides.** Writing a twelfth guide, or a short
+  one, must never turn the suite red — the #131 lesson, the same way the
+  learnings ledger keeps it.
 
 ## The resources contract — one article per useful learning
 

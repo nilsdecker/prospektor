@@ -1,0 +1,131 @@
+---
+layout: base.njk
+pagination:
+  data: help.guides
+  size: 1
+  alias: guide
+permalink: "/help/{{ guide.slug }}/"
+eleventyExcludeFromCollections: true
+eleventyComputed:
+  title: "{{ guide.title }}"
+  description: "{{ guide.description }}"
+---
+{#
+  One help guide, on its own URL (#166).
+
+  ── why this page exists ──
+  #136 put all eleven guides into the served HTML, which fixed the real bug: a
+  crawler used to be handed the word "Loading…". But it put them on ONE URL, and
+  a URL is the unit Google ranks. "Sharing a pitch" and "Workspace settings,
+  members, billing" answer different questions and were competing as a single
+  24,000-pixel page, which meant neither could be the result for either question.
+
+  ── the objection on the board row, and the answer ──
+  The row asked to wait for #137's Search Console data. That evidence cannot
+  exist while the guides share a URL — Search Console reports per URL, so it
+  can no more attribute an impression to a guide than the page can rank for one.
+  And these pages are DERIVED from the corpus, so there is no per-guide judgment
+  left for data to inform: the studio's docs decide what exists here.
+
+  ── the cost the row named, removed rather than accepted ──
+  The row's other objection was #76: a guide the studio adds shows on /help/
+  immediately today, and would have no page until the next website build. Two
+  things answer that. The hub still renders an unknown guide inline at runtime
+  (see `data-pages` in help.njk), so it is readable the moment the studio
+  deploys — it just has no URL of its own until the next build. And this page
+  carries help-guide.js, which re-renders THIS guide from the live corpus when
+  the studio's copy has moved on, so an EDITED guide is never stale either.
+#}
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "TechArticle",
+  "headline": {{ guide.title | dump | safe }},
+  "description": {{ guide.description | dump | safe }},
+  "author": { "@id": "{{ site.url }}/#organization" },
+  "publisher": { "@id": "{{ site.url }}/#organization" },
+  "mainEntityOfPage": { "@type": "WebPage", "@id": "{{ site.url }}{{ page.url }}" },
+  "isPartOf": { "@type": "WebPage", "@id": "{{ site.url }}/help/" },
+  "isAccessibleForFree": true,
+  "articleSection": {{ guide.topic | dump | safe }},
+  "inLanguage": "en"
+}
+</script>
+
+{#- The trail a search result shows instead of the bare URL, and the second
+    thing that tells Google /help/ is a section rather than eleven loose pages
+    — the first being that every guide links to three siblings (#137's ring). -#}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    { "@type": "ListItem", "position": 1, "name": "{{ site.name }}", "item": "{{ site.url }}/" },
+    { "@type": "ListItem", "position": 2, "name": "Help", "item": "{{ site.url }}/help/" },
+    { "@type": "ListItem", "position": 3, "name": {{ guide.title | dump | safe }} }
+  ]
+}
+</script>
+
+<header class="help-guide-hero">
+  <div class="help-guide-hero-inner">
+    <a class="res-back" href="/help/">
+      <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M9.5 3.5L5 8l4.5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      All guides
+    </a>
+    <span class="tag">{{ guide.emoji }} {{ guide.topic }}</span>
+    {#- No dek here. The card's dek is the guide's own opening sentence cut to
+        116 characters, so printing it above the guide restates the first
+        paragraph a reader is about to read, ellipsis and all. It earns its
+        place on a card, where it is choosing between eleven guides, and on
+        the <meta name="description">, where it is the search snippet. -#}
+    <h1 class="help-guide-h1">{{ guide.title }}</h1>
+  </div>
+</header>
+
+{#- `data-guide-hash` is this ONE guide's fingerprint, not the corpus's: the
+    hub compares whole corpora because it lists all of them, but a guide page
+    only cares whether its own markdown moved. Same "no double render" rule as
+    #136 — if the live text hashes the same, nothing is touched. -#}
+<section class="help-guides help-guides-single">
+  <article class="help-guide" id="guide-{{ guide.slug }}"
+           data-slug="{{ guide.slug }}"
+           data-guide-hash="{{ guide.hash }}"
+           data-guide-source="{{ help.source }}">
+    {{ guide.body | safe }}
+  </article>
+</section>
+
+{% set others = help.guides | ring(guide.slug, 3) %}
+{% if others.length %}
+<section class="help-more">
+  <div class="help-more-inner">
+    <h2 class="res-more-h">More guides</h2>
+    <ul class="res-more-list">
+      {%- for other in others %}
+      <li>
+        <a href="/help/{{ other.slug }}/">
+          <span class="res-more-title">{{ other.emoji }} {{ other.title }}</span>
+          <span class="res-more-dek">{{ other.dek }}</span>
+        </a>
+      </li>
+      {%- endfor %}
+    </ul>
+    <p class="help-dim help-more-all"><a href="/help/">Search every guide →</a></p>
+  </div>
+</section>
+{% endif %}
+
+<section class="help-support">
+  <div class="help-support-inner">
+    <span class="tag">still stuck</span>
+    <h2>Ask a person.</h2>
+    <p>The <strong>Support</strong> pill inside the studio answers in seconds and already knows which workspace you are in. If you would rather write, we read every mail.</p>
+    <a class="btn-cta" href="mailto:{{ site.email }}">{{ site.email }}</a>
+    <p class="help-support-alt"><a href="https://studio.prospektor.ai" target="_blank" rel="noopener">Open the studio ↗</a></p>
+  </div>
+</section>
+
+<script src="/assets/js/help-render.js"></script>
+<script src="/assets/js/help-guide.js"></script>

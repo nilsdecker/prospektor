@@ -19,7 +19,19 @@
    3. Search is per-term (see help-render.js). The bug this replaces matched
       the whole query as one substring, so "how can I create a new workspace"
       — a question the corpus has answered since #83 — returned nothing while
-      "client workspace" found the section. */
+      "client workspace" found the section.
+
+   4. Since #166 the guides live at /help/<slug>/, one URL each, and this page
+      is the hub over them: cards, search and the FAQ. So every link this file
+      hands out — a card, a search hit, a snippet, an arriving hash — has to
+      resolve to a PAGE rather than to an anchor on this one.
+
+      Except for a guide the last build never saw. The studio can add a guide
+      at any moment and #76's property is that it shows here immediately; that
+      one has no page yet, so it is rendered inline into #helpGuides and linked
+      by anchor, exactly as everything was before #166. `data-pages` on that
+      element is the build's list of slugs that do have a page, and it is the
+      whole of how the two cases are told apart. */
 (function () {
   'use strict';
 
@@ -34,6 +46,33 @@
 
   var articles = [];
   var embeddedHash = $guides.getAttribute('data-corpus-hash') || '';
+
+  /* The slugs this build gave a page. Empty is a real and correct state: a
+     build that could reach neither the studio nor the snapshot prerenders
+     nothing, so nothing has a page and everything renders inline here — which
+     is the pre-#136 runtime-only page, and still the right answer. */
+  var pages = {};
+  ($guides.getAttribute('data-pages') || '').split(/\s+/).forEach(function (slug) {
+    if (slug) pages[slug] = true;
+  });
+
+  function hasPage(slug) { return !!pages[slug]; }
+
+  /* Where a guide is read. `anchor` is a heading id (slug--heading) or empty.
+     A guide with a page is a real URL and a normal navigation; one without is
+     an anchor into #helpGuides on this page. */
+  function hrefFor(slug, anchor) {
+    if (hasPage(slug)) {
+      return '/help/' + encodeURIComponent(slug) + '/' + (anchor ? '#' + encodeURIComponent(anchor) : '');
+    }
+    return '#' + (anchor || ('guide-' + slug));
+  }
+
+  /* The guides that must be rendered into this page: the ones with no URL of
+     their own. Normally none. */
+  function inlineArticles() {
+    return articles.filter(function (a) { return !hasPage(a.slug); });
+  }
 
   /* ── the model ──
      Built from the markdown the build embedded, so it is byte-identical to
@@ -58,7 +97,7 @@
 
   function cardHtml(a) {
     return '<li class="card">' +
-      '<a href="#guide-' + a.slug + '">' +
+      '<a href="' + H.esc(hrefFor(a.slug, '')) + '">' +
       '<span class="card-emoji" aria-hidden="true">' + H.esc(a.emoji) + '</span>' +
       '<span class="card-topic">' + H.esc(a.topic) + '</span>' +
       '<h2 class="card-title">' + H.esc(a.title) + '</h2>' +
@@ -77,7 +116,10 @@
 
   function paint() {
     if ($hub) $hub.innerHTML = '<ul class="card-grid">' + articles.map(cardHtml).join('') + '</ul>';
-    $guides.innerHTML = articles.map(guideHtml).join('');
+    // Only the guides with no page of their own. A guide that HAS a page must
+    // not also be rendered here: two URLs carrying the same text is the exact
+    // duplication #166 exists to remove, and it would be re-created at runtime.
+    $guides.innerHTML = inlineArticles().map(guideHtml).join('');
   }
 
   /* ── search ── */
@@ -90,6 +132,14 @@
     $results.hidden = !on;
     if ($hub) $hub.hidden = on;
     $guides.hidden = on;
+  }
+
+  /* A search hit's link. The title goes to the guide; a snippet goes to the
+     heading it was found under, which since #166 may be an anchor on another
+     page. Both are ordinary links when they leave this page — the click
+     handler below only intercepts the ones that stay. */
+  function hitHref(article, anchor) {
+    return H.esc(hrefFor(article.slug, anchor && anchor !== article.slug ? anchor : ''));
   }
 
   function search(query) {
@@ -108,12 +158,12 @@
       }
       $results.innerHTML = head + hits.map(function (h) {
         return '<div class="help-hit">' +
-          '<a class="help-hit-title" href="#guide-' + h.article.slug + '">' +
+          '<a class="help-hit-title" href="' + hitHref(h.article, '') + '">' +
             '<span class="help-hit-emoji" aria-hidden="true">' + H.esc(h.article.emoji) + '</span>' +
             H.esc(h.article.title) +
           '</a>' +
           h.snippets.map(function (m) {
-            return '<a class="help-hit-snippet" href="#' + (m.anchor || ('guide-' + h.article.slug)) + '">' +
+            return '<a class="help-hit-snippet" href="' + hitHref(h.article, m.anchor) + '">' +
               (m.heading ? '<span class="help-hit-heading">' + H.esc(m.heading) + '</span>' : '') +
               '<span>' + snippetHtml(m.snippet) + '</span></a>';
           }).join('') +
@@ -128,7 +178,12 @@
   function onResultClick(e) {
     var link = e.target.closest ? e.target.closest('.help-hit-title, .help-hit-snippet') : null;
     if (!link) return;
-    var id = decodeURIComponent((link.getAttribute('href') || '').replace(/^#/, ''));
+    var href = link.getAttribute('href') || '';
+    // Since #166 most hits are links to /help/<slug>/. Those are navigations,
+    // not scrolls — leave the browser alone. Only a hit into a guide rendered
+    // on THIS page needs the results panel swapped away before the jump.
+    if (href.charAt(0) !== '#') return;
+    var id = decodeURIComponent(href.replace(/^#/, ''));
     if (!id) return;
     e.preventDefault();
     if ($search) $search.value = '';
@@ -145,19 +200,38 @@
     setTimeout(function () { target.classList.remove('help-flash'); }, 1600);
   }
 
-  /* /help/#sharing was the old shape — one guide per hash, no card hub. The
-     ids are #guide-sharing now, and heading anchors (slug--heading) are
-     unchanged, so only the bare-slug form needs forwarding. */
+  /* Three generations of link now arrive at this page, and all of them must
+     land somewhere real:
+
+       /help/#sharing              the pre-#145 shape, one guide per hash
+       /help/#guide-sharing        the #145/#136 hub shape
+       /help/#sharing--revoking    a heading inside a guide, either era
+
+     Since #166 the guide is at /help/sharing/, so the first two are a
+     redirect and the third is a redirect that keeps its heading. `replace`
+     rather than `assign`: the anchor URL should not sit in the reader's back
+     button between them and the page they were on.
+
+     A guide with no page of its own still resolves by scrolling, exactly as
+     before — which is also what happens on a build that prerendered nothing. */
   function migrateHash() {
     var hash = decodeURIComponent(location.hash.replace(/^#/, ''));
-    if (!hash || hash.indexOf('--') > -1 || hash.indexOf('guide-') === 0) return;
-    for (var k = 0; k < articles.length; k++) {
-      if (articles[k].slug === hash) {
-        history.replaceState(null, '', '#guide-' + hash);
-        jumpTo('guide-' + hash);
-        return;
-      }
-    }
+    if (!hash) return;
+
+    var slug = hash.indexOf('guide-') === 0 ? hash.slice(6)
+      : hash.indexOf('--') > -1 ? hash.slice(0, hash.indexOf('--'))
+      : hash;
+    var anchor = hash.indexOf('--') > -1 ? hash : '';
+
+    var known = false;
+    for (var k = 0; k < articles.length; k++) if (articles[k].slug === slug) known = true;
+    if (!known) return;
+
+    if (hasPage(slug)) { location.replace(hrefFor(slug, anchor)); return; }
+
+    var target = anchor || ('guide-' + slug);
+    if (hash !== target) history.replaceState(null, '', '#' + target);
+    jumpTo(target);
   }
 
   /* ── the reconcile ──

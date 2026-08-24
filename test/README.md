@@ -4,8 +4,8 @@ Three commands, in the order a thread uses them.
 
 | Command | What it asks | Needs |
 |---|---|---|
-| `npm test` | Do the functions behave, and does the site build what it claims? 137 tests over the guards, the fail-open policy, the webhook, `/resources/` (including the learnings ledger) and `/help/`. | Nothing — no network, no keys (`HELP_CORPUS_OFFLINE=1` is set for you, so the help corpus comes from the committed snapshot) |
-| `npm run drive` | Does the built site wire up in a real browser? 208 checks over the pay form, the ownership block, the website ask and both fallbacks, the help hub and its search, the /resources topic filter, and what a crawler is served — with the functions and the studio mocked. | Chromium (`CHROME_PATH` to override) |
+| `npm test` | Do the functions behave, and does the site build what it claims? 148 tests over the guards, the fail-open policy, the webhook, `/resources/` (including the learnings ledger) and `/help/` (the hub, and the per-guide pages #166 split it into). | Nothing — no network, no keys (`HELP_CORPUS_OFFLINE=1` is set for you, so the help corpus comes from the committed snapshot) |
+| `npm run drive` | Does the built site wire up in a real browser? 255 checks over the pay form, the ownership block, the website ask and both fallbacks, the help hub and its search, a guide on its own URL and the anchors that forward to it, the /resources topic filter, and what a crawler is served — with the functions and the studio mocked. | Chromium (`CHROME_PATH` to override) |
 | `npm run audit` | Is **production** still what the board says it is? Every claim on this lane's board rows, fetched from the live site — the count grows with the board, so it is deliberately not promised here (#135's lesson about the runbook's fixed URL count). Read-only — it runs a real scan and reads pages, and never posts anything that charges. | Chromium, network (`AUDIT_SITE` to point elsewhere) |
 
 ## What the function tests are actually protecting

@@ -113,14 +113,25 @@ module.exports = async function () {
     }
   }
 
+  // `text` is carried through so the per-guide pages (#166) can stamp the hash
+  // of the one guide they show, and so a longer meta description can be cut
+  // from the same markdown the card's dek comes from.
+  const byName = new Map(files.map(f => [f.name, f.text]));
   const guides = H.buildIndex(files).map(g => ({
     slug: g.slug,
     name: g.name,
     title: g.title,
     dek: g.dek,
+    // The card's dek is cut to 116 characters and the search snippet under it
+    // is what sells the click; a meta description gets the ~155 Google renders.
+    description: H.dekFor(byName.get(g.name) || '', 155),
     emoji: g.emoji,
     topic: g.topic,
     html: g.html,
+    // The same HTML without the guide's own title, for /help/<slug>/ where the
+    // title is the page's <h1> rather than the first thing in the body.
+    body: H.bodyOf(g.html),
+    hash: H.corpusHash([{ name: g.name, text: byName.get(g.name) || '' }]),
   }));
 
   // The same bytes the browser will hash the live corpus against. `<` is
@@ -133,5 +144,10 @@ module.exports = async function () {
     console.log(`  [help] ${files.length} guides prerendered from the ${source} corpus (${corpus.hash})${note ? ' — ' + note : ''}`);
   }
 
-  return { source, hash: corpus.hash, guides, corpusJson, count: files.length };
+  // The slugs that got their own page in THIS build. The hub stamps it so the
+  // browser can tell a guide with a URL from one the studio has added since —
+  // see the `data-pages` reasoning in src/help.njk.
+  const slugs = guides.map(g => g.slug);
+
+  return { source, hash: corpus.hash, guides, slugs, corpusJson, count: files.length };
 };

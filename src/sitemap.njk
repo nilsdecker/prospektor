@@ -23,6 +23,16 @@ pages:
   real guide text and is the site's deepest long-tail content. The line #135
   left room for is the one above.
 
+  **#166 split that text across eleven URLs**, one per guide, and they are
+  listed below. Nothing was added to the site — the same corpus is being
+  offered in the unit search engines actually rank. /help/ stays in the list
+  because it is still a page worth ranking in its own right: it is the hub, it
+  carries the FAQ block, and it is what somebody typing "prospektor help"
+  wants. The guide list is DERIVED from the corpus, so a guide the studio adds
+  is in the sitemap at the next build with nobody editing this file — and a
+  guide it retires leaves it the same way, which is the half a hand-kept list
+  always gets wrong.
+
   Deliberately out, each for its own reason:
     /checkout/       a form, not an answer to any search. Left crawlable and
                      linked from the homepage CTA, so nothing is lost; if
@@ -51,6 +61,9 @@ pages:
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 {%- for p in pages %}
   <url><loc>{{ site.url }}{{ p }}</loc></url>
+{%- endfor %}
+{%- for g in help.guides %}
+  <url><loc>{{ site.url }}/help/{{ g.slug }}/</loc></url>
 {%- endfor %}
 {%- for a in collections.resources | related('', 99) %}
   <url><loc>{{ site.url }}{{ a.url }}</loc><lastmod>{{ (a.data.updated or a.data.date) | isoDate }}</lastmod></url>

@@ -13,7 +13,13 @@
 //     whole-string match had and the reason it was worth keeping;
 //   - that the served HTML actually contains the guides (#136). The page used
 //     to be 6,265 bytes whose entire body copy was the nav, the H1, one
-//     sentence and the word "Loading…";
+//     sentence and the word "Loading…". Since #166 that is asserted of the
+//     help SECTION rather than of one file: the guides moved to /help/<slug>/,
+//     one URL each, because a URL is the unit Google ranks and eleven guides
+//     on one page competed as a single result. What #136 bought — every guide
+//     crawlable, no "Loading…" — is unchanged, so it is checked where it now
+//     lives, and the property that would silently undo it (a guide's text on
+//     two URLs at once) is checked too;
 //   - and the rule that a studio outage must never break a website deploy.
 //     Three of these tests build the site with the endpoint dead or lying and
 //     assert the build still succeeds — a build that fails because an
@@ -110,12 +116,18 @@ describe('every anchor search hands out is a real id on the page', () => {
   });
 
   test('and the anchors survive into the built page', () => {
+    // Since #166 a guide's anchors are on the guide's OWN page. A search hit
+    // that reads `/help/sharing/#sharing--revoking` is only an answer if that
+    // id is really on that page; a wrong anchor is not an error anywhere,
+    // the browser just does nothing.
     const out = tmp();
     build(out, { HELP_CORPUS_OFFLINE: '1' });
-    const html = fs.readFileSync(path.join(out, 'help', 'index.html'), 'utf8');
     for (const article of INDEX) {
+      const page = path.join(out, 'help', article.slug, 'index.html');
+      assert.ok(fs.existsSync(page), `${article.slug} has no page of its own`);
+      const html = fs.readFileSync(page, 'utf8');
       for (const h of article.plainHeadings) {
-        assert.ok(html.includes(`id="${h.id}"`), `#${h.id} is not in the served HTML`);
+        assert.ok(html.includes(`id="${h.id}"`), `#${h.id} is not in the served HTML of /help/${article.slug}/`);
       }
     }
   });
@@ -163,6 +175,34 @@ describe('per-term scoring', () => {
   });
 });
 
+describe("bodyOf — the guide's title, said once (#166)", () => {
+  test('the leading title heading is dropped and nothing else is', () => {
+    const g = H.buildIndex([{ name: '04-sharing.md',
+      text: '# Sharing a pitch\n\nA share link travels by email.\n\n## Revoking a link\n\nRevoke it.\n' }])[0];
+    assert.match(g.html, /^<h2 id="sharing--sharing-a-pitch">/);
+    const body = H.bodyOf(g.html);
+    assert.equal(/Sharing a pitch/.test(body), false, 'the title survived into the body');
+    assert.match(body, /id="sharing--revoking-a-link"/, 'a real section heading was dropped');
+    assert.match(body, /A share link travels by email/);
+  });
+
+  test('every anchor the search hands out survives it', () => {
+    // The one thing that would make this dangerous: dropping a heading that
+    // something links to. Only level-2-and-deeper headings are ever linked,
+    // and the dropped one is the h1-turned-h2 — this asserts that, over the
+    // real corpus rather than over the reasoning.
+    for (const a of INDEX) {
+      const body = H.bodyOf(a.html);
+      for (const h of a.plainHeadings)
+        assert.ok(body.includes(`id="${h.id}"`), `${a.name}: bodyOf dropped #${h.id}`);
+    }
+  });
+
+  test('a guide with no leading heading is left alone', () => {
+    assert.equal(H.bodyOf('<p>Just prose.</p>'), '<p>Just prose.</p>');
+  });
+});
+
 describe('the corpus hash — the "no double render" check', () => {
   test('the same corpus hashes the same, a changed one does not', () => {
     assert.equal(H.corpusHash(CORPUS.files), H.corpusHash(CORPUS.files.slice()));
@@ -177,54 +217,146 @@ describe('the corpus hash — the "no double render" check', () => {
   });
 });
 
-describe('the prerendered page (#136)', () => {
-  let html, out;
+describe('the prerendered help section (#136, split by #166)', () => {
+  let out, hub, guidePages;
   before(() => {
     out = tmp();
     build(out, { HELP_CORPUS_OFFLINE: '1' });
-    html = fs.readFileSync(path.join(out, 'help', 'index.html'), 'utf8');
+    hub = fs.readFileSync(path.join(out, 'help', 'index.html'), 'utf8');
+    guidePages = new Map(INDEX.map(a => {
+      const file = path.join(out, 'help', a.slug, 'index.html');
+      return [a.slug, fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : null];
+    }));
   });
 
-  test('the served HTML carries every guide, not the word Loading', () => {
-    assert.equal(/Loading…/.test(html), false, '/help/ is still shipping a Loading… shell');
-    for (const f of CORPUS.files) {
-      const slug = H.slugOf(f.name);
-      assert.match(html, new RegExp(`id="guide-${slug}"`), `${slug} was not prerendered`);
+  const bodyText = html => html
+    .replace(/<script[\s\S]*?<\/script>/g, ' ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ').trim();
+
+  test('every guide has its own URL', () => {
+    for (const a of INDEX)
+      assert.ok(guidePages.get(a.slug), `/help/${a.slug}/ was not built`);
+  });
+
+  test('and its text is really on it, not the word Loading', () => {
+    for (const a of INDEX) {
+      const html = guidePages.get(a.slug);
+      assert.equal(/Loading…/.test(html), false, `/help/${a.slug}/ is a Loading… shell`);
+      // The guide's first heading below the title, verbatim, in the bytes.
+      const heading = a.plainHeadings[0];
+      if (heading) assert.ok(html.includes(`id="${heading.id}"`),
+        `/help/${a.slug}/ does not carry its own body`);
+      assert.ok(bodyText(html).length > 400, `/help/${a.slug}/ has almost no body copy`);
     }
   });
 
   test('the answer to the screenshot question is in the served bytes', () => {
-    assert.match(html, /New client workspace/);
+    assert.match(guidePages.get('workspace'), /New client workspace/);
   });
 
-  test('there is real body copy, not a shell', () => {
-    const body = html
-      .replace(/<script[\s\S]*?<\/script>/g, ' ')
-      .replace(/<[^>]+>/g, ' ')
-      .replace(/\s+/g, ' ').trim();
-    assert.ok(body.length > 20000, `only ${body.length} characters of body copy`);
+  test('the help section still carries the long-tail content #136 bought', () => {
+    // #136's own assertion was "more than 20,000 characters of body copy on
+    // /help/". #166 moved that copy onto eleven URLs, so the same claim is
+    // made of the section. Deliberately NOT a per-page floor and deliberately
+    // not a count of pages: writing a twelfth guide, or a short one, must
+    // never turn this red (#131).
+    const total = [...guidePages.values()].reduce((n, html) => n + bodyText(html).length, 0);
+    assert.ok(total > 20000, `only ${total} characters of guide copy across the section`);
+  });
+
+  test('and no guide is served on two URLs at once', () => {
+    // The failure mode that would silently undo this row: leave the stacked
+    // copy on the hub as well, and every guide competes with itself. The hub
+    // may name a guide — the cards do — but it must not carry its body.
+    for (const a of INDEX) {
+      assert.equal(hub.includes(`id="guide-${a.slug}"`), false,
+        `the hub still renders ${a.slug}'s body — it is duplicated with /help/${a.slug}/`);
+      for (const h of a.plainHeadings)
+        assert.equal(hub.includes(`id="${h.id}"`), false,
+          `the hub still carries ${a.slug}'s heading "${h.text}"`);
+    }
+  });
+
+  test('the hub is a directory: a card per guide, each linking to its page', () => {
+    assert.equal((hub.match(/class="card"/g) || []).length, CORPUS.files.length);
+    for (const a of INDEX)
+      assert.ok(hub.includes(`href="/help/${a.slug}/"`),
+        `the hub has no link to /help/${a.slug}/`);
+  });
+
+  test('the hub tells the browser which guides got a page', () => {
+    // `data-pages` is the whole of how help.js tells a guide with a URL from
+    // one the studio added since the build. If it is empty or partial, every
+    // link on the hub silently reverts to a same-page anchor.
+    const pages = (hub.match(/data-pages="([^"]*)"/) || [])[1].split(' ').filter(Boolean);
+    assert.deepEqual(pages.sort(), INDEX.map(a => a.slug).sort());
   });
 
   test('the search box the operator asked to keep is still there', () => {
-    assert.match(html, /id="helpSearch"/);
+    assert.match(hub, /id="helpSearch"/);
   });
 
-  test('the hub renders a card per guide', () => {
-    assert.equal((html.match(/class="card"/g) || []).length, CORPUS.files.length);
-  });
-
-  test('the embedded corpus matches the stamped hash', () => {
-    const embedded = JSON.parse(html.match(/id="helpCorpus">([\s\S]*?)<\/script>/)[1]);
-    const stamped = html.match(/data-corpus-hash="([a-f0-9]+)"/)[1];
+  test('and the search index it needs is still embedded, hash and all', () => {
+    const embedded = JSON.parse(hub.match(/id="helpCorpus">([\s\S]*?)<\/script>/)[1]);
+    const stamped = hub.match(/data-corpus-hash="([a-f0-9]+)"/)[1];
     assert.equal(embedded.hash, stamped);
     assert.equal(H.corpusHash(embedded.files), stamped,
       'the browser would re-render on load — that is the double render this stamp exists to prevent');
   });
 
+  test('each guide page stamps its own hash, not the corpus hash', () => {
+    // A guide page only cares whether ITS markdown moved. Stamping the whole
+    // corpus would make every page re-render whenever any guide changed.
+    const corpusHash = H.corpusHash(CORPUS.files);
+    for (const f of CORPUS.files) {
+      const slug = H.slugOf(f.name);
+      const stamped = (guidePages.get(slug).match(/data-guide-hash="([a-f0-9]+)"/) || [])[1];
+      assert.equal(stamped, H.corpusHash([{ name: f.name, text: f.text }]),
+        `/help/${slug}/ stamps the wrong hash`);
+      assert.notEqual(stamped, corpusHash, `/help/${slug}/ stamped the corpus hash`);
+    }
+  });
+
+  test("a guide's title is said once, as the page's h1", () => {
+    for (const a of INDEX) {
+      const html = guidePages.get(a.slug);
+      const h1s = [...html.matchAll(/<h1[^>]*>([\s\S]*?)<\/h1>/g)].map(m => m[1].trim());
+      assert.deepEqual(h1s, [H.esc(a.title)], `/help/${a.slug}/ h1s: ${JSON.stringify(h1s)}`);
+      // render() emits the guide's own `# Title` as an <h2>; bodyOf() takes it
+      // out here, because the <h1> above already says it.
+      assert.equal(new RegExp(`<h2[^>]*>${a.title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}<`).test(html), false,
+        `/help/${a.slug}/ says its title twice`);
+    }
+  });
+
+  test('every guide page is reachable from three others, not one', () => {
+    // #137's finding, applied before it can happen here: five of nine articles
+    // had exactly one inbound link because "related" sorted by date, and the
+    // link graph is how Google reads which pages of a section matter. The ring
+    // makes the count identical for every guide by construction.
+    const inbound = Object.fromEntries(INDEX.map(a => [a.slug, 0]));
+    for (const a of INDEX) {
+      const links = new Set([...guidePages.get(a.slug).matchAll(/href="\/help\/([^"\/#?]+)\/"/g)].map(m => m[1]));
+      for (const to of links) if (to !== a.slug && to in inbound) inbound[to]++;
+    }
+    const counts = [...new Set(Object.values(inbound))];
+    assert.equal(counts.length, 1, `guides do not share one inbound count: ${JSON.stringify(inbound)}`);
+    assert.ok(counts[0] >= 3, `each guide has only ${counts[0]} inbound guide links`);
+  });
+
+  test('the sitemap asks for every guide, derived rather than listed', () => {
+    const sm = fs.readFileSync(path.join(out, 'sitemap.xml'), 'utf8');
+    for (const a of INDEX)
+      assert.ok(sm.includes(`<loc>https://prospektor.ai/help/${a.slug}/</loc>`),
+        `/help/${a.slug}/ is not in the sitemap`);
+    assert.ok(sm.includes('<loc>https://prospektor.ai/help/</loc>'), 'the hub left the sitemap');
+  });
+
   test('the FAQ block is valid FAQPage structured data', () => {
     // Found by type, not by position: since #137 every page also carries a
     // sitewide Organization/WebSite graph, and it is emitted first.
-    const ld = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)]
+    const ld = [...hub.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)]
       .map(m => JSON.parse(m[1])).find(v => v['@type'] === 'FAQPage');
     assert.ok(ld, 'no FAQPage block on /help/');
     assert.ok(ld.mainEntity.length >= 4);
@@ -233,12 +365,12 @@ describe('the prerendered page (#136)', () => {
       assert.ok(q.name && q.acceptedAnswer.text);
       // The visible <dt> and the structured data come from one frontmatter
       // list; if that ever forks, this catches it.
-      assert.ok(html.includes(q.name), `${q.name} is in the JSON-LD but not on the page`);
+      assert.ok(hub.includes(q.name), `${q.name} is in the JSON-LD but not on the page`);
     }
   });
 
-  test('a single h1, with ten guides stacked under it', () => {
-    assert.equal((html.match(/<h1/g) || []).length, 1);
+  test('a single h1 on the hub, over a grid of cards', () => {
+    assert.equal((hub.match(/<h1/g) || []).length, 1);
   });
 });
 
@@ -246,8 +378,8 @@ describe('a studio outage must never break the build', () => {
   test('endpoint unreachable: the build succeeds from the snapshot', () => {
     const out = tmp();
     build(out, { HELP_CORPUS_OFFLINE: '', HELP_API: 'http://127.0.0.1:9/api/help', HELP_CORPUS_TIMEOUT_MS: '2000' });
-    const html = fs.readFileSync(path.join(out, 'help', 'index.html'), 'utf8');
-    assert.match(html, /id="guide-workspace"/);
+    assert.match(fs.readFileSync(path.join(out, 'help', 'workspace', 'index.html'), 'utf8'),
+      /New client workspace/);
   });
 
   test('endpoint lying: an app shell with a 200 on it is not a corpus', async () => {
@@ -261,8 +393,8 @@ describe('a studio outage must never break the build', () => {
     try {
       const out = tmp();
       build(out, { HELP_CORPUS_OFFLINE: '', HELP_API: `http://127.0.0.1:${server.address().port}/api/help` });
-      const html = fs.readFileSync(path.join(out, 'help', 'index.html'), 'utf8');
-      assert.match(html, /id="guide-workspace"/, 'the build did not fall back to the snapshot');
+      assert.match(fs.readFileSync(path.join(out, 'help', 'workspace', 'index.html'), 'utf8'),
+        /New client workspace/, 'the build did not fall back to the snapshot');
     } finally {
       server.close();
     }
@@ -277,9 +409,10 @@ describe('a studio outage must never break the build', () => {
     try {
       const out = tmp();
       build(out, { HELP_CORPUS_OFFLINE: '', HELP_API: `http://127.0.0.1:${server.address().port}/api/help` });
-      const html = fs.readFileSync(path.join(out, 'help', 'index.html'), 'utf8');
-      assert.match(html, /id="guide-workspace"/);
-      assert.equal(/id="guide-x"/.test(html), false, 'an empty guide was accepted');
+      assert.ok(fs.existsSync(path.join(out, 'help', 'workspace', 'index.html')),
+        'the build did not fall back to the snapshot');
+      assert.equal(fs.existsSync(path.join(out, 'help', 'x', 'index.html')), false,
+        'an empty guide was accepted and given a URL');
     } finally {
       server.close();
     }
@@ -294,9 +427,18 @@ describe('a studio outage must never break the build', () => {
       build(out, { HELP_CORPUS_OFFLINE: '', HELP_API: 'http://127.0.0.1:9/api/help', HELP_CORPUS_TIMEOUT_MS: '2000' });
       const html = fs.readFileSync(path.join(out, 'help', 'index.html'), 'utf8');
       // Nothing prerendered — but the build succeeded and the page is the
-      // pre-#136 runtime-only page rather than a failed deploy.
+      // pre-#136 runtime-only page rather than a failed deploy. Since #166
+      // that also means no guide has a URL, so `data-pages` is empty and
+      // help.js renders every guide inline on the hub, exactly as it did
+      // before this row existed. That is the correct degradation, not a bug.
       assert.match(html, /id="helpSearch"/);
       assert.match(html, /helpGuides/);
+      assert.match(html, /data-pages=""/);
+      assert.deepEqual(fs.readdirSync(path.join(out, 'help')), ['index.html'],
+        'guide pages were built from a corpus the build never had');
+      const sm = fs.readFileSync(path.join(out, 'sitemap.xml'), 'utf8');
+      assert.equal(/help\/[a-z-]+\//.test(sm), false,
+        'the sitemap asks for guide URLs the build did not write');
     } finally {
       fs.writeFileSync(snapshot, kept);
     }

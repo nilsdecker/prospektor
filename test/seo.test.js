@@ -200,6 +200,23 @@ describe('SEO — the #137 findings, pinned', () => {
     }
   });
 
+  test('every help guide carries TechArticle and BreadcrumbList', () => {
+    // #166 gave each guide its own URL. A guide page three levels of meaning
+    // deep with no machine-readable path back up is the same defect #137 found
+    // on the articles, so it is closed here at the same time rather than
+    // waiting to be measured again.
+    const guides = pages().filter(p => /^\/help\/.+\//.test(p.url));
+    assert.ok(guides.length >= 4, 'expected the help guides to be built');
+    for (const p of guides) {
+      const types = p.jsonld.flatMap(b => {
+        const v = JSON.parse(b);
+        return (v['@graph'] || [v]).map(n => n['@type']);
+      });
+      assert.ok(types.includes('TechArticle'), `${p.url}: no TechArticle`);
+      assert.ok(types.includes('BreadcrumbList'), `${p.url}: no BreadcrumbList`);
+    }
+  });
+
   test('canonical, lang and viewport are on every page', () => {
     for (const p of pages()) {
       const canonical = (p.html.match(/<link[^>]+rel="canonical"[^>]+href="([^"]*)"/i) || [])[1];

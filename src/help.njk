@@ -9,11 +9,11 @@ faqs:
     a: No. Prospektor Studio runs in the browser at studio.prospektor.ai. There is nothing to download and no extension to add.
   - q: Can I run Prospektor for my clients?
     a: Yes. An agency-flagged workspace gets New client workspace in the workspace switcher, for the agency's owner or admins — name the client and a researched workspace exists before the next screen. A portfolio upload creates a whole roster at once. Each client workspace is billed as its own workspace.
-    link: /help/#guide-workspace
+    link: /help/workspace/
     linkLabel: Read the workspace guide
   - q: Who at my company can sign in?
     a: If you bought with a company address, the access list carries your whole domain as well as your own address, so everyone at that company can sign in — including addresses that do not exist yet. An owner can keep that or narrow it to named addresses.
-    link: /help/#guide-workspace
+    link: /help/workspace/
     linkLabel: Members and access
   - q: What happens if I stop paying?
     a: The workspace pauses rather than disappears. The lock screen's resubscribe button reopens the same studio with everything kept. Deleting a workspace is a separate, deliberate act in the danger zone, only an owner may do it, and it cannot be undone.
@@ -27,7 +27,7 @@ faqs:
   <div class="help-hero-inner">
     <span class="tag">help</span>
     <h1 class="help-h1">How can we help?</h1>
-    <p class="help-lede">Guides and step-by-step answers for Prospektor Studio. This page reads the same documentation the product itself runs on, so it always describes the version that is live.</p>
+    <p class="help-lede">Guides and step-by-step answers for Prospektor Studio — each on its own page, all searchable from here. They read the same documentation the product itself runs on, so they always describe the version that is live.</p>
     <div class="help-search">
       <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.6"/><path d="M11 11l3.2 3.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
       <input id="helpSearch" type="search" placeholder="Search the guides — try &ldquo;how do I create a new workspace&rdquo;" autocomplete="off" aria-label="Search the help guides">
@@ -39,17 +39,20 @@ faqs:
     the guides below are both hidden, and this is the only panel on screen. -#}
 <section id="helpResults" class="help-results" aria-live="polite" hidden></section>
 
-{#- ── the hub: a card per guide ──
+{#- ── the hub: a card per guide, each linking to its own page ──
     Cards are built at build time from the corpus (#136) and rebuilt by help.js
     only if the live corpus has actually moved since — see the hash on
     #helpGuides. The grid is the one #144 shipped for /resources/; the CSS is
-    shared rather than copied. -#}
+    shared rather than copied.
+
+    Since #166 a card is a link to /help/<slug>/ rather than an anchor into a
+    stack of eleven guides on this page. -#}
 <section id="helpHub" class="help-hub">
   {%- if help.guides.length %}
   <ul class="card-grid">
     {%- for g in help.guides %}
     <li class="card">
-      <a href="#guide-{{ g.slug }}">
+      <a href="/help/{{ g.slug }}/">
         <span class="card-emoji" aria-hidden="true">{{ g.emoji }}</span>
         <span class="card-topic">{{ g.topic }}</span>
         <h2 class="card-title">{{ g.title }}</h2>
@@ -66,20 +69,29 @@ faqs:
   {%- endif %}
 </section>
 
-{#- ── the guides themselves ──
-    Every guide, in the served HTML. This is #136: before this, a crawler was
-    handed the word "Loading…" and ten guides of long-tail content were
-    invisible. `data-corpus-hash` is what stops the browser re-rendering all of
-    this a second time for nothing. -#}
-<section id="helpGuides" class="help-guides" data-corpus-hash="{{ help.hash }}" data-corpus-source="{{ help.source }}">
-  {%- for g in help.guides %}
-  <article class="help-guide" id="guide-{{ g.slug }}" data-slug="{{ g.slug }}">
-    <span class="help-guide-topic">{{ g.emoji }} {{ g.topic }}</span>
-    {{ g.html | safe }}
-    <a class="help-guide-top" href="#helpHub">↑ All guides</a>
-  </article>
-  {%- endfor %}
-</section>
+{#- ── guides with no page of their own ──
+    Normally empty, and that is the point.
+
+    #136 put every guide's text in this element, because a crawler was handed
+    the word "Loading…" and ten guides of long-tail content were invisible.
+    #166 moved that text to /help/<slug>/, where a guide can rank for the
+    question it answers instead of eleven guides competing as one URL. So the
+    crawlable copy did not go away — it moved, and the sitemap follows it.
+
+    What is left here is the case #166 had to answer rather than accept: the
+    studio can add a guide at any moment, and #76's property is that it shows
+    on this site the moment the studio deploys, with no website build in
+    between. A guide the last build never saw has no page, so help.js renders
+    it INLINE here and points its card at the anchor. It reads immediately; it
+    gets its own URL at the next build.
+
+    `data-pages` is how the browser tells the two apart: the slugs that got a
+    page in this build. `data-corpus-hash` is #136's no-double-render stamp,
+    unchanged. -#}
+<section id="helpGuides" class="help-guides"
+         data-corpus-hash="{{ help.hash }}"
+         data-corpus-source="{{ help.source }}"
+         data-pages="{{ help.slugs | join(' ') }}"></section>
 
 <section class="help-faq">
   <div class="help-faq-inner">

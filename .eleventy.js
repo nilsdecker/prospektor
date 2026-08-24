@@ -77,6 +77,28 @@ module.exports = function(eleventyConfig) {
     return title;
   });
 
+  // ── /help/<slug>/ (#166) ──────────────────────────────────────────────
+  // The same ring as `related` above, over the help corpus rather than over an
+  // Eleventy collection: the guides are plain objects from src/_data/help.js,
+  // they have no dates to sort by, and their order is the corpus's own (the
+  // `01-`/`08-` prefixes the studio numbers its docs with), which is already
+  // the reading order.
+  //
+  // A ring rather than "the first three" for exactly #137's reason: any
+  // fixed-list pick leaves the guides at the end of the corpus reachable from
+  // the hub and nowhere else, and inbound internal links are how Google reads
+  // which pages of a section matter. Following-n-wrapping gives every guide
+  // exactly n, by construction — a twelfth guide changes nobody else's count.
+  eleventyConfig.addFilter("ring", (guides, slug, n) => {
+    const all = guides || [];
+    const i = all.findIndex(g => g.slug === slug);
+    if (i < 0) return all.slice(0, n || 3);
+    const take = Math.min(n || 3, all.length - 1);
+    const picked = [];
+    for (let k = 1; k <= take; k++) picked.push(all[(i + k) % all.length]);
+    return picked;
+  });
+
   // The topics present in a collection, with counts, alphabetical. Drives the
   // hub's filter row, so the row is derived from the articles rather than being
   // a hand-kept list that goes stale the first time somebody adds a topic.

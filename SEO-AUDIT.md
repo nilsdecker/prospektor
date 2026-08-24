@@ -270,10 +270,21 @@ traffic arrives, not urgent while traffic is what it is.
 
 ### R3 · `/help/`'s two scripts still block, on the heaviest page on the site · **#170 · S**
 
-`/help/` is **127 KB** of HTML (31 KB compressed) — the whole help corpus,
+`/help/` was **127 KB** of HTML (31 KB compressed) — the whole help corpus,
 prerendered by #136, which is correct and is why it can rank. Its two scripts
 were left un-deferred by F6 because #136 stamps a corpus hash to prevent a
 double render and that guarantee was not re-verified here.
+
+**Re-measured after #166 (24 Aug), because this row's numbers moved and a stale
+figure would send #170 at the wrong thing.** The rendered guides left the hub
+for their own URLs, so `/help/` is **85 KB** of HTML — but only **28 KB
+compressed**, barely under the 31 KB above, because what dominates it now is the
+embedded corpus JSON (`#helpCorpus`), not the rendered guides. That JSON is not
+waste: it is what makes search answer instantly and keeps answering with the
+studio down. So R3's fix is unchanged and its premise is intact — `/help/` is
+still the heaviest page on the site, and the new guide pages carry the same two
+scripts plus `help-guide.js`, which is where the same defer question now also
+applies. The heaviest single guide is `/help/workspace/` at 37 KB of HTML.
 
 **Fix:** verify the stamp still holds with `defer`, then defer them. **S** — one
 attribute each and a re-run of `test/help.test.js`, whose *"the browser would
@@ -286,15 +297,37 @@ and *"Billing, pausing, deleting"* cannot rank separately for the different
 questions they answer. Per-guide URLs (`/help/<slug>/`) are the better long-tail
 shape.
 
-**Unchanged by this audit, and #166's own reasoning still stands:** it wants
-Search Console data on which guides actually earn impressions, and it has a real
-cost against #76 (a guide the studio adds would have no page until the next
-website build, where today the runtime fetch shows it immediately). **This audit
-adds one input:** `/help/` is now the only page on the site carrying long-tail
-content that is *not* individually addressable — the nine articles each have
+**Unchanged by this audit, and #166's own reasoning still stood at the time:** it
+wanted Search Console data on which guides actually earn impressions, and it had
+a real cost against #76 (a guide the studio adds would have no page until the
+next website build, where today the runtime fetch shows it immediately). **This
+audit added one input:** `/help/` was then the only page on the site carrying
+long-tail content that is *not* individually addressable — the articles each have
 their own URL, their own title, their own description and their own OG card.
-That asymmetry is the argument for #166, and it is still an argument to settle
-with data.
+
+**SHIPPED 24 Aug 2026 as #166, and the two objections were answered rather than
+overruled.**
+
+- *The data.* Search Console reports per URL. While eleven guides shared one, no
+  amount of waiting could produce an impression count for a guide — the evidence
+  the row wanted could not exist until the thing it would have judged was built.
+  And the pages are **derived from the corpus**, so there was no per-guide
+  judgment left for data to inform: the studio's docs decide what exists. What
+  the data can still answer, once the operator finishes #135's steps 6–7 and
+  three weeks pass, is the question that is now askable for the first time —
+  *which guides earn impressions* — and that is an input to the help corpus
+  itself, which is the studio's to write.
+- *The #76 cost.* Removed, not accepted. The hub still renders a guide the last
+  build never saw, inline and immediately, and points its card at the anchor —
+  it simply has no URL of its own until the next build. And each guide page runs
+  a reconcile of its own, so an **edited** guide corrects itself in the browser
+  the moment the studio deploys. Both are driven in `test/drive.js` §7c.
+
+What shipped: eleven URLs, each with its own title, description, `TechArticle`
+and `BreadcrumbList`, all in the sitemap, all linked from the hub and from three
+sibling guides by the same ring this audit's F13 built for `/resources/`. The
+hub kept the search, the FAQ block and the embedded index. Old anchors
+(`/help/#guide-sharing`, `/help/#sharing`, `/help/#sharing--revoking`) forward.
 
 ### R5 · `hreflang` — nothing to do yet · **blocked on #113/#114**
 
