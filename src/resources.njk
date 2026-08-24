@@ -1,0 +1,53 @@
+---
+layout: base.njk
+permalink: /resources/
+title: Resources
+description: Field notes on finding and winning B2B customers — how to pick who to approach, how to disqualify fast, and what to actually send them. Written from what works, not what ranks.
+---
+
+<header class="res-hub-hero">
+  <div class="res-hub-hero-inner">
+    <span class="tag">resources</span>
+    <h1 class="res-hub-h1">How to find customers worth having — and what to send them</h1>
+    <p class="res-hub-lede">
+      Most prospecting advice stops at the list. The hard half is the other one:
+      what goes in the email once you know who you are writing to. These are field
+      notes on both, written from teardowns of real businesses with real numbers on
+      the table — not from a keyword tool.
+    </p>
+  </div>
+</header>
+
+<section class="res-hub">
+  {% set articles = collections.resources | related('', 99) %}
+  {% if articles.length %}
+  <ul class="res-grid">
+    {%- for a in articles %}
+    <li class="res-card">
+      <a href="{{ a.url }}">
+        <span class="res-card-topic">{{ a.data.topic or "lead generation" }}</span>
+        <h2 class="res-card-title">{{ a.data.title }}</h2>
+        <p class="res-card-dek">{{ a.data.dek or a.data.description }}</p>
+        <span class="res-card-meta">
+          <time datetime="{{ a.data.date | isoDate }}">{{ a.data.date | readableDate }}</time>
+          {% if a.data.readingTime %}<span class="res-dot">·</span>{{ a.data.readingTime }} min read{% endif %}
+        </span>
+      </a>
+    </li>
+    {%- endfor %}
+  </ul>
+  {% else %}
+  <p class="res-empty">The first articles are being written. Come back shortly.</p>
+  {% endif %}
+</section>
+
+<section class="res-hub-cta">
+  <div class="res-hub-cta-inner">
+    <span class="tag">try it</span>
+    <h2>Stop reading. Point it at your own company.</h2>
+    <p>Prospektor reads a company's own website before it says a word about them,
+      scores partnership fit against what you are actually hunting for, and drafts
+      the deck, the emails and the call prep in your voice. The scan is free.</p>
+    <a class="btn-cta" href="/#scan">Scan your site</a>
+  </div>
+</section>

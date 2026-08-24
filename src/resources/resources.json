@@ -1,0 +1,6 @@
+{
+  "layout": "article.njk",
+  "tags": "resources",
+  "permalink": "/resources/{{ page.fileSlug }}/",
+  "ogType": "article"
+}

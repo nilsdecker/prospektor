@@ -6,10 +6,22 @@ pages:
   - /checkout/
   - /privacy/
   - /terms/
+  - /resources/
 ---
+{#-
+  /help/ is deliberately absent: it is a client-rendered shell whose crawlable
+  body is the word "Loading…" (board #136). Submitting it would be asking a
+  crawler to index an empty page. It goes in once #136 gives it real content.
+
+  Articles carry <lastmod> because they get revised; the static pages do not,
+  because a lastmod that never changes is worse than none at all.
+-#}
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 {%- for p in pages %}
   <url><loc>{{ site.url }}{{ p }}</loc></url>
+{%- endfor %}
+{%- for a in collections.resources | related('', 99) %}
+  <url><loc>{{ site.url }}{{ a.url }}</loc><lastmod>{{ (a.data.updated or a.data.date) | isoDate }}</lastmod></url>
 {%- endfor %}
 </urlset>

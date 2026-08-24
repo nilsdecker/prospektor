@@ -1,0 +1,89 @@
+---
+layout: base.njk
+---
+{#
+  One article under /resources/. The hub is resources.njk; the per-article
+  frontmatter carries title, description, dek, date and readingTime.
+
+  Two things every article on this section owes, per the #144 spec:
+  - `Article` structured data, so the page can be understood as an article and
+    not as another marketing page on a marketing site;
+  - an ending at the free scan. The section exists to feed the funnel, and an
+    article that teaches something and then stops is a page that costs crawl
+    budget without earning anything.
+#}
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": {{ title | dump | safe }},
+  "description": {{ description | dump | safe }},
+  "datePublished": "{{ date | isoDate }}",
+  "dateModified": "{{ (updated or date) | isoDate }}",
+  "author": { "@type": "Organization", "name": "{{ site.name }}", "url": "{{ site.url }}" },
+  "publisher": {
+    "@type": "Organization",
+    "name": "{{ site.name }}",
+    "url": "{{ site.url }}",
+    "logo": { "@type": "ImageObject", "url": "{{ site.url }}/assets/img/favicon.svg" }
+  },
+  "image": "{{ site.url }}{{ ogImage or '/assets/img/og.png' }}",
+  "mainEntityOfPage": { "@type": "WebPage", "@id": "{{ site.url }}{{ page.url }}" },
+  "isAccessibleForFree": true
+}
+</script>
+
+<article class="res-article">
+
+  <header class="res-hero">
+    <div class="res-hero-inner">
+      <a class="res-back" href="/resources/">
+        <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M9.5 3.5L5 8l4.5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Resources
+      </a>
+      <span class="tag">{{ topic or "lead generation" }}</span>
+      <h1 class="res-h1">{{ title }}</h1>
+      {% if dek %}<p class="res-dek">{{ dek }}</p>{% endif %}
+      <div class="res-meta">
+        <time datetime="{{ date | isoDate }}">{{ date | readableDate }}</time>
+        {% if readingTime %}<span class="res-dot">·</span><span>{{ readingTime }} min read</span>{% endif %}
+        {% if updated %}<span class="res-dot">·</span><span>updated {{ updated | readableDate }}</span>{% endif %}
+      </div>
+    </div>
+  </header>
+
+  <div class="res-body">
+    <div class="res-prose">
+      {{ content | safe }}
+    </div>
+
+    <aside class="res-cta">
+      <span class="tag">try it</span>
+      <h2>See this run on your own company</h2>
+      <p>Prospektor reads a company's own website before it says anything about
+        them — what they sell, to whom, and what changed recently — then scores fit
+        and drafts what to send. The scan is free and takes about ninety seconds.</p>
+      <a class="btn-cta" href="/#scan">Scan your site</a>
+      <span class="res-cta-note">No account. No card. Nothing to install.</span>
+    </aside>
+
+    {% set others = collections.resources | related(page.url, 3) %}
+    {% if others.length %}
+    <section class="res-more">
+      <h2 class="res-more-h">Keep reading</h2>
+      <ul class="res-more-list">
+        {%- for other in others %}
+        <li>
+          <a href="{{ other.url }}">
+            <span class="res-more-title">{{ other.data.title }}</span>
+            <span class="res-more-dek">{{ other.data.dek or other.data.description }}</span>
+          </a>
+        </li>
+        {%- endfor %}
+      </ul>
+    </section>
+    {% endif %}
+  </div>
+
+</article>
