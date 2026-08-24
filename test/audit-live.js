@@ -418,13 +418,23 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
                        'https://prospektor.ai/privacy/',
                        'https://prospektor.ai/terms/', 'https://prospektor.ai/resources/',
                        'https://prospektor.ai/help/'];
-  const articleLocs = liveLocs.slice(STATIC_LOCS.length);
+  // Everything after the static block is derived — the help guides (#166) and
+  // then the articles (#159). Both are checked by SHAPE rather than by count,
+  // because both lists are supposed to grow without this file being edited.
+  const derivedLocs = liveLocs.slice(STATIC_LOCS.length);
+  const guideLocs = derivedLocs.filter(l => l.startsWith('https://prospektor.ai/help/'));
+  const articleLocs = derivedLocs.filter(l => !l.startsWith('https://prospektor.ai/help/'));
   check('sitemap.xml serves exactly the static pages we want ranked',
     mapRes.status === 200 && JSON.stringify(liveLocs.slice(0, STATIC_LOCS.length)) === JSON.stringify(STATIC_LOCS),
     liveLocs.slice(0, STATIC_LOCS.length).join(' '));
-  check('everything else in the sitemap is a published article',
-    articleLocs.length > 0 && articleLocs.every(l => /^https:\/\/prospektor\.ai\/resources\/[a-z0-9-]+\/$/.test(l)),
-    `${articleLocs.length} article URL(s)`);
+  check('everything else in the sitemap is a help guide or a published article',
+    derivedLocs.length > 0 && derivedLocs.every(l =>
+      /^https:\/\/prospektor\.ai\/(resources|help)\/[a-z0-9-]+\/$/.test(l)),
+    `${guideLocs.length} guide URL(s), ${articleLocs.length} article URL(s)`);
+  check('and every guide the studio publishes is among them (#166)',
+    guideLocs.length > 0 && liveSlugs.length > 0 &&
+    liveSlugs.every(sl => guideLocs.includes('https://prospektor.ai/help/' + sl + '/')),
+    `sitemap ${guideLocs.length}, corpus ${liveSlugs.length}`);
   check('the sitemap does not submit the checkout form as content',
     !liveLocs.some(l => l.includes('/checkout')));
 
