@@ -70,6 +70,13 @@ describe('the search bug on #145', () => {
     // And the answer itself is in the snippet the reader sees.
     const text = top.snippets.map(s => s.snippet.before + s.snippet.match + s.snippet.after).join(' ');
     assert.match(text, /client workspace/i);
+
+    // And the reader is actually thrown there. This asserted only the heading
+    // *label* at first and passed while `anchor` was undefined — the jump
+    // silently degraded to the top of a 21k-character guide, which is the
+    // half of "jump to the nearest heading" that the reader can feel.
+    const jump = top.snippets.find(s => s.heading && /more than one workspace/i.test(s.heading));
+    assert.equal(jump.anchor, 'workspace--more-than-one-workspace');
   });
 
   test('the query it used to work for still works', () => {
@@ -85,6 +92,32 @@ describe('the search bug on #145', () => {
     const anySubstring = INDEX.some(a => a.plain.toLowerCase().indexOf(q) > -1);
     assert.equal(anySubstring, false,
       'the corpus now contains the query verbatim, so this test no longer proves anything — pick another natural-language question');
+  });
+});
+
+describe('every anchor search hands out is a real id on the page', () => {
+  // The search and the renderer derive the anchor separately — one from the
+  // plain-text index, one from the markdown — so they can disagree silently.
+  // A wrong anchor is not an error anywhere: the browser just does nothing.
+  test('across every guide and every heading', () => {
+    for (const article of INDEX) {
+      const ids = new Set([...article.html.matchAll(/ id="([^"]+)"/g)].map(m => m[1]));
+      for (const h of article.plainHeadings) {
+        assert.ok(ids.has(h.id),
+          `${article.name}: search would jump to #${h.id}, which is on no element`);
+      }
+    }
+  });
+
+  test('and the anchors survive into the built page', () => {
+    const out = tmp();
+    build(out, { HELP_CORPUS_OFFLINE: '1' });
+    const html = fs.readFileSync(path.join(out, 'help', 'index.html'), 'utf8');
+    for (const article of INDEX) {
+      for (const h of article.plainHeadings) {
+        assert.ok(html.includes(`id="${h.id}"`), `#${h.id} is not in the served HTML`);
+      }
+    }
   });
 });
 
