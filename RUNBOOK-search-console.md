@@ -78,9 +78,12 @@ Two facts, measured 24 Aug 2026, so you know what you're looking at:
 
 Pick the Google account before you start, and pick one you will still control
 in two years — the property, and every report in it, belongs to that account.
-`decker.nils@gmail.com` is fine. The DNS record is the real proof of
-ownership, so even a lost account is recoverable: re-verify from the same
-record. Add a second owner at step 7 anyway.
+The operator's own Google account is fine — this file deliberately does not
+name it. **No personal address goes in this repository**: it is public, and
+`OPERATOR_EMAIL` is set to that address on Netlify, so secrets scanning fails
+every build that finds it here (it did, four times, 24 Aug 2026). The DNS
+record is the real proof of ownership, so even a lost account is recoverable:
+re-verify from the same record. Add a second owner at step 7 anyway.
 
 ---
 
