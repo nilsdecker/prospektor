@@ -607,17 +607,35 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     check('Everything brings them all back',
       (await page.$$eval('.res-card:not([hidden])', ns => ns.length)) === total);
 
-    // The keep-reading block is the other half of #159: same topic first. Asked
-    // by following the link rather than by reading the markup, because the
-    // failure this replaces — every article recommending the same three newest
-    // posts — looked completely correct in the HTML.
-    await page.goto('http://localhost:8899/resources/the-ceiling-formula/');
-    const here = (await page.textContent('.res-hero .tag')).trim();
-    const first = await page.getAttribute('.res-more-list a', 'href');
-    await page.goto('http://localhost:8899' + first);
-    const there = (await page.textContent('.res-hero .tag')).trim();
-    check('keep-reading leads with a same-topic article',
-      here === there, here + ' → ' + first + ' (' + there + ')');
+    // The keep-reading block, asked of the served pages rather than the source.
+    // The pick is #137's ring; what #159 adds is the ordering inside the window
+    // it picked — if any of the three shares this article's topic, that one is
+    // listed first. Asked here as well as in resources.test.js because this
+    // version also proves the links resolve to real pages.
+    const ring = await page.evaluate(async () => {
+      const cards = [...document.querySelectorAll('.res-card')];
+      const topic = new Map(cards.map(c => [c.querySelector('a').getAttribute('href'),
+                                            c.getAttribute('data-topic')]));
+      const out = [];
+      for (const [url, t] of topic) {
+        const doc = new DOMParser().parseFromString(await (await fetch(url)).text(), 'text/html');
+        const links = [...doc.querySelectorAll('.res-more-list a')].map(a => a.getAttribute('href'));
+        out.push({
+          url, t, links,
+          first: topic.get(links[0]),
+          same: links.filter(u => topic.get(u) === t),
+          bad: links.filter(u => u === url || !topic.has(u))
+        });
+      }
+      return out;
+    });
+    check('every article resolves its keep-reading links to other real articles',
+      ring.length > 9 && ring.every(r => r.links.length >= 3 && r.bad.length === 0),
+      ring.filter(r => r.bad.length).map(r => r.url + ' → ' + r.bad.join(', ')));
+    const ordered = ring.filter(r => r.same.length);
+    check('and leads with a same-topic one wherever the ring picked one',
+      ordered.length > 0 && ordered.every(r => r.first === r.t),
+      ordered.filter(r => r.first !== r.t).map(r => r.url + ' → ' + r.links[0]));
     await page.close();
   }
 

@@ -1,7 +1,7 @@
 ---
 title: "How to size a market in four minutes"
 dek: "Most growth plans die on arithmetic nobody did. Four crude numbers, multiplied on the back of an envelope, will tell you whether a segment can produce your target at all — before you spend a quarter finding out."
-description: "The powers-of-ten market sizing test, why total reachable market beats total addressable market, and how to kill a bad segment in four minutes instead of four months."
+description: "The powers-of-ten market sizing test, why total reachable market beats total addressable, and how to kill a bad segment in four minutes, not four months."
 topic: targeting
 learnings: powers-of-ten, trm-not-tam, size-the-segment-first
 date: 2026-08-21

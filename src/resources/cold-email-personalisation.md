@@ -1,7 +1,8 @@
 ---
 title: "Personalisation that works, and personalisation that costs you trust"
+seoTitle: "Cold email personalisation that works"
 dek: "Using someone's first name is not personalisation — and the people you most want to reach read it as proof that a machine sent the email. Here is the line between the two."
-description: "Why first-name merge tags reduce reply rates with sophisticated buyers, what actually reads as personal in a cold email, and how to do the expensive version at volume."
+description: "Why first-name merge tags reduce reply rates with sophisticated buyers, what actually reads as personal in a cold email, and how to do it at volume."
 topic: cold email
 learnings: personalisation-as-evidence, cold-email-template
 date: 2026-08-24

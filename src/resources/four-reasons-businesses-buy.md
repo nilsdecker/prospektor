@@ -1,7 +1,8 @@
 ---
 title: "The four reasons businesses buy — and why one pitch has to tell all four"
+seoTitle: "The four reasons businesses buy"
 dek: "Roughly seven people have to agree before B2B software gets bought, and they are measured on different things. A pitch that makes one argument is a pitch that convinces one of them."
-description: "The four reasons businesses buy — make money, save money, increase efficiency, mitigate risk — why no single one is best, and how to build a pitch pack that answers all four for different readers."
+description: "Make money, save money, increase efficiency, mitigate risk: why no single reason is the best one, and how to build a pitch pack that answers all four."
 topic: messaging
 learnings: four-reasons-to-buy
 date: 2026-08-20

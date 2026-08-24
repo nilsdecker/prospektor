@@ -1,7 +1,8 @@
 ---
 title: "The one number that caps how big your company can get"
+seoTitle: "The one number that caps company size"
 dek: "Divide your new revenue each month by your churn rate. That number is the size your company stops growing at — and no marketing channel, however good, can push you past it."
-description: "The MRR ceiling formula: why churn is a hard cap on company size rather than a health metric, the benchmark ladder for monthly churn, and the arithmetic that tells you whether acquisition work still compounds."
+description: "The MRR ceiling formula: why churn is a hard cap on company size rather than a health metric, and the benchmark ladder for monthly churn."
 topic: retention
 learnings: ceiling-formula, ceiling-convergence, churn-benchmarks
 date: 2026-08-24

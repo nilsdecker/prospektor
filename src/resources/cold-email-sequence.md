@@ -1,7 +1,8 @@
 ---
 title: "The cold email sequence that expects no reply to the first email"
+seoTitle: "The cold email sequence that expects no reply"
 dek: "A four-email structure built by someone who sells to sales teams for a living. The first email is designed to get roughly zero responses — and that is what makes the other three work."
-description: "A four-email B2B cold sequence: the two-problem opener, the free-resource follow-ups, and the ask. Plus the ten-day multi-channel version and why the list matters more than the copy."
+description: "A four-email B2B cold sequence: the two-problem opener, the free-resource follow-ups and the ask, plus why the list matters more than the copy."
 topic: cold email
 learnings: small-ask-immediate-value, four-email-sequence, price-on-the-first-call, objection-document, first-meeting-loss-rate
 date: 2026-08-18

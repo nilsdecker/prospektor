@@ -59,10 +59,14 @@ describe('/resources/', () => {
   test('every article carries valid Article JSON-LD', () => {
     for (const slug of slugs()) {
       const html = read(`resources/${slug}/index.html`);
-      const m = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/);
-      assert.ok(m, `${slug} has no JSON-LD`);
-      const ld = JSON.parse(m[1]);           // throws if the template emitted bad JSON
-      assert.equal(ld['@type'], 'Article', `${slug} is not typed as an Article`);
+      // Every block is parsed (so bad JSON in any of them still throws), and
+      // the Article one is found by type — since #137 a page also carries the
+      // sitewide Organization/WebSite graph and its own BreadcrumbList.
+      const blocks = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)]
+        .map(m => JSON.parse(m[1]));
+      assert.ok(blocks.length, `${slug} has no JSON-LD`);
+      const ld = blocks.find(v => v['@type'] === 'Article');
+      assert.ok(ld, `${slug} is not typed as an Article`);
       assert.ok(ld.headline, `${slug} has no headline`);
       assert.match(ld.datePublished, /^\d{4}-\d{2}-\d{2}$/, `${slug} has no usable date`);
       assert.equal(ld.mainEntityOfPage['@id'], `https://prospektor.ai/resources/${slug}/`);
@@ -93,29 +97,28 @@ describe('/resources/', () => {
     assert.match(read('index.html'), /<meta property="og:type" content="website">/);
   });
 
-  test('keep-reading prefers the same topic, not merely the newest (#159)', () => {
-    // `related` was date-only when the section had nine articles, which meant
-    // every article recommended the same three most recent posts. At this size
-    // that is not a recommendation, it is a sidebar.
-    const byTopic = new Map();
-    for (const a of articles()) {
-      if (!byTopic.has(a.topic)) byTopic.set(a.topic, []);
-      byTopic.get(a.topic).push(a.slug);
-    }
+  test('keep-reading lists a same-topic article first when it picked one (#159)', () => {
+    // The pick itself is a ring, for the link-equity reason #137 measured — see
+    // `related` in .eleventy.js and the inbound-count test in seo.test.js. What
+    // #159 asks of it is the ordering *within* the window it picked: if any of
+    // the three shares this article's topic, that one is listed first, so the
+    // most relevant link is also the first one a reader sees. Ordering cannot
+    // change which articles were picked, so this and the ring cannot conflict.
+    const topicOf = new Map(articles().map(a => ['/resources/' + a.slug + '/', a.topic]));
     let checked = 0;
     for (const a of articles()) {
-      const siblings = byTopic.get(a.topic).filter(s => s !== a.slug);
-      if (!siblings.length) continue;          // nothing to prefer; date order is right
       const html = read(`resources/${a.slug}/index.html`);
       const block = html.split('res-more-list')[1] || '';
-      const first = (block.match(/href="\/resources\/([a-z0-9-]+)\//) || [])[1];
-      assert.ok(first, `${a.slug} has no keep-reading links`);
-      assert.ok(siblings.includes(first),
-        `${a.slug} (${a.topic}) recommends ${first} first, but ${siblings.join(', ')} ` +
-        `share its topic — related() is not preferring topic`);
+      const links = [...block.matchAll(/href="(\/resources\/[a-z0-9-]+\/)"/g)].map(m => m[1]);
+      assert.ok(links.length, `${a.slug} has no keep-reading links`);
+      const sameTopic = links.filter(u => topicOf.get(u) === a.topic);
+      if (!sameTopic.length) continue;           // the ring picked none; nothing to order
+      assert.equal(topicOf.get(links[0]), a.topic,
+        `${a.slug} (${a.topic}) picked ${sameTopic.join(', ')} on its own topic but ` +
+        `leads with ${links[0]} (${topicOf.get(links[0])})`);
       checked++;
     }
-    assert.ok(checked > 0, 'no article had a same-topic sibling to check');
+    assert.ok(checked > 0, 'no article had a same-topic article in its window');
   });
 
   test('the hub filter row is derived from the articles and ships hidden', () => {

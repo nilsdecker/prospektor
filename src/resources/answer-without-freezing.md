@@ -1,7 +1,8 @@
 ---
 title: "How to answer a hard question on a call while you are still thinking"
+seoTitle: "Answering a hard question on a call"
 dek: "Someone asks the question you did not prepare for. There is a four-part shape that gets you through it sounding certain — and a rule about what goes in the middle that decides whether anyone believes you."
-description: "The AREA framework for answering objections and hard questions on a sales call, plus why specific, real examples outperform capability claims and how to build a bank of them before you need one."
+description: "The AREA framework for answering objections on a sales call, and why specific, real examples outperform capability claims every time."
 topic: the call
 learnings: specifics-only-real-ones, area-framework
 date: 2026-08-24

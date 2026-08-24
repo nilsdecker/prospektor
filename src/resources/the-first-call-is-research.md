@@ -1,7 +1,8 @@
 ---
 title: "Treat the first call as a research interview you also happen to be selling on"
+seoTitle: "The first call is research"
 dek: "You will lose most first meetings. The ones you lose are worth something only if you left with an answer you did not have before — which requires deciding, before you dial, what you are trying to learn."
-description: "How to run a first sales call as a simultaneous sale and research interview: what to ask, what to write down, how to learn a segment you have never sold to, and why the losses are the useful half."
+description: "How to run a first sales call as a simultaneous sale and research interview: what to ask, what to write down, and why the losses are the useful half."
 topic: the call
 learnings: first-call-is-research
 date: 2026-08-24

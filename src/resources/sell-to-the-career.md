@@ -1,7 +1,8 @@
 ---
 title: "Nobody has ever been promoted for saving 20% of their time"
+seoTitle: "Sell to the career, not to the task"
 dek: "Most B2B pitches describe what the software does to a task. The pitches that get answered describe what it does to the person reading them — and there is a bar the claim has to clear before anyone acts on it at all."
-description: "Why career claims outperform utility claims in B2B outreach, the Slack-channel test for a strong pitch, and the 3× bar an improvement has to clear before a buyer will bother changing anything."
+description: "Why career claims outperform utility claims in B2B outreach, and the 3x bar an improvement has to clear before a buyer will bother changing anything."
 topic: positioning
 learnings: delight-vs-table-stakes, career-not-task, lead-with-the-human, three-x-rule
 date: 2026-08-24

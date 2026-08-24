@@ -2,6 +2,7 @@
 layout: base.njk
 title: Start your studio
 permalink: /checkout/
+description: "Start your Prospektor workspace: $999 a month, unlimited runs, your whole team in. Next stop is Stripe, and the research runs while you are still paying."
 ---
 
 <section class="onboard">
@@ -17,6 +18,10 @@ permalink: /checkout/
     <!-- STEP 2: confirm the target -->
     <div class="onboard-panel" id="panelTarget">
       <div class="scan-result-meta" id="obMeta"></div>
+      {#- One <h1> per document (#137). These are three steps of one flow, only one
+        of them visible at a time, but a crawler sees the whole page at once and
+        read three competing <h1>s. The class carries the styling, so the steps
+        look identical. -#}
       <h1 class="onboard-h1">Here's what Prospektor will hunt for you.</h1>
       <p class="onboard-sub">Read it, sharpen it, or rewrite it in your own words — this sentence seeds your studio's brief, and you stay its author.</p>
       <!-- Direct path (no scan): the studio researches the buyer from their
@@ -36,7 +41,7 @@ permalink: /checkout/
 
     <!-- STEP 3: payment -->
     <div class="onboard-panel" id="panelPay" hidden>
-      <h1 class="onboard-h1">Payment.</h1>
+      <h2 class="onboard-h1">Payment.</h2>
       <p class="onboard-sub">One subscription, the whole product. The moment payment lands, your studio starts researching you — it works while you find your way in.</p>
       <div class="order-card">
         <div class="order-row">
@@ -87,7 +92,7 @@ permalink: /checkout/
 
     <!-- STEP 4: sign in -->
     <div class="onboard-panel" id="panelSignin" hidden>
-      <h1 class="onboard-h1">Sign in — the studio is already yours.</h1>
+      <h2 class="onboard-h1">Sign in — the studio is already yours.</h2>
       <p class="onboard-sub">After payment you get one email. It says: go to <a href="https://studio.prospektor.ai">studio.prospektor.ai</a> and sign in with the address you paid with — with Google, or with a single-use link the studio emails you. No token, no setup wizard.</p>
       <ul class="pricing-list">
         <li>While you paid, the studio researched you — you arrive to a drafted brief, not an empty page</li>
@@ -102,4 +107,9 @@ permalink: /checkout/
 
   </div>
 </section>
-<script src="/assets/js/checkout.js"></script>
+{#- defer (#137). This sat mid-document without it, so the parser stopped
+    here and rendered nothing below until the script had been fetched and
+    run. Every one of these is an IIFE that looks its elements up by id and
+    returns if they are absent, so deferring is not only cheaper — it is the
+    case the guard was written for, with the DOM guaranteed complete. -#}
+<script src="/assets/js/checkout.js" defer></script>

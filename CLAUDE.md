@@ -20,7 +20,7 @@ them without reading the studio's code.
    attached in scope — until the operator either restores public
    visibility or changes this protocol, a session that cannot read it
    should say so and stop rather than guess at the contract.
-3. **Before pushing: `npm test`** (124 tests, no network, no keys).
+3. **Before pushing: `npm test`** (137 tests, no network, no keys).
    If the change touches a page or a client flow, also `npm run drive` —
    it builds and drives the built site in a browser with the functions
    mocked. `npm run build` must of course succeed.
@@ -91,13 +91,17 @@ articles; **#159 made the list derived**, because a fixed list drifts in silence
 research. A learning added to the playbook and never entered in the ledger is
 invisible here. Adding the row is the job of the thread that adds the learning.
 
-Two mechanics the section's size depends on, both in `.eleventy.js`:
-the `related` filter puts **same topic first**, then newest (date-only stopped
-meaning anything once every article recommended the same three most recent
-posts), and the `topics` filter derives the hub's filter row from the articles
-themselves. Keep topics few and populated — a topic with one article is a chip
-that selects one card and a `related` pick that falls straight through to date
-order. Ten topics over twenty-three articles is the shape as of #159.
+Two mechanics the section's size depends on, both in `.eleventy.js`. The
+`related` filter is a **ring** — #137 measured what date-ordering cost (inbound
+links ran 9,9,9,4,1,1,1,1,1 and five of nine articles were reachable from the
+hub and nowhere else), so each article links to the `n` that follow it and every
+article ends up with exactly `n` inbound links by construction. Inside the
+window it picks, a **same-topic article is listed first**, so the most relevant
+link is also the first one a reader sees. The `topics` filter derives the hub's
+filter row from the articles themselves. Keep topics few and populated — a topic
+with one article is a chip that selects one card and never appears in anybody's
+keep-reading block. Ten topics over twenty-three articles is the shape as of
+#159.
 
 ## The sign-off
 

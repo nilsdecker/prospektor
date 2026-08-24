@@ -1,7 +1,8 @@
 ---
 title: "The first salesperson you hire should be you, for longer than you want"
+seoTitle: "Do not delegate sales yet"
 dek: "There is a revenue number below which nothing sales-related should leave the founder, and it is higher than most people expect. The gate before any hire is not a budget — it is a count."
-description: "Why founder-led sales cannot be delegated early, the revenue thresholds for each kind of sales hire, why you hire two reps or none, the learning-before-scale channel order, and the activity model to copy."
+description: "Why founder-led sales cannot be delegated early, the revenue thresholds for each kind of sales hire, and why you hire two reps or none."
 topic: sales motion
 learnings: do-not-delegate-sales, two-reps-or-none, learning-before-scale, introvert-script, activity-model
 date: 2026-08-24

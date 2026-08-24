@@ -1,7 +1,8 @@
 ---
 title: "The customer who cannot leave, and the one who was always going to"
+seoTitle: "The customer who cannot leave"
 dek: "Some customers churn because the product failed them. Others churn because they finished. Those are not the same problem, and averaging them together hides the only segmentation decision that matters."
-description: "Forever customers versus temporary ones: why a customer who resells you cannot easily leave, why a one-time-use product plateaus early, and how to sort a target list on the axis that decides retention."
+description: "Why a customer who resells you cannot easily leave, why a one-time-use product plateaus early, and how to sort a list on the axis that decides retention."
 topic: retention
 learnings: forever-vs-temporary, prefer-build-you-in, one-time-use-product, retention-curve-flattens
 date: 2026-08-24

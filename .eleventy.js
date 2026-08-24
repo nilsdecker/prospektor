@@ -22,27 +22,59 @@ module.exports = function(eleventyConfig) {
     return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
   });
 
-  const byDateDesc = (a, b) => toDate(b.data.date) - toDate(a.data.date);
-
-  // Everything in the collection except the page you are on, capped — same
-  // topic first, then everything else, newest within each group. Compared by
-  // url because the collection entry and the `page` object inside a layout are
-  // not the same object.
+  // The "Keep reading" block at the foot of every article.
   //
-  // Newest-first alone was fine at nine articles and stops meaning anything as
-  // the section grows (#159): every article's "keep reading" block showed the
-  // same three most recent posts, so the pricing article recommended the cold
-  // email article to everybody. The hub passes an empty url, which matches no
-  // entry, so there is no current topic and the hub keeps its pure newest-first
-  // order — the one thing its own test asserts.
+  // This used to be "everything else, newest first, capped at 3" — which is
+  // not related, it is *recent*, and #137's audit measured what that costs.
+  // Every article linked to the same three newest articles, so inbound
+  // internal links ran 9, 9, 9, 4, 1, 1, 1, 1, 1: five of the nine articles
+  // were reachable from the hub and nowhere else, which is the link graph
+  // telling Google they are the least important pages on the site. They are
+  // not — they are the same nine articles.
+  //
+  // So the pick is a RING, not a sort: articles are put in a stable order and
+  // each one links to the `n` that follow it, wrapping around. That makes the
+  // inbound count exactly `n` for every article, by construction and not by
+  // luck — a tenth article changes nobody else's count. Within the three it
+  // picks, a same-topic article is listed first, so the most relevant link is
+  // also the first one a reader sees. Ordering inside the window cannot change
+  // which articles were picked, so the evenness survives it.
+  //
+  // Compared by url because the collection entry and the `page` object inside
+  // a layout are not the same object.
   eleventyConfig.addFilter("related", (collection, url, n) => {
-    const all = (collection || []).filter(item => item.url !== url);
-    const here = (collection || []).find(item => item.url === url);
-    const topic = here && here.data.topic;
-    if (!topic) return all.sort(byDateDesc).slice(0, n || 3);
-    const same = all.filter(i => i.data.topic === topic).sort(byDateDesc);
-    const rest = all.filter(i => i.data.topic !== topic).sort(byDateDesc);
-    return same.concat(rest).slice(0, n || 3);
+    const all = (collection || []).slice()
+      .sort((a, b) => toDate(b.data.date) - toDate(a.data.date) || a.url.localeCompare(b.url));
+    const i = all.findIndex(item => item.url === url);
+    if (i < 0) return all.slice(0, n || 3);
+    const take = Math.min(n || 3, all.length - 1);
+    const picked = [];
+    for (let k = 1; k <= take; k++) picked.push(all[(i + k) % all.length]);
+    const topic = all[i].data.topic;
+    return picked.sort((a, b) =>
+      (b.data.topic === topic) - (a.data.topic === topic));
+  });
+
+  // The <title> budget. Google renders roughly 60 characters before it
+  // truncates, and what it drops is the tail — so a 37-character brand suffix
+  // on a 71-character headline is not branding, it is a guarantee that the
+  // brand never appears and the headline is cut instead. #137 measured nine
+  // article titles at 74-110 characters, every one of them truncated.
+  //
+  // So the suffix is fitted to what is left rather than always costing the
+  // same: the full "— Prospektor · Your AI pre-sales team" when it fits,
+  // "— Prospektor" when it does not, and the headline alone when even that
+  // would push it further past the line. A page whose own headline is too
+  // long for the budget sets `seoTitle` in its frontmatter — that changes the
+  // search result only, never the <h1> a reader sees.
+  const TITLE_BUDGET = 60;
+  eleventyConfig.addFilter("metaTitle", (title, name, tagline) => {
+    if (!title) return `${name} · ${tagline}`;
+    const full = `${title} — ${name} · ${tagline}`;
+    if (full.length <= TITLE_BUDGET) return full;
+    const short = `${title} — ${name}`;
+    if (short.length <= TITLE_BUDGET) return short;
+    return title;
   });
 
   // The topics present in a collection, with counts, alphabetical. Drives the

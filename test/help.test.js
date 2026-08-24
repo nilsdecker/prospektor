@@ -222,8 +222,11 @@ describe('the prerendered page (#136)', () => {
   });
 
   test('the FAQ block is valid FAQPage structured data', () => {
-    const ld = JSON.parse(html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)[1]);
-    assert.equal(ld['@type'], 'FAQPage');
+    // Found by type, not by position: since #137 every page also carries a
+    // sitewide Organization/WebSite graph, and it is emitted first.
+    const ld = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)]
+      .map(m => JSON.parse(m[1])).find(v => v['@type'] === 'FAQPage');
+    assert.ok(ld, 'no FAQPage block on /help/');
     assert.ok(ld.mainEntity.length >= 4);
     for (const q of ld.mainEntity) {
       assert.equal(q['@type'], 'Question');

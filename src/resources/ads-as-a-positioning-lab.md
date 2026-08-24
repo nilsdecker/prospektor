@@ -1,7 +1,8 @@
 ---
 title: "Buy ads to learn the words, not to buy the customers"
+seoTitle: "Buy ads to learn the words"
 dek: "Advertising is the wrong acquisition channel for most small B2B companies and an extremely good research instrument. The deliverable is not customers. It is four words that make the right person click."
-description: "How to run paid ads as a positioning experiment rather than an acquisition channel: what to budget, what to measure, how to read the result, and why SEO cannot answer the same question."
+description: "How to run paid ads as a positioning experiment rather than an acquisition channel: what to budget, what to measure, and how to read the result honestly."
 topic: experiments
 learnings: ads-as-a-laboratory
 date: 2026-08-24

@@ -1,7 +1,8 @@
 ---
 title: "The biggest segment in your market is usually the worst one"
+seoTitle: "The biggest segment is rarely the best"
 dek: "Two ponds. One has ten times the fish and everybody is fishing it. The other has fish that jump into the boat. Most teams pick the first, on the grounds that it is bigger, and spend two years learning why that was the wrong reason."
-description: "Why cohort quality beats cohort size when choosing a segment, how to tell a thin market from a crowded one before you commit, and the onboarding question that finds where your best customers already cluster."
+description: "Why cohort quality beats cohort size when choosing a segment, and the onboarding question that finds where your best customers already cluster."
 topic: targeting
 learnings: cohort-quality, where-your-wins-cluster
 date: 2026-08-24

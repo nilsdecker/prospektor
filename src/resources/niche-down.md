@@ -1,7 +1,8 @@
 ---
 title: "Narrowing your market is how you get the customers outside it"
+seoTitle: "Niching down wins more customers"
 dek: "The objection to niching down is always the same: we would be turning away everyone else. The observed effect is the opposite, and the mechanism is not the one most people assume."
-description: "Why niching down wins more customers rather than fewer, what clear trade-offs do to buyers who are not your ideal customer, and the orthogonal repositioning that costs no engineering time at all."
+description: "Why niching down wins more customers rather than fewer, and the orthogonal repositioning that lowers churn without costing a line of code."
 topic: positioning
 learnings: niching-wins-more, orthogonal-cut
 date: 2026-08-24

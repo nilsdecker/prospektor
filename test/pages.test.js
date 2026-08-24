@@ -100,7 +100,10 @@ describe('the header, and the pages behind it', () => {
     const html = read('pricing/index.html');
     for (const id of ['buy', 'buyLink', 'buyForm', 'buyEmail', 'buyBtn', 'buySite', 'buyMsg', 'buyLive'])
       assert.match(html, new RegExp(`id="${id}"`), `/pricing/ is missing #${id} — buy.js will not bind`);
-    assert.match(html, /<script src="\/assets\/js\/buy\.js"><\/script>/, '/pricing/ never loads buy.js');
+    // Attributes allowed — the claim is that the page LOADS buy.js, which is
+    // the regression CLAUDE.md names. #137 added `defer` to it, and pinning
+    // the exact tag turned that into a failure about the wrong thing.
+    assert.match(html, /<script src="\/assets\/js\/buy\.js"[^>]*><\/script>/, '/pricing/ never loads buy.js');
     assert.match(html, /\$999/, '/pricing/ does not name the price');
   });
 

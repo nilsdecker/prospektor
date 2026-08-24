@@ -1,7 +1,7 @@
 ---
 title: "One channel is no longer a strategy"
 dek: "The playbook that said pick a channel and go deep was written for a search engine that judged you on your own pages. Three things changed at once, and the minimum viable channel mix went from one to three."
-description: "Why B2B now needs three channels rather than one, the difference between discovery and relationship platforms, what saturation is doing to cold email, and the attribution question that costs nothing and fixes your reporting."
+description: "Why B2B now needs three channels rather than one, discovery versus relationship platforms, and the attribution question that costs nothing to add."
 topic: channels
 learnings: three-channels-minimum, discovery-vs-relationship, cold-channels-saturating, attribution-question, a-channel-costs-a-year
 date: 2026-08-24

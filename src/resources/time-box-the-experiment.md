@@ -1,7 +1,8 @@
 ---
 title: "How long to give an idea before you are allowed to conclude anything"
+seoTitle: "How long to give an idea"
 dek: "A week is not enough and six months is too long, and the number matters less than the thing it protects you from: quietly retreating into the work that feels productive while the question you were testing goes unanswered."
-description: "How to time-box a go-to-market experiment, the 2-2-200 sequence that puts evidence before building, why an initiative nobody owns gets eaten by the existing business, and the comfortable work that kills exploration."
+description: "How to time-box a go-to-market experiment, the 2-2-200 sequence that puts evidence before building, and the comfortable work that kills exploration."
 topic: experiments
 learnings: own-the-new-motion, time-box-it, two-two-two-hundred, building-does-not-de-risk
 date: 2026-08-24

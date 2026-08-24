@@ -1,7 +1,8 @@
 ---
 title: "Your price decides which sales motion you are allowed to run"
+seoTitle: "What your price licenses you to do"
 dek: "Whether you can afford demo calls, an account-based motion, or only a self-serve funnel is not a strategy question. It is arithmetic, and the thresholds are specific enough to check yourself against this afternoon."
-description: "The price thresholds that decide whether you can run self-serve, demo calls or an account-based motion, the ACV floor below which outbound cannot pay for itself, and how to price an enterprise deal when the signals appear."
+description: "The price thresholds that decide whether you can run self-serve, demo calls or an account-based motion, and the ACV floor beneath which outbound cannot pay."
 topic: sales motion
 learnings: abm-vs-campaign, fewer-better-customers, acv-floor-for-outbound, funnel-benchmarks, enterprise-triggers
 date: 2026-08-24

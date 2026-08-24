@@ -3,7 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{% if title %}{{ title }} — {% endif %}{{ site.name }} · {{ site.tagline }}</title>
+{#- The <title> budget, #137. `metaTitle` fits the brand suffix to what is
+    left of ~60 characters rather than always spending 37 of them; `seoTitle`
+    lets a page whose own headline is longer than the budget give search a
+    shorter one without touching the <h1>. See .eleventy.js for the reasoning
+    and the measurements. -#}
+<title>{{ (seoTitle or title) | metaTitle(site.name, site.tagline) }}</title>
 <meta name="description" content="{{ description or site.description }}">
 <link rel="canonical" href="{{ site.url }}{{ page.url }}">
 {% if noindex %}<meta name="robots" content="noindex, follow">{% endif %}
@@ -47,6 +52,53 @@
      <body>, and netlify/edge-functions/rum-consent.js hands it to this script
      rather than to the browser. Deferred, dependency-free, first-party. -->
 <script src="/assets/js/consent.js" defer></script>
+
+{#- Sitewide structured data (#137). The audit found none of this: eight of the
+    seventeen indexable pages carried no structured data at all, and the only
+    types on the site were `Article` (nine posts) and `FAQPage` (/help/). That
+    leaves Google to infer from prose who publishes this site, what the product
+    is and what it costs.
+
+    `Organization` and `WebSite` go on EVERY page rather than only the
+    homepage, and both carry an explicit `@id` — so the `Article` blocks under
+    /resources/ and the `Product` block on /pricing/ can point a `publisher` or
+    a `brand` at the same node instead of each restating it. That is what makes
+    it one graph rather than a pile of unrelated blocks.
+
+    Deliberately NOT here: `SoftwareApplication`. It wants an `applicationCategory`
+    and an operating system, and it invites the app-install rich result — the
+    wrong shape for a service sold by subscription. /pricing/ carries `Product`
+    with a real `Offer` instead, which is the eligible one and the one with the
+    price in it. -#}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": "{{ site.url }}/#organization",
+      "name": "{{ site.name }}",
+      "url": "{{ site.url }}",
+      "description": {{ site.tagline | dump | safe }},
+      "email": "{{ site.email }}",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "{{ site.url }}/assets/img/favicon.svg"
+      },
+      "image": "{{ site.url }}/assets/img/og.png"
+    },
+    {
+      "@type": "WebSite",
+      "@id": "{{ site.url }}/#website",
+      "url": "{{ site.url }}",
+      "name": "{{ site.name }}",
+      "description": {{ site.description | dump | safe }},
+      "publisher": { "@id": "{{ site.url }}/#organization" },
+      "inLanguage": "en"
+    }
+  ]
+}
+</script>
 </head>
 <body>
 
@@ -105,6 +157,11 @@
   <span>{{ site.email }}</span>
 </footer>
 
-<script src="/assets/js/main.js"></script>
+{#- defer (#137). This sat mid-document without it, so the parser stopped
+    here and rendered nothing below until the script had been fetched and
+    run. Every one of these is an IIFE that looks its elements up by id and
+    returns if they are absent, so deferring is not only cheaper — it is the
+    case the guard was written for, with the DOM guaranteed complete. -#}
+<script src="/assets/js/main.js" defer></script>
 </body>
 </html>

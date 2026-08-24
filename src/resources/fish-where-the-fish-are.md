@@ -1,7 +1,8 @@
 ---
 title: "The channel you love is not the channel your buyers are in"
+seoTitle: "Fish where the fish are"
 dek: "Sponsoring the community you belong to feels like marketing. It is usually a way of spending your marketing budget among people who are not your customers, and the tell is a question you can ask in ten seconds."
-description: "How to choose between the five B2B marketing approaches that actually work, the poll question that exposes a channel chosen from affinity, and which ad platform each kind of targeting knowledge licenses."
+description: "How to choose between the five B2B marketing approaches that work, and the poll question that exposes a channel chosen from affinity rather than evidence."
 topic: channels
 learnings: fish-where-the-fish-are, the-channel-menu
 date: 2026-08-24

@@ -1,7 +1,8 @@
 ---
 title: "The audience you would spend a year building is worth less than ten emails"
+seoTitle: "Network beats audience"
 dek: "Three of the most successful bootstrapped founders in software launched to audiences of twenty to thirty thousand people. Here is what those audiences produced, and what they did instead when it did not work."
-description: "Why a network beats an audience for a company with no distribution, the launch numbers that settle it, how to borrow other people's audiences, and how to stay top of mind between deals."
+description: "Why a network beats an audience for a company with no distribution, the launch numbers that settle it, and how to borrow somebody else's audience."
 topic: channels
 learnings: network-beats-audience, other-peoples-audiences, stay-top-of-mind
 date: 2026-08-24
