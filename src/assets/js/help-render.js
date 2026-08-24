@@ -252,6 +252,13 @@
       var rendered = render(file.text, slug);
       var plain = plainText(file.text);
       var card = cardFor(slug);
+      // plainText() knows where each heading sits in the plain string but not
+      // what it is called in the DOM, so the anchor is stamped on here — it
+      // has to be the id render() put on the <h2>/<h3>, or "jump to the
+      // nearest heading above the match" lands on #undefined and the reader
+      // is dropped at the top of a 21k-character guide instead of at the
+      // paragraph that answers them.
+      plain.headings.forEach(function (h) { h.id = slug + '--' + slugify(h.text); });
       return {
         slug: slug,
         name: file.name,

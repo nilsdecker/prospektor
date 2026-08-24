@@ -173,7 +173,10 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     await page.waitForSelector('#helpGuides:not([hidden])', { timeout: 5000 });
     check('a result click restores the guides, search cleared',
       (await page.inputValue('#helpSearch')) === '');
-    check('and lands inside the workspace guide', /guide-workspace|workspace--/.test(page.url()));
+    // The section anchor, not just the guide: `workspace--<heading>`. Accepting
+    // `guide-workspace` here hid an undefined anchor once already.
+    check('and lands on the section, not the top of a 21k-character guide',
+      /#workspace--/.test(page.url()), page.url());
 
     await page.fill('#helpSearch', 'zzzunfindable');
     await page.waitForSelector('#helpResults:not([hidden])');
