@@ -3,10 +3,34 @@ permalink: /sitemap.xml
 eleventyExcludeFromCollections: true
 pages:
   - /
-  - /checkout/
   - /privacy/
   - /terms/
 ---
+{#-
+  The list of pages we want ranked — not a list of pages that exist. Search
+  Console reads this as our own statement of what matters, so anything in here
+  that is thin, transactional or half-rendered costs more than it earns.
+
+  Deliberately out, each for its own reason:
+    /checkout/       a form, not an answer to any search. Left crawlable and
+                     linked from the homepage CTA, so nothing is lost; if
+                     Search Console ever shows it earning buy-intent
+                     impressions, #137 can put it back with evidence rather
+                     than on a hunch. (Decided #135, 24 Aug 2026.)
+    /help/           real long-tail content, but the served HTML is still a
+                     shell whose body copy is the word "Loading…" — the corpus
+                     arrives from the studio after load. Listing that is worse
+                     than omitting it. One line to add here the day #136
+                     prerenders the corpus.
+    /checkout/done/  noindex — what a buyer reads seconds after paying.
+    /404.html        noindex.
+    /app/            301s to /; whether that page has a future is W2's
+                     question and a sitemap should not pre-empt it.
+
+  No <lastmod>: Google ignores one it cannot trust, and a date stamped at
+  build time would say every page changed on every deploy. Add real ones from
+  git history the day the blog (#144) makes them mean something.
+-#}
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 {%- for p in pages %}

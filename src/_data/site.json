@@ -2,6 +2,8 @@
   "name": "Prospektor",
   "tagline": "Your AI pre-sales team",
   "url": "https://prospektor.ai",
+  "//googleSiteVerification": "Only needed if Search Console is verified by HTML tag instead of DNS TXT. The recommended route is a DNS TXT record at Spaceship, which needs no deploy, survives a hosting change, and verifies a Domain property covering www. and studio. as well — see RUNBOOK-search-console.md. Paste the raw token here (the content= value, not the whole tag) only if DNS is not an option.",
+  "googleSiteVerification": "",
   "email": "hello@prospektor.ai",
   "privacyEmail": "privacy@prospektor.ai",
   "description": "Prospektor Studio is your AI pre-sales team: it finds and researches companies worth pitching, enriches the decision-makers with sources, maps warm intros from your own network, and drafts the deck, emails, proposal and call prep in your voice. Claude does the heavy work — you stay the closer.",

@@ -8,6 +8,13 @@
 <link rel="canonical" href="{{ site.url }}{{ page.url }}">
 {% if noindex %}<meta name="robots" content="noindex, follow">{% endif %}
 
+{#- Search Console's HTML-tag fallback (#135). Empty in the repo and expected
+    to stay that way: the property is verified by a DNS TXT record at the
+    registrar, which needs no deploy and survives a hosting change. This exists
+    so that picking the other method is a one-token edit in _data/site.json
+    rather than a template change made in a hurry. -#}
+{% if site.googleSiteVerification %}<meta name="google-site-verification" content="{{ site.googleSiteVerification }}">{% endif %}
+
 <!-- A link to this site is how the funnel starts, so the card it unfurls into
      is part of the product. summary_large_image was declared here for days
      with no image behind it, which renders as a blank card everywhere. -->

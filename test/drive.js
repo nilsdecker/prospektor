@@ -190,6 +190,76 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     await page.close();
   }
 
+
+  // 9 — what a crawler is served: robots.txt, the sitemap, and the Search
+  //     Console verification hook (#135).
+  //
+  //     A sitemap that lists a URL the site does not serve is the single most
+  //     common thing Search Console reports as an error, and it is invisible
+  //     until Google says so days later. Every <loc> is fetched here, from the
+  //     built output, before it can be submitted.
+  {
+    const robots = fs.readFileSync(path.join(ROOT, 'robots.txt'), 'utf8');
+    check('robots.txt allows crawling and names the sitemap',
+      /User-agent:\s*\*/.test(robots) && /Allow:\s*\//.test(robots)
+      && /Sitemap:\s*https:\/\/prospektor\.ai\/sitemap\.xml/.test(robots), robots);
+
+    const xml = fs.readFileSync(path.join(ROOT, 'sitemap.xml'), 'utf8');
+    const locs = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map(m => m[1]);
+    check('sitemap lists exactly the pages we want ranked',
+      JSON.stringify(locs) === JSON.stringify([
+        'https://prospektor.ai/', 'https://prospektor.ai/privacy/', 'https://prospektor.ai/terms/']), locs);
+
+    // Each of these is out for a reason written into src/sitemap.njk. If one
+    // comes back, that reason has to be argued, not lost in a rebase.
+    for (const [pathname, why] of [
+      ['/checkout/', 'a form, not an answer to a search (#135)'],
+      ['/help/', 'still a shell that serves a crawler "Loading…" (#136)'],
+      ['/checkout/done/', 'noindex — what a buyer reads after paying'],
+      ['/app/', '301s, and W2 has not decided its future'],
+      ['/404', 'noindex'],
+    ]) check('sitemap keeps ' + pathname + ' out — ' + why, !locs.some(l => l.endsWith(pathname)));
+
+    // Every listed URL must actually be served, and none of them may be
+    // noindex — submitting a page we tell Google not to index is a
+    // self-contradiction Search Console reports as an error.
+    for (const loc of locs) {
+      const p = new URL(loc).pathname;
+      const res = await fetch('http://localhost:8899' + p);
+      const html = await res.text();
+      check('sitemap URL ' + p + ' is served', res.status === 200, res.status);
+      check('sitemap URL ' + p + ' is not noindex', !/name="robots"[^>]*noindex/.test(html));
+      check('sitemap URL ' + p + ' declares itself canonical at ' + loc,
+        html.includes('<link rel="canonical" href="' + loc + '">'));
+    }
+
+    // The pages that are deliberately kept out of the index must say so in
+    // their own HTML, not only by being absent from the sitemap.
+    for (const p of ['/checkout/done/', '/404.html'])
+      check('noindex still present on ' + p,
+        /name="robots"[^>]*noindex/.test(fs.readFileSync(path.join(ROOT, p.replace(/\/$/, '/index.html')), 'utf8')));
+
+    // The verification hook: absent while the key is empty (DNS TXT is the
+    // route we took), and emitted the moment somebody pastes a token in — so
+    // the fallback is known to work before it is ever needed in a hurry.
+    check('no google-site-verification meta while the key is empty',
+      !fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8').includes('google-site-verification'));
+
+    const dataFile = path.join(__dirname, '..', 'src', '_data', 'site.json');
+    const original = fs.readFileSync(dataFile, 'utf8');
+    const out = fs.mkdtempSync(path.join(require('os').tmpdir(), 'gsc-'));
+    try {
+      fs.writeFileSync(dataFile, original.replace('"googleSiteVerification": ""', '"googleSiteVerification": "TOKEN-UNDER-TEST"'));
+      require('child_process').execSync('npx eleventy --quiet --output=' + out, { cwd: path.join(__dirname, '..'), stdio: 'ignore' });
+      const withToken = fs.readFileSync(path.join(out, 'index.html'), 'utf8');
+      check('a pasted token becomes the verification meta',
+        withToken.includes('<meta name="google-site-verification" content="TOKEN-UNDER-TEST">'));
+    } finally {
+      fs.writeFileSync(dataFile, original);
+      fs.rmSync(out, { recursive: true, force: true });
+    }
+  }
+
   await browser.close();
   server.close();
   console.log('\n' + pass + ' passed, ' + fail + ' failed');
