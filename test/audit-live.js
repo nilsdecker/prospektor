@@ -237,13 +237,31 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
   // these say what was actually found rather than assuming the failure case.
   const sectionOk = privHas('id="network"') && privHas("If you're in someone's professional network");
   check('/privacy/ carries the imported-network reader-section', sectionOk,
-    !priv ? 'unreachable ×3' : (sectionOk ? 'section 05 present' : 'section absent'));
+    !priv ? 'unreachable ×3' : (sectionOk ? 'section 06 present' : 'section absent'));
   const noEmail = privHas("We don't hold your email address");
   const noContact = privHas('Prospektor will never contact you because of this');
   check('/privacy/ keeps the two sentences the LIA leans on', noEmail && noContact,
     !priv ? 'unreachable ×3'
       : (noEmail && noContact ? 'both present'
         : `missing: ${[!noEmail && 'no-email-address', !noContact && 'never-contact-you'].filter(Boolean).join(' + ')}`));
+
+  // ── CLAIM (#183): /privacy/ carries the scan-field reader-section ──
+  // The front page's one field writes a reading of somebody's website that is
+  // kept indefinitely under their domain. This section is the only notice that
+  // person ever gets, and PUBLIC-PAGES.md (studio repo) cites its existence as
+  // the measure any future publishing argument starts from. Red here means the
+  // notice is missing, not that a heading was reworded.
+  const scanOk = privHas('id="scan"') && privHas('If someone scanned your website');
+  check('/privacy/ carries the scan-field reader-section', scanOk,
+    !priv ? 'unreachable ×3' : (scanOk ? 'section 05 present' : 'section absent'));
+  // The two claims the section must not lose: it does not promise deletion is
+  // permanent, and it does not call the reading private.
+  const scanDelete = privHas("there’s no suppression list");
+  const scanNotPublished = privHas('We do not publish it');
+  check('/privacy/ keeps the scan section\'s two load-bearing sentences', scanDelete && scanNotPublished,
+    !priv ? 'unreachable ×3'
+      : (scanDelete && scanNotPublished ? 'both present'
+        : `missing: ${[!scanDelete && 'no-suppression-list', !scanNotPublished && 'do-not-publish'].filter(Boolean).join(' + ')}`));
 
   // ── CLAIM (#76): /help renders the studio's live corpus, searchably ──
   const apiHelp = await (async () => {
