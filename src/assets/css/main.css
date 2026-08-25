@@ -1383,6 +1383,58 @@ footer {
    A two-up that must never read as "basic tier / better tier": both halves
    are the product. The dark one is the WHAT, because that is the half
    somebody is paying for and the eye should land there second and stay. */
+/* #218 — the five agents. Modelled on .halves-grid so it inherits the same card
+   language; auto-fit rather than a fixed column count because five cards do not
+   divide into two or three, and a hand-placed 3+2 breaks the moment a sixth
+   agent exists. */
+.crew-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(258px, 1fr));
+  gap: 1.25rem; width: 100%; max-width: 1060px; margin-top: 2.75rem;
+  text-align: left;
+}
+
+.crew-card {
+  border: 1px solid var(--border); border-radius: 18px;
+  background: var(--white); padding: 1.6rem 1.5rem 1.5rem;
+  display: flex; flex-direction: column;
+}
+
+.crew-card.is-dark {
+  background: var(--ink); border-color: var(--ink); color: var(--off-white);
+}
+
+/* Deliberately neutral, not the brand emerald. --accent-dim is 3.81:1 on white
+   and --accent 2.71:1, both under AA for text this small, and #118 is already an
+   open row about exactly that pair. This does not add a sixth instance of it.
+   When #118 resolves, this can take whatever colour that decision lands on. */
+.crew-kicker {
+  font-family: var(--mono); font-size: 0.68rem; font-weight: 500;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-mid);
+}
+
+.crew-card.is-dark .crew-kicker { color: rgba(255,255,255,0.72); }
+
+.crew-h {
+  font-size: 1.12rem; line-height: 1.28; margin: 0.65rem 0 0.55rem;
+  letter-spacing: -0.01em; text-wrap: balance;
+}
+
+.crew-lede { margin: 0; font-size: 0.94rem; line-height: 1.6; }
+.crew-card.is-dark .crew-lede { color: rgba(255,255,255,0.82); }
+
+/* Five cards into three columns leaves a hole in row two. The last card fills
+   it — which is also the right emphasis: RevOps is the one a competitor cannot
+   copy. Only above the width where three columns are certain; below that the
+   grid is 2-up or 1-up and a span would reopen the hole it closes. */
+@media (min-width: 900px) {
+  .crew-card:last-child { grid-column: span 2; }
+}
+
+@media (max-width: 640px) {
+  .crew-grid { grid-template-columns: 1fr; gap: 1rem; margin-top: 2rem; }
+  .crew-card { padding: 1.4rem 1.3rem 1.25rem; }
+}
+
 .halves-grid {
   display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
   width: 100%; max-width: 1060px; margin-top: 2.75rem;
