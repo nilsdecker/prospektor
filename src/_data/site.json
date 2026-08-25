@@ -1,6 +1,7 @@
 {
   "name": "Prospektor",
-  "tagline": "Your AI pre-sales team",
+  "tagline": "Your AI GTM engine",
+  "//tagline": "#216, 25 Aug 2026. One string, five rendered uses: the <title> suffix (base.njk, via the metaTitle budget), the JSON-LD WebSite description, the footer, the og:image:alt default, and the article OG cards baked by tools/og.js. Previously \"Your AI pre-sales team\" — #168 found presales is an occupied category (solution engineering: Vivun, Consensus, Navattic; a G2 category and a job title), so the site was miscategorising itself in the structured data of all 42 pages. The replacement is benefit-framed rather than descriptive, on the operator's own redirect, and drops \"outreach\" in favour of warm introductions and deliverables. Keep it SHORT: the metaTitle budget is 60 characters and drops the suffix rather than truncating it, so length decides reach — 18 chars keeps the suffix on 16 of 42 pages where 33 chars kept 6 and 22 kept 11.",
   "url": "https://prospektor.ai",
   "//googleSiteVerification": "Only needed if Search Console is verified by HTML tag instead of DNS TXT. The recommended route is a DNS TXT record at Spaceship, which needs no deploy, survives a hosting change, and verifies a Domain property covering www. and studio. as well — see RUNBOOK-search-console.md. Paste the raw token here (the content= value, not the whole tag) only if DNS is not an option.",
   "googleSiteVerification": "",

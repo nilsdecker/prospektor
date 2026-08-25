@@ -1,5 +1,6 @@
 ---
 title: "The only prospects worth emailing this quarter"
+seoTitle: "How to qualify prospects before you email them"
 dek: "Most lost deals were never deals. They were people who agreed the problem was real, took the meeting, and then went back to the two things their job actually depends on."
 description: "Why qualified prospects go quiet, how to tell a slow deal from a no, and the one signal that separates a company that could want you from one that is ready."
 topic: targeting

@@ -1,5 +1,6 @@
 ---
 title: "Why one agency is worth three customers"
+seoTitle: "Selling to agencies vs. selling to brands"
 dek: "A direct customer's spend is flat from the day they sign. An agency's compounds. That difference changes what you can afford to spend acquiring one — and it is the argument most B2B teams never run."
 description: "The maths behind selling through agencies rather than to brands: why agency revenue compounds, what agencies actually want, and how to run the motion."
 topic: partnerships

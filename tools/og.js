@@ -21,6 +21,7 @@ try { ({ chromium } = require('playwright')); }
 catch (e) { ({ chromium } = require('/opt/node22/lib/node_modules/playwright')); }
 
 const ROOT = path.join(__dirname, '..');
+const site = require('../src/_data/site.json'); // #216: the card footer used to hard-code the tagline, so it drifted the moment site.json changed.
 const SRC = path.join(ROOT, 'src', 'resources');
 const OUT = path.join(ROOT, 'src', 'assets', 'img', 'og');
 const FONTS = path.join(ROOT, 'src', 'assets', 'fonts');
@@ -107,7 +108,7 @@ function card({ title, topic }) {
     <h1>${esc(title)}</h1>
     <div class="foot">
       <span class="url">prospektor.ai/resources</span>
-      <span>Your AI pre-sales team</span>
+      <span>${esc(site.tagline)}</span>
     </div>
   </body></html>`;
 }

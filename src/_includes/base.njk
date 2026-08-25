@@ -32,7 +32,7 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 {% if ogType == "article" %}<meta property="og:image:alt" content="{{ title }} — Prospektor">
-{% else %}<meta property="og:image:alt" content="{{ ogAlt or 'Prospektor — your AI pre-sales team. $999 per month, per workspace.' }}">{% endif %}
+{% else %}<meta property="og:image:alt" content="{{ ogAlt or ('Prospektor — ' + site.tagline + '. $999 per month, per workspace.') }}">{% endif %}
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{% if title %}{{ title }} — {% endif %}{{ site.name }}">
 <meta name="twitter:description" content="{{ description or site.description }}">
@@ -79,7 +79,7 @@
       "@id": "{{ site.url }}/#organization",
       "name": "{{ site.name }}",
       "url": "{{ site.url }}",
-      "description": {{ site.tagline | dump | safe }},
+      "description": {{ site.description | dump | safe }},{# #216: the Organization node answers "what is this company" on every page and has no length budget, so it takes the full approved sentence rather than the tagline fragment. The WebSite node below keeps site.description too — they are the same claim, stated once. #}
       "email": "{{ site.email }}",
       "logo": {
         "@type": "ImageObject",
