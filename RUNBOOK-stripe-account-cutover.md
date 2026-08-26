@@ -74,10 +74,12 @@ already done. What remains:
      `STRIPE_WEBHOOK_SECRET`.
 2. **Create the API key.** Developers → API keys. A **restricted** key is
    better than the account's secret key, and the permissions are tiny, because
-   **the whole codebase makes exactly one Stripe API call**:
-   `POST /v1/checkout/sessions`, in `create-checkout-session.js`. Nothing else
-   touches the Stripe API — the webhook verifies signatures locally with HMAC
-   and never calls out.
+   **the whole codebase makes exactly two Stripe API calls, both on Checkout
+   Sessions**: `POST /v1/checkout/sessions` in `create-checkout-session.js`,
+   and `GET /v1/checkout/sessions/:id` in `checkout-session-status.js`
+   (#244 — /checkout/done/'s confirmation; Write covers Read, so the key
+   below needs nothing extra). Nothing else touches the Stripe API — the
+   webhook verifies signatures locally with HMAC and never calls out.
 
    | Resource | Permission |
    |---|---|
@@ -94,6 +96,17 @@ already done. What remains:
 
    If a permission is short, the session call fails with an error naming the
    resource, so starting minimal is safe. Live mode, not test.
+2b. **Turn the customer emails on — a fresh account sends NO receipts.**
+   Settings → **Emails** (customer emails): tick **Successful payments** (and
+   *Refunds*). A new Stripe account arrives with these **off**, and nothing in
+   the funnel fails when they are: the payment succeeds, the webhook fires,
+   the welcome mail sends — and the buyer's receipt silently never exists.
+   This is exactly how the operator's 26 Aug $0.01 live test paid and got no
+   receipt while the 18 Aug test (Canadian account, emails on) got all four
+   mails (#244). The site itself never emails about billing — Postmark sends
+   the welcome and operator notices only — so the receipt exists **only** if
+   this toggle is on.
+
 3. **Turn on card payments, and check they work with USD.**
    Settings → *Payment methods*. This bit the cutover on 18 Aug: the funnel
    prices in **USD**, and a fresh **Netherlands** account arrives with
