@@ -62,6 +62,15 @@ description: "Start your Prospektor workspace: $999 a month, unlimited runs, you
           <input class="reserve-input" id="payEmail" type="email" autocomplete="email"
                  placeholder="you@yourcompany.com" aria-label="Your work email">
           <button class="btn-cta" type="submit" id="stripeBtn">Continue to secure checkout →</button>
+          <!-- #204: the same unticked, optional box the studio's first-run card
+               carries, asked here because the buyer is already filling in a
+               form. It stays unticked and nothing depends on it — a tick rides
+               through checkout metadata and the studio records the permission
+               against this address, so the buyer is not asked again inside. -->
+          <label class="pay-opt" for="payMarketing">
+            <input type="checkbox" id="payMarketing">
+            <span>Product news and tips, by email — optional, a few times a month at most</span>
+          </label>
         </form>
         <p class="onboard-sub">This address becomes your studio's sign-in. Use your work email so your whole team can get in — and if you have a promotion code, there's a field for it at checkout.</p>
         <p class="reserve-msg is-error" id="stripeMsg" hidden></p>

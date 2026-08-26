@@ -63,6 +63,21 @@ describe('stripe-webhook', () => {
     assert.equal(welcome(calls), undefined, '"your studio is ready" would be a lie here');
   });
 
+  test('passes a ticked marketing box to the studio, and only a ticked one (#204)', async () => {
+    const calls = stubFetch([provisioned({ marketing: true }), ['postmarkapp', { status: 200, body: {} }]]);
+    await fn.handler(signedStripeEvent(SECRET, checkoutSessionCompleted({
+      email: 'b@acme.com', metadata: { domain: 'acme.com', marketing: 'yes' } })));
+    const p = JSON.parse(calls.find(c => c.url.includes('/api/provision')).body);
+    assert.equal(p.marketing, true, 'the tick reaches the studio');
+
+    // No tick means the field is absent entirely — never false, never a
+    // string — so the studio's strict === true check sees nothing at all.
+    const quiet = stubFetch([provisioned(), ['postmarkapp', { status: 200, body: {} }]]);
+    await fn.handler(signedStripeEvent(SECRET, checkoutSessionCompleted({
+      email: 'b@acme.com', metadata: { domain: 'acme.com' } })));
+    assert.ok(!('marketing' in JSON.parse(quiet.find(c => c.url.includes('/api/provision')).body)));
+  });
+
   test('reports a target sentence the studio did not record', async () => {
     const calls = stubFetch([provisioned({ goal: false }), ['postmarkapp', { status: 200, body: {} }]]);
     await fn.handler(signedStripeEvent(SECRET, checkoutSessionCompleted({

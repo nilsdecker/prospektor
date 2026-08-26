@@ -622,6 +622,14 @@ nav {
 .reserve-input:focus { border-color: var(--accent); }
 .reserve-input::placeholder { color: var(--ink-faint); }
 
+/* The optional marketing box on the payment step (#204): quiet, full-width
+   under the email row, and visually incapable of reading as required. */
+.pay-opt {
+  flex-basis: 100%; display: flex; gap: 0.55rem; align-items: baseline;
+  font-size: 0.8rem; color: var(--ink-mid); line-height: 1.5; cursor: pointer;
+}
+.pay-opt input { accent-color: var(--accent); cursor: pointer; }
+
 .reserve-msg {
   margin-top: 1rem; font-size: 0.85rem; color: var(--ink);
 }

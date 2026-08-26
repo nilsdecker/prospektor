@@ -123,12 +123,17 @@ async function customerEmail(customerId) {
   }
 }
 
-async function callProvision({ email, company, website, goal, secret }) {
+async function callProvision({ email, company, website, goal, marketing, secret }) {
   // `plan: 'paid'` because this caller is the one door money actually came
   // through — the studio defaults everything else to 'comped', and without
   // this line every checkout-provisioned workspace was landing as comped
   // while the board said otherwise (caught 18 Aug 2026).
-  const body = JSON.stringify({ email, company, website, goal: goal || undefined, plan: 'paid' });
+  // `marketing: true` only when the buyer ticked the optional box (#204) —
+  // omitted otherwise, so an older studio sees nothing new.
+  const body = JSON.stringify({
+    email, company, website, goal: goal || undefined, plan: 'paid',
+    marketing: marketing || undefined,
+  });
   for (let attempt = 0; ; attempt++) {
     try {
       const response = await fetch(PROVISION_URL, {
@@ -438,6 +443,9 @@ exports.handler = async function(event) {
   const company = String(metadata.company || '').trim();
   const website = String(metadata.domain || '').trim();
   const goal = String(metadata.goal || '').trim();
+  // Exactly the value create-checkout-session writes for a ticked box (#204);
+  // anything else means the box was not ticked and no consent exists.
+  const marketing = metadata.marketing === 'yes';
 
   const provisionSecret = process.env.STUDIO_PROVISION_SECRET;
   if (!provisionSecret) {
@@ -453,7 +461,7 @@ exports.handler = async function(event) {
 
   let provision;
   try {
-    provision = await callProvision({ email, company, website, goal, secret: provisionSecret });
+    provision = await callProvision({ email, company, website, goal, marketing, secret: provisionSecret });
   } catch (e) {
     console.error('Studio unreachable after retries:', e.message);
     return { statusCode: 502, body: JSON.stringify({ error: 'Studio unreachable' }) };
@@ -478,6 +486,12 @@ exports.handler = async function(event) {
   const goalRecorded = provision.data && typeof provision.data.goal === 'boolean'
     ? provision.data.goal
     : undefined;
+  // Same three-state read for the marketing tick (#204): the studio echoes
+  // `marketing` so a tick that did not become a recorded grant is a log line
+  // rather than a silent nothing. undefined is an older studio — not a drop.
+  if (marketing && provision.data && provision.data.marketing === false) {
+    console.error('Marketing tick for', email, 'was sent but the studio did not record it.');
+  }
   await sendOperatorNotice({ email, company, website, goal, clientId, existing, resumed, goalRecorded });
   if (!existing) await sendWelcomeEmail(email);
 

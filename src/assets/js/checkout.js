@@ -152,10 +152,16 @@
         }
       } catch (e2) { /* fail open — never block a sale on a hiccup */ }
 
+      // #204: true only when the buyer ticked the optional box — the server
+      // carries a tick into checkout metadata and drops everything else.
+      const marketingBox = document.getElementById('payMarketing');
       const r = await fetch('/.netlify/functions/create-checkout-session', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ domain: domain, company: company, goal: goal, email: email }),
+        body: JSON.stringify({
+          domain: domain, company: company, goal: goal, email: email,
+          marketing: !!(marketingBox && marketingBox.checked),
+        }),
       });
       if (r.status === 503) { showFallback(); return; } // keys pulled since the probe
       const data = await r.json().catch(() => null);

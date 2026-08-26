@@ -92,6 +92,23 @@ describe('create-checkout-session', () => {
     assert.equal(p.get('subscription_data[metadata][goal]'), 'Property managers');
   });
 
+  test('carries a ticked marketing box as metadata, and only a literal true (#204)', async () => {
+    const calls = stubFetch([STRIPE_OK, FREE]);
+    await post(fn, { email: 'b@acme.com', domain: 'acme.com', marketing: true });
+    const p = new URLSearchParams(stripeCalls(calls)[0].body);
+    assert.equal(p.get('metadata[marketing]'), 'yes');
+    assert.equal(p.get('subscription_data[metadata][marketing]'), 'yes');
+
+    // Unticked, absent, or a string that merely looks true all mean the same
+    // thing: no metadata key at all — nothing may ride through checkout and
+    // come out the other side as consent nobody gave.
+    for (const marketing of [false, undefined, 'true', 1]) {
+      await post(fn, { email: 'b@acme.com', domain: 'acme.com', marketing });
+      const last = new URLSearchParams(stripeCalls(calls).at(-1).body);
+      assert.equal(last.get('metadata[marketing]'), null);
+    }
+  });
+
   test('sends a cancelling buyer back where they started', async () => {
     const calls = stubFetch([STRIPE_OK, FREE]);
     await post(fn, { email: 'b@acme.com', from: 'pricing' });

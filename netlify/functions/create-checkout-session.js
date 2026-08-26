@@ -129,7 +129,12 @@ exports.handler = async function(event) {
     success_url: data.from === 'resubscribe' ? 'https://studio.prospektor.ai/' : site + '/checkout/done/',
     cancel_url: cancelUrl,
   });
-  for (const [k, v] of [['domain', website], ['company', company], ['goal', goal]]) {
+  // #204: the optional marketing box. Only a literal true becomes metadata —
+  // "false" from a form, or anything else truthy-looking, must never ride
+  // through checkout and come out the other side as consent. Absent means
+  // exactly what an unticked box means: nothing is recorded anywhere.
+  const marketing = data.marketing === true ? 'yes' : '';
+  for (const [k, v] of [['domain', website], ['company', company], ['goal', goal], ['marketing', marketing]]) {
     if (v) {
       params.set('metadata[' + k + ']', v);
       params.set('subscription_data[metadata][' + k + ']', v);

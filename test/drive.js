@@ -80,6 +80,36 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     await page.close();
   }
 
+  // 2b — /checkout/'s marketing box (#204): unticked by default, genuinely
+  // optional, and the POST says exactly what the buyer did — false unticked,
+  // true ticked. The box must never block the sale either way.
+  for (const tick of [false, true]) {
+    const page = await browser.newPage();
+    const posts = [];
+    await page.route('**/.netlify/functions/create-checkout-session', async route => {
+      if (route.request().method() === 'GET') {
+        return route.fulfill({ status: 200, body: JSON.stringify({ configured: true }) });
+      }
+      posts.push(JSON.parse(route.request().postData()));
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(OK.body) });
+    });
+    await page.route('**/.netlify/functions/check-email', route =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ taken: false }) }));
+    await page.route('https://checkout.stripe.com/**', route =>
+      route.fulfill({ status: 200, contentType: 'text/html', body: '<h1>STRIPE CHECKOUT</h1>' }));
+    await page.goto('http://localhost:8899/checkout/?domain=acme.com');
+    await page.click('#toPayBtn');
+    await page.waitForSelector('#stripeForm', { state: 'visible', timeout: 5000 });
+    if (!tick) check('the marketing box starts unticked', !(await page.isChecked('#payMarketing')));
+    if (tick) await page.check('#payMarketing');
+    await page.fill('#payEmail', 'buyer@acme.com');
+    await page.click('#stripeBtn');
+    await page.waitForURL(/checkout\.stripe\.com/, { timeout: 5000 });
+    check(`${tick ? 'ticked' : 'unticked'} box reaches the server as marketing:${tick}`,
+      posts.length === 1 && posts[0].marketing === tick, posts);
+    await page.close();
+  }
+
   // 3 — the guard: 409 blocks, offers sign-in, never leaves the page
   {
     const { page } = await open(() => ({ status: 409, body: {
