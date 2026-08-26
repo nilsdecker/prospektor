@@ -1430,6 +1430,10 @@ footer {
 .crew-lede { margin: 0; font-size: 0.94rem; line-height: 1.6; }
 .crew-card.is-dark .crew-lede { color: rgba(255,255,255,0.82); }
 
+/* #221: the you-send line sits under the grid, and sec-sub's 1.1rem top margin
+   reads as part of the last card that close to it. */
+.crew-foot { margin-top: 2.25rem; }
+
 /* Five cards into three columns leaves a hole in row two. The last card fills
    it — which is also the right emphasis: RevOps is the one a competitor cannot
    copy. Only above the width where three columns are certain; below that the

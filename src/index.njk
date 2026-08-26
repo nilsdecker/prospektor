@@ -183,7 +183,13 @@ description: "Find the B2B companies worth pitching, then send them something wo
 
     <article class="crew-card">
       <span class="crew-kicker">Sales Ops agent</span>
-      <h3 class="crew-h">Checks it before you see it.</h3>
+      {#- #221: this heading is a pinned sentence, not copy. The five one-line
+           promises are asserted verbatim by test/agents.test.js in the studio
+           repo ("the studio and the website introduce the team in the same
+           words") — rewriting one here without lib/agents.js in the same push
+           makes that test a lie. This card shipped as "Checks it before you
+           see it."; #221 restored the pinned wording. -#}
+      <h3 class="crew-h">Checks the work before you see it.</h3>
       <p class="crew-lede">Reads the finished draft back and flags an invented number, a fabricated person, or a company the research already ruled out. It never rewrites your copy.</p>
     </article>
 
@@ -194,6 +200,13 @@ description: "Find the B2B companies worth pitching, then send them something wo
     </article>
 
   </div>
+
+  {#- #221: the line the whole set exists to earn, beside the five rather than
+       buried. `send` has no agent in the product — the run rail literally says
+       "You" on the send step (lib/agents.js UNSTAFFED) — so this is a
+       description of the build, not a promise. It is the answer to the AI-SDR
+       replacement tier, and since #218 it is checkable by watching a run. -#}
+  <p class="sec-sub crew-foot reveal d2">Our agents research, draft and check — <strong>you send</strong>. Nothing signs your name but you. And it's not a metaphor: in the studio, every step of a run names the agent working it.</p>
 </section>
 
 <section class="section-big termsec" id="how">
