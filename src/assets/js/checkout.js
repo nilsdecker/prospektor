@@ -7,10 +7,12 @@
   const steps = document.getElementById('steps');
   if (!steps) return;
 
+  // #243: the step-4 preview panel is gone — the sign-in story lives on
+  // /checkout/done/, told after payment to the person it is for. The step
+  // bar still shows "Sign in" as the journey's fourth step.
   const panels = {
     target: document.getElementById('panelTarget'),
     pay: document.getElementById('panelPay'),
-    signin: document.getElementById('panelSignin'),
   };
   const metaEl = document.getElementById('obMeta');
   const goalInput = document.getElementById('goalInput');
@@ -50,7 +52,7 @@
     steps.querySelectorAll('.step[data-step]').forEach(li => {
       const s = li.getAttribute('data-step');
       li.classList.remove('active', 'done');
-      const order = ['target', 'pay', 'signin'];
+      const order = ['target', 'pay'];
       if (s === name) li.classList.add('active');
       else if (order.indexOf(s) < order.indexOf(name)) li.classList.add('done');
     });
@@ -76,9 +78,6 @@
     try { sessionStorage.setItem('prospektor.goal', goalInput.value.trim()); } catch (e) {}
     show('pay');
   });
-  document.getElementById('toSigninBtn').addEventListener('click', () => show('signin'));
-  document.getElementById('backToPayBtn').addEventListener('click', () => show('pay'));
-
   // ── Live checkout, env-gated server-side ──
   // The page ships with the founding-spot capture as the only visible payment
   // UI. On load it asks the checkout function (GET probe) whether Stripe keys

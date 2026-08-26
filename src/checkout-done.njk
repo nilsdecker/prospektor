@@ -6,10 +6,13 @@ noindex: true
 description: "Your Prospektor workspace is live. Sign in with the address you paid with; the brief is drafted and the first prospects are already being researched."
 ---
 
-{# Stripe Checkout's success_url. Content per the handover's §3: the link is
-   plainly studio.prospektor.ai, Google sign-in with the paying address is the
-   only door, and expectations stay honest — drafted brief, one sentence to
-   confirm, three prospects waiting. #}
+{# Stripe Checkout's success_url (#244): celebrate, then confirm. What was
+   bought, what actually left the card (fetched live from the session —
+   promo codes make the first invoice anything from $0.01 up, and this page
+   must never invent a number), the address the studio is tied to, and that
+   the receipt is Stripe's mail, already on its way. One action: sign in.
+   Without a session_id (old bookmark, resubscribe path, fetch failure) the
+   card keeps its generic lines and nothing here breaks. #}
 <section class="onboard">
   <div class="onboard-inner">
 
@@ -21,27 +24,27 @@ description: "Your Prospektor workspace is live. Sign in with the address you pa
     </ol>
 
     <div class="onboard-panel">
-      <h1 class="onboard-h1">Paid. Your studio is already working.</h1>
-      <p class="onboard-sub">Go to <a href="https://studio.prospektor.ai">studio.prospektor.ai</a> and sign in with the address you just paid with — with Google, or with a single-use link the studio emails you. That's the whole setup — no token, no wizard.</p>
-      <ul class="pricing-list">
-        <li>While you paid, your studio read your site and drafted your brief</li>
-        <li>You confirm your target sentence once — one line, your words</li>
-        <li>Three researched prospects are lined up for your first pitch runs</li>
-        <li>Paid with your work email? Every colleague on your domain signs in the same way</li>
-      </ul>
+      <h1 class="onboard-h1">You're in. <span class="done-check">✓</span></h1>
+      <p class="onboard-sub">Payment confirmed — your studio is already reading your site and drafting your brief.</p>
+
+      <div class="order-card" id="confirmCard">
+        <div class="order-row">
+          <span class="order-name">Prospektor Studio · one workspace</span>
+          <span class="order-price">$999<span class="order-per">/mo</span></span>
+        </div>
+        <ul class="confirm-list">
+          <li id="confirmPaid" hidden>Paid today: <strong id="confirmAmount"></strong></li>
+          <li id="confirmEmail" hidden>Your sign-in: <strong id="confirmAddress"></strong></li>
+          <li>Your receipt is on its way — Stripe emails it to the address you paid with</li>
+        </ul>
+      </div>
+
       <div class="onboard-actions">
         <a class="btn-cta" href="https://studio.prospektor.ai">Sign in to your studio →</a>
       </div>
-      <p class="onboard-sub">If you arrive before the research lands, give it a minute — your studio is reading your site right now.</p>
+      <p class="onboard-sub">Sign in with Google using that address — or have the studio email you a single-use link. No token, no setup wizard.</p>
     </div>
 
   </div>
 </section>
-<script>
-  // The scan and goal have done their job — a later visit to /checkout/
-  // should start fresh, not from a paid-for session.
-  try {
-    sessionStorage.removeItem('prospektor.goal');
-    sessionStorage.removeItem('prospektor.scan');
-  } catch (e) {}
-</script>
+<script src="{{ '/assets/js/checkout-done.js' | asset }}" defer></script>

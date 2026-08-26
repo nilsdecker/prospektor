@@ -12,7 +12,9 @@ description: "Start your Prospektor workspace: $999 a month, unlimited runs, you
       <li class="step done"><span class="step-n-badge">✓</span>Scan</li>
       <li class="step active" data-step="target"><span class="step-n-badge">2</span>Your target</li>
       <li class="step" data-step="pay"><span class="step-n-badge">3</span>Payment</li>
-      <li class="step" data-step="signin"><span class="step-n-badge">4</span>Sign in</li>
+      {#- No data-step: step 4 happens on /checkout/done/, not on this page,
+          so the step driver must never mark it active or done here. -#}
+      <li class="step"><span class="step-n-badge">4</span>Sign in</li>
     </ol>
 
     <!-- STEP 2: confirm the target -->
@@ -22,8 +24,10 @@ description: "Start your Prospektor workspace: $999 a month, unlimited runs, you
         of them visible at a time, but a crawler sees the whole page at once and
         read three competing <h1>s. The class carries the styling, so the steps
         look identical. -#}
-      <h1 class="onboard-h1">Here's what Prospektor will hunt for you.</h1>
-      <p class="onboard-sub">Read it, sharpen it, or rewrite it in your own words — this sentence seeds your studio's brief, and you stay its author.</p>
+      {#- #242: short enough to sit on one line at every width — the old
+          "Here's what Prospektor will hunt for you." wrapped mid-phrase. -#}
+      <h1 class="onboard-h1">Your target.</h1>
+      <p class="onboard-sub">Sharpen it in your own words — it seeds your studio's brief.</p>
       <!-- Direct path (no scan): the studio researches the buyer from their
            site, so the one thing we must have is their address. -->
       <div id="siteAsk" hidden>
@@ -42,7 +46,7 @@ description: "Start your Prospektor workspace: $999 a month, unlimited runs, you
     <!-- STEP 3: payment -->
     <div class="onboard-panel" id="panelPay" hidden>
       <h2 class="onboard-h1">Payment.</h2>
-      <p class="onboard-sub">One subscription, the whole product. The moment payment lands, your studio starts researching you — it works while you find your way in.</p>
+      <p class="onboard-sub">The moment payment lands, your studio starts researching you.</p>
       <div class="order-card">
         <div class="order-row">
           <span class="order-name">Prospektor Studio · one workspace</span>
@@ -58,21 +62,30 @@ description: "Start your Prospektor workspace: $999 a month, unlimited runs, you
            Stripe keys exist. Until then the founding-spot capture below is
            the payment step, exactly as before. -->
       <div id="stripePay" hidden>
+        <!-- #243: the field says what it is FOR before asking for anything —
+             the operator read the bare input as "why do you want my email?".
+             The Google door exists, but it is the studio's sign-in after
+             payment, not an account here: one line says so instead of a
+             second auth path this page does not need (less-is-more). -->
+        <label class="pay-label" for="payEmail">Your sign-in email</label>
         <form class="reserve-form" id="stripeForm" novalidate>
           <input class="reserve-input" id="payEmail" type="email" autocomplete="email"
-                 placeholder="you@yourcompany.com" aria-label="Your work email">
+                 placeholder="you@yourcompany.com" aria-label="Your sign-in email">
           <button class="btn-cta" type="submit" id="stripeBtn">Continue to secure checkout →</button>
           <!-- #204: the same unticked, optional box the studio's first-run card
                carries, asked here because the buyer is already filling in a
                form. It stays unticked and nothing depends on it — a tick rides
                through checkout metadata and the studio records the permission
-               against this address, so the buyer is not asked again inside. -->
+               against this address, so the buyer is not asked again inside.
+               #243 asked for it pre-ticked: NOT done — a pre-ticked consent
+               box is invalid for EU visitors (GDPR/ePrivacy, Planet49); the
+               question is with COMPLIANCE in HANDOVER-compliance.md. -->
           <label class="pay-opt" for="payMarketing">
             <input type="checkbox" id="payMarketing">
             <span>Product news and tips, by email — optional, a few times a month at most</span>
           </label>
         </form>
-        <p class="onboard-sub">This address becomes your studio's sign-in. Use your work email so your whole team can get in — and if you have a promotion code, there's a field for it at checkout.</p>
+        <p class="onboard-sub">After payment you sign in with this address — with Google, or an emailed link. Work email means your whole team gets in.</p>
         <p class="reserve-msg is-error" id="stripeMsg" hidden></p>
       </div>
       <div class="onboard-note" id="payFallbackNote">
@@ -94,25 +107,12 @@ description: "Start your Prospektor workspace: $999 a month, unlimited runs, you
         <input type="text" name="hp">
       </form>
       <p class="reserve-msg" id="reserveMsg" hidden></p>
-      <div class="onboard-actions">
-        <button class="onboard-back" id="toSigninBtn">what happens after payment →</button>
-      </div>
     </div>
-
-    <!-- STEP 4: sign in -->
-    <div class="onboard-panel" id="panelSignin" hidden>
-      <h2 class="onboard-h1">Sign in — the studio is already yours.</h2>
-      <p class="onboard-sub">After payment you get one email. It says: go to <a href="https://studio.prospektor.ai">studio.prospektor.ai</a> and sign in with the address you paid with — with Google, or with a single-use link the studio emails you. No token, no setup wizard.</p>
-      <ul class="pricing-list">
-        <li>While you paid, the studio researched you — you arrive to a drafted brief, not an empty page</li>
-        <li>You confirm your target sentence (the one from the last step) once</li>
-        <li>Three researched prospects are waiting to run their first pitches</li>
-        <li>Use your work email and every colleague on your domain can sign straight in</li>
-      </ul>
-      <div class="onboard-actions">
-        <button class="btn-cta" id="backToPayBtn">← back to payment</button>
-      </div>
-    </div>
+    {#- #243: the "what happens after payment →" preview button and its step-4
+        panel are gone — one primary action per screen (less-is-more), and
+        /checkout/done/ now tells the sign-in story to the person it is
+        actually for, after they have actually paid. The step bar keeps
+        "Sign in" so payment is never the apparent last step. -#}
 
   </div>
 </section>

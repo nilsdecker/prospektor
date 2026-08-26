@@ -112,12 +112,13 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
   } catch (e) {}
   check('a live scan reaches a terminal state (not a spinner forever)', scanOutcome !== 'timeout', 'outcome: ' + scanOutcome);
   if (scanOutcome === 'result') {
+    // #240: the result is one card — name, chips, the proposal. The signal
+    // bullets are deliberately gone ("the client knows themselves").
     const goal = (await page.textContent('#scanGuess')).trim();
-    const signals = await page.locator('#scanSignals li').count();
-    const facts = await page.isVisible('#scanFacts');
+    const name = (await page.textContent('#scanName')).trim();
     check('scan renders a target headline', goal.length > 0, JSON.stringify(goal.slice(0,80)));
-    check('scan renders signal bullets', signals > 0, signals+' bullets');
-    check('scan renders the facts strip', facts);
+    check('scan card leads with who they are', name.length > 0, JSON.stringify(name));
+    check('scan renders no signal bullets (#240)', (await page.locator('#scanSignals li').count()) === 0);
     const href = await page.getAttribute('#scanCta','href');
     check('scan CTA carries domain into /checkout/', /^\/checkout\/\?.*domain=/.test(href) || href === '/checkout/', href);
   }
@@ -150,6 +151,8 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
   const p4 = await ctx.newPage();
   const doneRes = await p4.goto(SITE+'/checkout/done/', { waitUntil: 'domcontentloaded' });
   check('/checkout/done/ serves 200', doneRes.status()===200, 'HTTP '+doneRes.status());
+  check('/checkout/done/ is a confirmation, not a next-step card (#244)',
+    await p4.isVisible('#confirmCard'));
 
   // ── CLAIM: the website hosts its own fonts (no Google Fonts) ──
   check('website makes no third-party requests', thirdParty.size===0, [...thirdParty].join(', ') || 'none');
