@@ -212,6 +212,115 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     }
   }
 
+  // 6c — #240: the scan result is one card the width of the search bar.
+  //      Geometry again, like 6b, because that was the literal complaint
+  //      ("not sure why it's not the width of the search bar") — and the
+  //      signal bullets must stay unrendered even when the scan returns them.
+  {
+    const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+    await page.route('https://studio.prospektor.ai/api/scan**', route =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+        domain: 'acme.com', status: 'done', mode: 'live',
+        result: {
+          name: 'Acme GmbH',
+          summary: 'Acme sells anvils to coyotes.',
+          inferredGoal: 'Mid-size property managers in the DACH region.',
+          signals: ['Your pricing page lists three tiers.', 'Your case studies name two logos.'],
+          facts: ['B2B SaaS', 'Berlin', '40 employees'],
+        },
+      }) }));
+    await page.goto('http://localhost:8899/');
+    await page.fill('#scanInput', 'acme.com');
+    await page.click('#scanBtn');
+    await page.waitForSelector('#scanResult:not([hidden])', { timeout: 5000 });
+    const m = await page.evaluate(() => {
+      const b = el => el.getBoundingClientRect();
+      return {
+        formW: b(document.querySelector('.scan-form')).width,
+        cardW: b(document.querySelector('.scan-card')).width,
+        name: document.getElementById('scanName').textContent,
+        domain: document.getElementById('scanDomain').textContent,
+        chips: document.querySelectorAll('#scanFacts span').length,
+        signals: document.querySelectorAll('.scan-signals li, #scanSignals li').length,
+        guess: document.getElementById('scanGuess').textContent,
+      };
+    });
+    check('the result card is the width of the search bar (#240)',
+      Math.abs(m.cardW - m.formW) < 1, m);
+    check('the card leads with the company, domain beside it',
+      m.name === 'Acme GmbH' && m.domain === 'acme.com', m);
+    check('facts render as chips', m.chips === 3, m);
+    check('the evidence bullets are gone — the client knows themselves (#240)',
+      m.signals === 0, m);
+    check('the proposal still leads the card', m.guess.length > 0, m);
+    check('the CTA carries the scan into checkout',
+      (await page.getAttribute('#scanCta', 'href')) === '/checkout/?domain=acme.com&company=Acme+GmbH');
+    await page.close();
+  }
+
+  // 6d — #242/#243: the target step's title holds one line at both widths,
+  //      the payment step says what the email field is for, and the step-4
+  //      preview (button and panel) is gone — done/ tells that story now.
+  {
+    for (const vp of [{ width: 1440, height: 900 }, { width: 390, height: 844 }]) {
+      const page = await browser.newPage({ viewport: vp });
+      await page.goto('http://localhost:8899/checkout/?domain=acme.com');
+      const t = await page.evaluate(() => {
+        const el = document.querySelector('#panelTarget .onboard-h1');
+        const lh = parseFloat(getComputedStyle(el).lineHeight);
+        return { lines: Math.round(el.getBoundingClientRect().height / lh) };
+      });
+      check(`the target title sits on one line (#242, ${vp.width}px)`, t.lines === 1, t);
+      await page.close();
+    }
+    const { page } = await open(() => OK);
+    await page.goto('http://localhost:8899/checkout/?domain=acme.com');
+    check('the after-payment preview button is gone (#243)',
+      (await page.$('#toSigninBtn')) === null && (await page.$('#panelSignin')) === null);
+    await page.click('#toPayBtn');
+    await page.waitForSelector('#stripePay:not([hidden])', { timeout: 5000 });
+    check('the email field says what it is for (#243)',
+      ((await page.textContent('.pay-label')) || '').includes('sign-in email'));
+    check('the sign-in step stays a future step on the payment screen',
+      (await page.evaluate(() =>
+        [...document.querySelectorAll('#steps .step')].pop().className.trim())) === 'step');
+    await page.close();
+  }
+
+  // 6e — #244: /checkout/done/ confirms what was actually bought. With a
+  //      session id it shows the real amount (the operator's $0.01 case) and
+  //      the address; without one it keeps its generic card and breaks
+  //      nothing — and either way the stashed scan is cleared.
+  {
+    const page = await browser.newPage();
+    await page.route('**/.netlify/functions/checkout-session-status**', route =>
+      route.fulfill({ status: 200, contentType: 'application/json',
+        body: JSON.stringify({ paid: true, amount_total: 1, currency: 'usd', email: 'buyer@acme.com' }) }));
+    await page.goto('http://localhost:8899/');
+    await page.evaluate(() => sessionStorage.setItem('prospektor.scan', '{"domain":"acme.com"}'));
+    await page.goto('http://localhost:8899/checkout/done/?session_id=cs_test_abcdefghij');
+    await page.waitForSelector('#confirmPaid:not([hidden])', { timeout: 5000 });
+    check('done shows what actually left the card (#244)',
+      (await page.textContent('#confirmAmount')) === '$0.01');
+    check('done shows the sign-in address (#244)',
+      (await page.textContent('#confirmAddress')) === 'buyer@acme.com');
+    check('done clears the stashed scan',
+      (await page.evaluate(() => sessionStorage.getItem('prospektor.scan'))) === null);
+    await page.close();
+
+    const bare = await browser.newPage();
+    await bare.route('**/.netlify/functions/checkout-session-status**', route =>
+      route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'Not configured' }) }));
+    await bare.goto('http://localhost:8899/checkout/done/');
+    check('done without a session keeps the generic confirmation',
+      (await bare.isVisible('#confirmCard'))
+      && !(await bare.isVisible('#confirmPaid'))
+      && !(await bare.isVisible('#confirmEmail')));
+    check('done still promises the Stripe receipt',
+      ((await bare.textContent('#confirmCard')) || '').includes('receipt'));
+    await bare.close();
+  }
+
   // 7 — the help hub, and search answering the operator's own question
   //     (#145/#136, re-pointed by #166). Nothing is mocked before the first
   //     assertions on purpose: everything here has to be true of the HTML the

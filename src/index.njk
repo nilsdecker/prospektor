@@ -52,21 +52,30 @@ description: "Find the B2B companies worth pitching, then send them something wo
         <div class="scan-status-line"><span class="building-dot"></span><span id="scanStatusMsg"></span></div>
       </div>
 
+      {#- #240: one card, the exact width and box style of the search bar above
+          it. Name + domain, fact chips, the proposal — that's the whole result.
+          The evidence bullets are gone on purpose: the reader IS the company
+          being described ("the client knows themselves"), so proving we read
+          their site is explanation nobody asked for. Less-is-more (CLAUDE.md). -#}
       <div class="scan-result" id="scanResult" hidden>
-        <div class="scan-result-meta" id="scanResultMeta"></div>
-        <div class="scan-facts" id="scanFacts" hidden></div>
-        <p class="scan-lead">Here's what Prospektor will find for you:</p>
-        {#- Not a heading (#137). This is the scan's answer, written by scan.js after
-         the fetch returns; as an <h3> it was an EMPTY heading sitting between the
-         <h1> and the first <h2>, so every crawler read the homepage outline as
-         h1 → h3(blank) → h2. A <p> says what it is — a line of result text that
-         happens to be large — and the styling is unchanged because .scan-guess
-         was always a class rule, never an element one. -#}
-        <p class="scan-guess" id="scanGuess" role="status" aria-live="polite"></p>
-        <ul class="scan-signals" id="scanSignals"></ul>
-        <div class="scan-cta-row">
-          <a class="btn-cta" id="scanCta" href="/checkout/">Start my studio →</a>
-          <p class="scan-cta-note">Off target? Sharpen it in one sentence after checkout.</p>
+        <div class="scan-card">
+          <div class="scan-card-head">
+            <span class="scan-card-name" id="scanName"></span>
+            <span class="scan-card-domain" id="scanDomain"></span>
+          </div>
+          <div class="scan-chips" id="scanFacts" hidden></div>
+          <p class="scan-lead">Here's what Prospektor will find for you:</p>
+          {#- Not a heading (#137). This is the scan's answer, written by scan.js after
+           the fetch returns; as an <h3> it was an EMPTY heading sitting between the
+           <h1> and the first <h2>, so every crawler read the homepage outline as
+           h1 → h3(blank) → h2. A <p> says what it is — a line of result text that
+           happens to be large — and the styling is unchanged because .scan-guess
+           was always a class rule, never an element one. -#}
+          <p class="scan-guess" id="scanGuess" role="status" aria-live="polite"></p>
+          <div class="scan-cta-row">
+            <a class="btn-cta" id="scanCta" href="/checkout/">Start my studio →</a>
+            <p class="scan-cta-note">Off target? Sharpen it in one sentence after checkout.</p>
+          </div>
         </div>
       </div>
 

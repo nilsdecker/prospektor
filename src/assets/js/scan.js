@@ -20,10 +20,10 @@
   const barEl = document.getElementById('scanBarFill');
   const resultEl = document.getElementById('scanResult');
   const heroEl = document.querySelector('.hero');
-  const resultMeta = document.getElementById('scanResultMeta');
+  const nameEl = document.getElementById('scanName');
+  const domainEl = document.getElementById('scanDomain');
   const factsEl = document.getElementById('scanFacts');
   const guessEl = document.getElementById('scanGuess');
-  const signalsEl = document.getElementById('scanSignals');
   const ctaEl = document.getElementById('scanCta');
   const fallbackEl = document.getElementById('scanFallback');
   const fallbackMsg = document.getElementById('scanFallbackMsg');
@@ -160,10 +160,15 @@
       return;
     }
     hideAll();
-    resultMeta.textContent = result.name ? domain + ' · ' + result.name : domain;
-    // Short fact fragments (a future scan field) render as a stat strip —
-    // they know who they are; the strip only shows we do too. Until the
-    // studio returns them, the prose summary stays off the page.
+    // #240: the card leads with who they are — name big, domain quiet beside
+    // it. With no name the domain takes the name slot rather than doubling.
+    nameEl.textContent = result.name || domain;
+    domainEl.textContent = result.name ? domain : '';
+    domainEl.hidden = !result.name;
+    // Short fact fragments render as chips — they know who they are; the
+    // chips only show we do too. The signals (evidence bullets) are read and
+    // validated above but deliberately not rendered: the reader is the
+    // company being described (#240, "the client knows themselves").
     const facts = (Array.isArray(result.facts) ? result.facts : [])
       .map(f => String(f || '').trim()).filter(f => f && !looksBroken(f)).slice(0, 4);
     factsEl.textContent = '';
@@ -174,13 +179,6 @@
     });
     factsEl.hidden = facts.length === 0;
     guessEl.textContent = toProposal(goal);
-    signalsEl.textContent = '';
-    signals.forEach(s => {
-      const li = document.createElement('li');
-      li.textContent = s;
-      signalsEl.appendChild(li);
-    });
-    signalsEl.hidden = signalsEl.childElementCount === 0;
     ctaEl.href = checkoutUrl(domain, result.name);
     // The checkout page picks the scan up from here so the buyer's target
     // sentence survives the navigation without a backend.

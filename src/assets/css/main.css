@@ -269,46 +269,52 @@ nav {
 }
 
 .scan-result {
-  margin-top: 2.75rem;
+  margin-top: 1.5rem;
   text-align: left;
   animation: fadeUp .5s ease;
 }
 
-.scan-result-meta {
-  font-family: var(--mono); font-size: 0.65rem; font-weight: 500;
-  color: var(--ink-faint); letter-spacing: 0.02em;
-  margin-bottom: 0.6rem;
+/* #240: the result is ONE card, wearing the search bar's own box — same
+   border, same radius, same shadow, and by construction the same width, which
+   is the alignment the operator asked for. Inside it: name + domain, fact
+   chips, the proposal, the CTA. Nothing monospace, nothing uppercase. */
+.scan-card {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 1.5rem 1.5rem 1.4rem;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
 }
 
-.scan-facts {
-  font-family: var(--mono); font-size: 0.7rem; font-weight: 500;
-  letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-mid);
-  display: flex; flex-wrap: wrap; gap: 0.4rem 0;
-  margin-bottom: 1.5rem;
+.scan-card-head {
+  display: flex; align-items: baseline; gap: 0.7rem; flex-wrap: wrap;
 }
-.scan-facts span + span::before { content: '·'; margin: 0 0.6rem; color: var(--ink-faint); }
+.scan-card-name {
+  font-size: 1.05rem; font-weight: 800; letter-spacing: -0.015em;
+  color: var(--ink);
+}
+.scan-card-domain {
+  font-family: var(--mono); font-size: 0.7rem; color: var(--ink-faint);
+}
+
+.scan-chips {
+  display: flex; flex-wrap: wrap; gap: 0.4rem;
+  margin-top: 0.75rem;
+}
+.scan-chips span {
+  font-size: 0.72rem; line-height: 1.4; color: var(--ink-mid);
+  background: var(--stone); border: 1px solid var(--border);
+  border-radius: 100px; padding: 0.22rem 0.7rem;
+}
 
 .scan-lead {
-  font-size: 0.95rem; color: var(--ink-mid);
-  margin: 1.5rem 0 0.6rem;
+  font-size: 0.85rem; color: var(--ink-mid);
+  margin: 1.4rem 0 0.5rem;
 }
 
 .scan-guess {
-  font-size: 1.5rem; font-weight: 800; letter-spacing: -0.025em;
+  font-size: 1.35rem; font-weight: 800; letter-spacing: -0.025em;
   line-height: 1.3; color: var(--ink);
-}
-
-.scan-signals {
-  list-style: none; margin: 1.25rem 0 0;
-  display: flex; flex-direction: column; gap: 0.55rem;
-}
-.scan-signals li {
-  position: relative; padding-left: 1.15rem;
-  font-size: 0.86rem; color: var(--ink-mid); line-height: 1.6;
-}
-.scan-signals li::before {
-  content: ''; position: absolute; left: 0; top: 0.62em;
-  width: 4px; height: 4px; border-radius: 50%; background: var(--ink-faint);
 }
 
 .scan-cta-row {
@@ -316,7 +322,7 @@ nav {
   border-top: 1px solid var(--border);
   display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap;
 }
-.scan-result .scan-cta-row { border-top: none; padding-top: 0; margin-top: 2rem; }
+.scan-result .scan-cta-row { border-top: none; padding-top: 0; margin-top: 1.4rem; }
 .scan-cta-note {
   font-size: 0.75rem; color: var(--ink-faint); line-height: 1.5;
   max-width: 220px; text-align: left;
@@ -601,6 +607,15 @@ nav {
 .order-per { font-family: var(--mono); font-size: 0.7rem; font-weight: 500; color: var(--ink-faint); margin-left: 0.15rem; }
 .order-card .pricing-list { margin-top: 0; }
 
+/* #244: /checkout/done/'s confirmation card — quiet facts, no bullets. */
+.done-check { color: var(--accent); }
+.confirm-list {
+  list-style: none; margin: 0; padding: 0;
+  display: flex; flex-direction: column; gap: 0.45rem;
+}
+.confirm-list li { font-size: 0.86rem; color: var(--ink-mid); line-height: 1.5; }
+.confirm-list strong { color: var(--ink); font-weight: 700; }
+
 .onboard-note {
   margin-top: 1.25rem; padding: 1.1rem 1.35rem;
   border: 1px solid var(--border); border-radius: 10px; background: var(--white);
@@ -621,6 +636,12 @@ nav {
 }
 .reserve-input:focus { border-color: var(--accent); }
 .reserve-input::placeholder { color: var(--ink-faint); }
+
+/* #243: the email field's job, stated before the field asks for anything. */
+.pay-label {
+  display: block; font-size: 0.8rem; font-weight: 700; color: var(--ink);
+  margin-bottom: 0.5rem; text-align: left;
+}
 
 /* The optional marketing box on the payment step (#204): quiet, full-width
    under the email row, and visually incapable of reading as required. */

@@ -109,6 +109,15 @@ describe('create-checkout-session', () => {
     }
   });
 
+  test('success lands on /checkout/done/ carrying the session id (#244)', async () => {
+    const calls = stubFetch([STRIPE_OK, FREE]);
+    await post(fn, { email: 'b@acme.com', from: 'pricing' });
+    // The literal template — Stripe substitutes the real cs_… id on redirect,
+    // and the done page trades it for the paid amount and address.
+    assert.match(new URLSearchParams(stripeCalls(calls)[0].body).get('success_url'),
+      /\/checkout\/done\/\?session_id=\{CHECKOUT_SESSION_ID\}$/);
+  });
+
   test('sends a cancelling buyer back where they started', async () => {
     const calls = stubFetch([STRIPE_OK, FREE]);
     await post(fn, { email: 'b@acme.com', from: 'pricing' });

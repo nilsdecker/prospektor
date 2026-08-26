@@ -126,7 +126,11 @@ exports.handler = async function(event) {
     'line_items[0][price_data][recurring][interval]': 'month',
     'line_items[0][price_data][product_data][name]': 'Prospektor Studio — one workspace',
     allow_promotion_codes: 'true',
-    success_url: data.from === 'resubscribe' ? 'https://studio.prospektor.ai/' : site + '/checkout/done/',
+    // {CHECKOUT_SESSION_ID} is Stripe's template literal — Stripe substitutes
+    // the real cs_… id on redirect, and /checkout/done/ trades it back for
+    // the paid amount and sign-in address via checkout-session-status (#244).
+    success_url: data.from === 'resubscribe' ? 'https://studio.prospektor.ai/'
+      : site + '/checkout/done/?session_id={CHECKOUT_SESSION_ID}',
     cancel_url: cancelUrl,
   });
   // #204: the optional marketing box. Only a literal true becomes metadata —
