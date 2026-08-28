@@ -13,23 +13,23 @@
 // link to a page somebody renamed.
 const { test, describe, before, after } = require('node:test');
 const assert = require('node:assert');
-const { execFileSync } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
 
 const ROOT = path.join(__dirname, '..');
 const site = require('../src/_data/site.json');
+const { siteBuild } = require('./helpers.js');
 
-let SITE, txt;
+let SITE, txt, built;
 
 describe('llms.txt — the machine-readable front door (#316)', () => {
   before(() => {
-    SITE = fs.mkdtempSync(path.join(os.tmpdir(), 'llms-'));
-    execFileSync('npx', ['@11ty/eleventy', '--quiet', '--output=' + SITE], { cwd: ROOT, stdio: 'ignore' });
+    built = siteBuild('llms');
+    SITE = built.dir;
     txt = fs.readFileSync(path.join(SITE, 'llms.txt'), 'utf8');
   });
-  after(() => fs.rmSync(SITE, { recursive: true, force: true }));
+  after(() => built && built.cleanup());
 
   test('it builds at the site root, beside robots.txt', () => {
     assert.ok(fs.existsSync(path.join(SITE, 'robots.txt')));

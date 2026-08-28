@@ -1,11 +1,13 @@
 # Tests for the website lane
 
-Three commands, in the order a thread uses them.
+Three commands, in the order a thread uses them. `npm test` runs
+`test/run.js`, not `node --test` — read *Why `npm test` is a script* below
+before changing that.
 
 | Command | What it asks | Needs |
 |---|---|---|
-| `npm test` | Do the functions behave, and does the site build what it claims? 166 tests over the guards, the fail-open policy, the webhook, `/resources/` (including the learnings ledger), `/help/` (the hub, and the per-guide pages #166 split it into) and the content-hashed assets #169 introduced. | Nothing — no network, no keys (`HELP_CORPUS_OFFLINE=1` is set for you, so the help corpus comes from the committed snapshot) |
-| `npm run drive` | Does the built site wire up in a real browser? 263 checks over the pay form, the ownership block, the website ask and both fallbacks, the help hub and its search, a guide on its own URL and the anchors that forward to it, the /resources topic filter, and what a crawler is served — with the functions and the studio mocked. | Chromium (`CHROME_PATH` to override) |
+| `npm test` | Do the functions behave, and does the site build what it claims? 192 tests over the guards, the fail-open policy, the webhook, `/resources/` (including the learnings ledger), `/help/` (the hub, and the per-guide pages #166 split it into) and the content-hashed assets #169 introduced. | Nothing — no network, no keys (`HELP_CORPUS_OFFLINE=1` is set for you, so the help corpus comes from the committed snapshot) |
+| `npm run drive` | Does the built site wire up in a real browser? 290 checks over the pay form, the ownership block, the website ask and both fallbacks, the help hub and its search, a guide on its own URL and the anchors that forward to it, the /resources topic filter, and what a crawler is served — with the functions and the studio mocked. | Chromium (`CHROME_PATH` to override) |
 | `npm run audit` | Is **production** still what the board says it is? Every claim on this lane's board rows, fetched from the live site — the count grows with the board, so it is deliberately not promised here (#135's lesson about the runbook's fixed URL count). Read-only — it runs a real scan and reads pages, and never posts anything that charges. | Chromium, network (`AUDIT_SITE` to point elsewhere) |
 
 ## What the function tests are actually protecting
@@ -78,3 +80,41 @@ unreferenced.
   egress loses roughly one request in six — always a dead connection, never a
   5xx from the app — and a single blip once reported two claims as broken. A
   check that cries wolf stops being read.
+
+## Why `npm test` is a script, and not `node --test` (#324)
+
+For some weeks `npm test` printed `# fail 0` while **ten tests had not run at
+all** — the whole of `consent.test.js`, which is what stands between an EU
+visitor and an analytics tag. Two independent faults, and the second is the
+one that made the first survive.
+
+**Why they did not run.** Seven test files each shelled out to a full Eleventy
+build inside their own `before()` hook, and Node runs test *files* in parallel
+— so a `npm test` was seven concurrent builds. When one of them died,
+`stdio: 'ignore'` threw the reason away. The suite now builds **once**, in
+`test/run.js`, before any test process starts, and hands the directory down in
+`PPS_TEST_SITE`; `siteBuild()` in `helpers.js` is what every file calls, and a
+file run on its own still builds its own copy:
+
+    node --test test/consent.test.js       # builds its own site, no runner
+
+`help.test.js` is the deliberate exception — its subject *is* the build under a
+corpus that is offline, slow, lying or dead, so each variant still gets its own
+run. Nothing anywhere calls `npx` any more; the binary is invoked directly, and
+a failed build now throws with Eleventy's own words instead of silence.
+
+**Why nothing went red.** This is the part worth remembering, because it is a
+property of Node and not of this repo. A failed `before()` hook is summarised
+as `# fail 0` with `# cancelled N` — cancelled tests are *not* counted as
+failures, and `# fail 0` is the line a reader checks. A failed `after()` hook
+is worse: it is summarised as a clean pass and exits 0, appearing in no counter
+at all. So the counters are read rather than trusted. `verdict()` in
+`test/run.js` is the whole rule — a run is a pass only when nothing failed,
+**nothing was cancelled**, no hook failed, at least one test passed, and the
+runner exited 0 — and every clause of it is pinned by `run.test.js` against
+recorded TAP, including the exact deceptive shape #324 reported. A cancelled
+test now prints its own name under a `SUITE FAILED` banner and exits 1.
+
+Same class as the studio's #286: a green run that is not green. The rule both
+rows land on is that the suite must say what it proved, not merely what it did
+not catch.

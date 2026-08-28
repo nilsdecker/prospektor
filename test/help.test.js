@@ -26,7 +26,6 @@
 //     unrelated service blinked is a worse bug than the one being fixed.
 const { test, describe, before } = require('node:test');
 const assert = require('node:assert');
-const { execFileSync } = require('node:child_process');
 const http = require('node:http');
 const fs = require('node:fs');
 const os = require('node:os');
@@ -34,6 +33,7 @@ const path = require('node:path');
 
 const ROOT = path.join(__dirname, '..');
 const H = require('../src/assets/js/help-render.js');
+const { siteBuild, buildInto } = require('./helpers.js');
 
 // The committed snapshot is the fixture: real corpus, deterministic, and
 // refreshed deliberately by `npm run help:snapshot` rather than by a network
@@ -51,9 +51,12 @@ const FIXTURE = H.buildIndex([
   { name: '08-workspace.md', text: '# Workspace settings\n\nSettings live here.\n\n## More than one workspace\n\nAgency workspaces get New client workspace in that menu, so an owner can create a workspace for a client.\n' },
 ]);
 
-const build = (outDir, env) => execFileSync('npx', ['@11ty/eleventy', '--quiet', '--output=' + outDir], {
-  cwd: ROOT, stdio: 'pipe', env: { ...process.env, ...env },
-});
+// This file is the one that still builds repeatedly, and deliberately: its
+// subject IS the build under a corpus that is offline, slow, lying or dead, so
+// each variant needs its own run. The plain offline builds go through
+// `siteBuild` instead and reuse the suite's one shared tree (#324).
+const build = (outDir, env) => buildInto(outDir, env);
+const offlineSite = () => siteBuild('help');
 
 const tmp = () => fs.mkdtempSync(path.join(os.tmpdir(), 'help-'));
 
@@ -120,8 +123,7 @@ describe('every anchor search hands out is a real id on the page', () => {
     // that reads `/help/sharing/#sharing--revoking` is only an answer if that
     // id is really on that page; a wrong anchor is not an error anywhere,
     // the browser just does nothing.
-    const out = tmp();
-    build(out, { HELP_CORPUS_OFFLINE: '1' });
+    const out = offlineSite().dir;
     for (const article of INDEX) {
       const page = path.join(out, 'help', article.slug, 'index.html');
       assert.ok(fs.existsSync(page), `${article.slug} has no page of its own`);
@@ -220,8 +222,7 @@ describe('the corpus hash — the "no double render" check', () => {
 describe('the prerendered help section (#136, split by #166)', () => {
   let out, hub, guidePages;
   before(() => {
-    out = tmp();
-    build(out, { HELP_CORPUS_OFFLINE: '1' });
+    out = offlineSite().dir;
     hub = fs.readFileSync(path.join(out, 'help', 'index.html'), 'utf8');
     guidePages = new Map(INDEX.map(a => {
       const file = path.join(out, 'help', a.slug, 'index.html');

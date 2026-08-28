@@ -11,16 +11,16 @@
 //   - the sitemap includes the hub and every article and is still parseable XML
 //     (a Nunjucks comment above the declaration once put a blank first line
 //     there, which is valid-looking and strictly broken).
-const { test, describe, before } = require('node:test');
+const { test, describe, before, after } = require('node:test');
 const assert = require('node:assert');
-const { execFileSync } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 const { articles } = require('../tools/learning-coverage.js');
 const { served } = require('../lib/assets.js');
+const { siteBuild } = require('./helpers.js');
 
 const ROOT = path.join(__dirname, '..');
-const SITE = path.join(ROOT, '_site');
+let SITE, built;
 const SRC = path.join(ROOT, 'src', 'resources');
 
 const read = p => fs.readFileSync(path.join(SITE, p), 'utf8');
@@ -28,10 +28,14 @@ const slugs = () => fs.readdirSync(SRC).filter(f => f.endsWith('.md')).map(f => 
 
 describe('/resources/', () => {
   before(() => {
-    // Build once, from this test, so `npm test` never asserts against a stale
-    // _site left over from someone's last `npm start`.
-    execFileSync('npx', ['@11ty/eleventy'], { cwd: ROOT, stdio: 'pipe' });
+    // A build of this suite's own rather than the repo's `_site`, so `npm test`
+    // never asserts against a stale tree left over from someone's last
+    // `npm start` — and since #324 it is the ONE build the whole suite shares
+    // rather than the seventh eleventy run racing the other six.
+    built = siteBuild('resources');
+    SITE = built.dir;
   });
+  after(() => built && built.cleanup());
 
   test('there is at least one article, and each builds to its own URL', () => {
     const all = slugs();

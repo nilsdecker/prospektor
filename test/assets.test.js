@@ -27,7 +27,6 @@
 // friction points at the defect and never at the work.
 const { test, describe, before, after } = require('node:test');
 const assert = require('node:assert');
-const { execFileSync } = require('node:child_process');
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -35,8 +34,9 @@ const os = require('node:os');
 
 const ROOT = path.join(__dirname, '..');
 const A = require('../lib/assets.js');
+const { siteBuild } = require('./helpers.js');
 
-let SITE;
+let SITE, built;
 const htmlPages = dir => fs.readdirSync(dir, { withFileTypes: true }).flatMap(e =>
   e.isDirectory() ? htmlPages(path.join(dir, e.name))
     : e.name.endsWith('.html') ? [path.join(dir, e.name)] : []);
@@ -50,11 +50,8 @@ const inHashedTree = url => A.HASHED_TREES.includes(url.split('/')[2])
   && A.HASHED_EXT.has(path.extname(url));
 
 describe('assets carry a content hash, and are cached forever because of it', () => {
-  before(() => {
-    SITE = fs.mkdtempSync(path.join(os.tmpdir(), 'assets-'));
-    execFileSync('npx', ['@11ty/eleventy', '--quiet', '--output=' + SITE], { cwd: ROOT, stdio: 'ignore' });
-  });
-  after(() => fs.rmSync(SITE, { recursive: true, force: true }));
+  before(() => { built = siteBuild('assets'); SITE = built.dir; });
+  after(() => built && built.cleanup());
 
   test('every asset a page names is actually served', () => {
     const dead = [];

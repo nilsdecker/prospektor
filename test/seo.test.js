@@ -20,13 +20,13 @@
 // The build is done once, here, and read as files. Nothing hits the network.
 const { test, describe, before, after } = require('node:test');
 const assert = require('node:assert');
-const { execFileSync } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
 
 const ROOT = path.join(__dirname, '..');
 const site = require('../src/_data/site.json');
+const { siteBuild } = require('./helpers.js');
 
 // What a search result actually shows. Both are soft limits measured in pixels
 // rather than characters, so they are rounded generously — the point is to
@@ -34,7 +34,7 @@ const site = require('../src/_data/site.json');
 const TITLE_MAX = 60;
 const DESC_MAX = 160;
 
-let SITE;
+let SITE, built;
 const htmlFiles = dir => fs.readdirSync(dir, { withFileTypes: true }).flatMap(e =>
   e.isDirectory() ? htmlFiles(path.join(dir, e.name))
     : e.name.endsWith('.html') ? [path.join(dir, e.name)] : []);
@@ -72,11 +72,8 @@ const indexable = () => {
 };
 
 describe('SEO — the #137 findings, pinned', () => {
-  before(() => {
-    SITE = fs.mkdtempSync(path.join(os.tmpdir(), 'seo-'));
-    execFileSync('npx', ['@11ty/eleventy', '--quiet', '--output=' + SITE], { cwd: ROOT, stdio: 'ignore' });
-  });
-  after(() => fs.rmSync(SITE, { recursive: true, force: true }));
+  before(() => { built = siteBuild('seo'); SITE = built.dir; });
+  after(() => built && built.cleanup());
 
   test('every title fits the result, or says why it cannot', () => {
     for (const p of pages())

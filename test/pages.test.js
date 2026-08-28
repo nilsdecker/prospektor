@@ -26,7 +26,6 @@
 //     would have caught the nav on the day it broke.
 const { test, describe, before, after } = require('node:test');
 const assert = require('node:assert');
-const { execFileSync } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 const os = require('node:os');
@@ -34,10 +33,11 @@ const os = require('node:os');
 const ROOT = path.join(__dirname, '..');
 const site = require('../src/_data/site.json');
 const { served } = require('../lib/assets.js');
+const { siteBuild } = require('./helpers.js');
 
 // Built into a directory of this file's own — /resources/ and the consent gate
 // build too, and Node runs test files in parallel. Same reasoning, same shape.
-let SITE;
+let SITE, built;
 const read = p => fs.readFileSync(path.join(SITE, p), 'utf8');
 const htmlPages = dir => fs.readdirSync(dir, { withFileTypes: true }).flatMap(e =>
   e.isDirectory() ? htmlPages(path.join(dir, e.name))
@@ -47,11 +47,8 @@ const htmlPages = dir => fs.readdirSync(dir, { withFileTypes: true }).flatMap(e 
 const fileFor = url => path.join(SITE, url.replace(/^\//, '').replace(/\/$/, '') || '.', 'index.html');
 
 describe('the header, and the pages behind it', () => {
-  before(() => {
-    SITE = fs.mkdtempSync(path.join(os.tmpdir(), 'pages-'));
-    execFileSync('npx', ['@11ty/eleventy', '--quiet', '--output=' + SITE], { cwd: ROOT, stdio: 'ignore' });
-  });
-  after(() => fs.rmSync(SITE, { recursive: true, force: true }));
+  before(() => { built = siteBuild('pages'); SITE = built.dir; });
+  after(() => built && built.cleanup());
 
   test('no nav item is a same-page anchor', () => {
     for (const item of site.nav)

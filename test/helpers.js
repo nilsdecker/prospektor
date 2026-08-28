@@ -54,4 +54,47 @@ function resetEnv() {
     delete process.env[k];
 }
 
-module.exports = { stubFetch, post, get, signedStripeEvent, checkoutSessionCompleted, resetEnv };
+
+// ── One Eleventy build for the whole suite (#324) ─────────────────────────
+//
+// Seven test files each shelled out to `npx eleventy` in their own `before()`
+// hook, and Node runs test FILES in parallel — so `npm test` was seven
+// concurrent full builds. When one of them died, `stdio: 'ignore'` threw the
+// reason away and Node summarised the hook failure as `# fail 0` and
+// `# cancelled 10`: the consent gate's entire suite unproven, and nothing
+// red-looking on the line a reader checks. `test/run.js` now builds once,
+// before any test process starts, and hands the directory down in
+// PPS_TEST_SITE.
+//
+// A file run on its own — `node --test test/consent.test.js` — still works:
+// with no PPS_TEST_SITE it builds its own copy and cleans it up after.
+const ELEVENTY = require('node:path').join(__dirname, '..', 'node_modules', '.bin', 'eleventy');
+
+// The binary directly rather than through `npx`: one less resolver between a
+// test and its build, and no npx cache for seven processes to contend on.
+function buildInto(outDir, env) {
+  const { execFileSync } = require('node:child_process');
+  try {
+    execFileSync(ELEVENTY, ['--quiet', '--output=' + outDir], {
+      cwd: require('node:path').join(__dirname, '..'),
+      stdio: 'pipe',
+      env: { ...process.env, ...env },
+    });
+  } catch (err) {
+    // Why the build failed is the one thing worth having, and it is exactly
+    // what `stdio: 'ignore'` used to discard — which is why #324 could not be
+    // diagnosed from its own output.
+    const said = [err.stderr, err.stdout].map(b => b && b.toString().trim()).filter(Boolean).join('\n');
+    throw new Error(`eleventy build failed (${outDir}):\n` + (said || err.message));
+  }
+}
+
+function siteBuild(prefix) {
+  const fs = require('node:fs'), path = require('node:path'), os = require('node:os');
+  if (process.env.PPS_TEST_SITE) return { dir: process.env.PPS_TEST_SITE, cleanup() {} };
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), prefix + '-'));
+  buildInto(dir);
+  return { dir, cleanup: () => fs.rmSync(dir, { recursive: true, force: true }) };
+}
+
+module.exports = { siteBuild, buildInto, stubFetch, post, get, signedStripeEvent, checkoutSessionCompleted, resetEnv };

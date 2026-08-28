@@ -5,7 +5,7 @@
   "scripts": {
     "start": "eleventy --serve",
     "build": "eleventy",
-    "test": "HELP_CORPUS_OFFLINE=1 node --test test/*.test.js",
+    "test": "node test/run.js",
     "drive": "HELP_CORPUS_OFFLINE=1 npm run build && node test/drive.js",
     "audit": "node test/audit-live.js",
     "og": "node tools/og.js",

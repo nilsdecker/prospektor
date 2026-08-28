@@ -16,19 +16,21 @@
 //     cannot hand back faithfully.
 const { test, describe, before, after } = require('node:test');
 const assert = require('node:assert');
-const { execFileSync } = require('node:child_process');
 const fs = require('node:fs');
 const path = require('node:path');
 const { served } = require('../lib/assets.js');
+const { siteBuild } = require('./helpers.js');
 
 const ROOT = path.join(__dirname, '..');
 const CONSENT_SRC = fs.readFileSync(path.join(ROOT, 'src', 'assets', 'js', 'consent.js'), 'utf8');
 
-// Built into a directory of this file's own rather than into _site. Node's
-// test runner runs test FILES in parallel, and /resources/ builds too — two
-// eleventy runs writing the same tree is a suite that fails about one time in
-// three, on whichever file lost the race.
-let SITE;
+// One build, shared with every other file that reads built HTML (#324). It
+// used to be a build of this file's own, which is what made a `npm test` seven
+// concurrent eleventy runs — and a hook that died under that load reported
+// these ten tests as `cancelled`, not as failed. `siteBuild` in `helpers.js`
+// says how the sharing works and how a single file run on its own still gets a
+// build of its own.
+let SITE, built;
 
 const htmlPages = dir => fs.readdirSync(dir, { withFileTypes: true }).flatMap(e =>
   e.isDirectory() ? htmlPages(path.join(dir, e.name))
@@ -36,11 +38,11 @@ const htmlPages = dir => fs.readdirSync(dir, { withFileTypes: true }).flatMap(e 
 
 describe('consent gate', () => {
   before(() => {
-    SITE = fs.mkdtempSync(path.join(require('node:os').tmpdir(), 'consent-'));
-    execFileSync('npx', ['eleventy', '--quiet', '--output=' + SITE], { cwd: ROOT, stdio: 'ignore' });
+    built = siteBuild('consent');
+    SITE = built.dir;
   });
 
-  after(() => fs.rmSync(SITE, { recursive: true, force: true }));
+  after(() => built && built.cleanup());
 
   test('every built page loads the gate, and offers withdrawal', () => {
     const pages = htmlPages(SITE);
