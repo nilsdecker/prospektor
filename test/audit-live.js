@@ -248,6 +248,20 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
       : (noEmail && noContact ? 'both present'
         : `missing: ${[!noEmail && 'no-email-address', !noContact && 'never-contact-you'].filter(Boolean).join(' + ')}`));
 
+  // ── CLAIM (#387): /privacy/ says what the message archive leaves behind ──
+  // #355 lets a member import LinkedIn's messages.csv and keeps a per-counterparty
+  // tally from it (sent, received, first, last) — no content, no subjects, no
+  // thread titles. The old sentence here said we held "nothing that passed
+  // between you", which that tally would have falsified the day it shipped, and
+  // nothing in this file was holding it. Red here means the notice understates
+  // what the import keeps — a false statement to a data subject, not a copy nit.
+  const msgNoContent = privHas("We hold none of your messages");
+  const msgTally = privHas("two counts and two dates");
+  check("/privacy/ keeps the message-archive sentence the tally rests on", msgNoContent && msgTally,
+    !priv ? "unreachable ×3"
+      : (msgNoContent && msgTally ? "both present"
+        : `missing: ${[!msgNoContent && "none-of-your-messages", !msgTally && "two-counts-two-dates"].filter(Boolean).join(" + ")}`));
+
   // ── CLAIM (#183): /privacy/ carries the scan-field reader-section ──
   // The front page's one field writes a reading of somebody's website that is
   // kept indefinitely under their domain. This section is the only notice that

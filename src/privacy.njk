@@ -171,7 +171,7 @@ updated: 25 August 2026
         <h3>What a client's team member can bring in</h3>
         <p>A member of a client's team can import who they know. Three doors, and each one is a file or a list that is already theirs:</p>
         <ul class="legal-list">
-          <li><strong>The connections export LinkedIn gave them</strong> — the <code>Connections.csv</code> anyone can download of their own connections. Per connection we hold: name, company, position, the public LinkedIn profile URL, and the date the two of them connected.</li>
+          <li><strong>The connections export LinkedIn gave them</strong> — the <code>Connections.csv</code> anyone can download of their own connections. Per connection we hold: name, company, position, the public LinkedIn profile URL, and the date the two of them connected. They can add the <code>messages.csv</code> from that same download, which adds nothing but the counts and dates described below.</li>
           <li><strong>Their own email address book</strong> — the contacts CSV Google Contacts or Outlook lets a person export. We keep three fields out of it and nothing else: name, company, job title.</li>
           <li><strong>A list they typed out</strong> — people they know under a label like Investors or Partners, each with an optional short note, in their own words, on how they know them.</li>
         </ul>
@@ -179,11 +179,11 @@ updated: 25 August 2026
 
         <h3>What we don't hold, which is the part that matters</h3>
         <p><strong>We don't hold your email address.</strong> A LinkedIn export usually contains some; we drop them at import and never store them. An address book export contains far more — addresses, phone numbers, postal addresses, birthdays, whatever private notes the owner kept — and we read the three professional fields out of it and discard the rest at the door. Both rules are covered by automated tests, because they're the sentences here we'd least like to be wrong about.</p>
-        <p>We hold none of your messages or correspondence either — no emails, no LinkedIn conversations, nothing that passed between you. Only that they know you, and where you work.</p>
+        <p><strong>We hold none of your messages.</strong> Not the words, not the subject line, not the thread title — nothing anyone actually wrote. If a member imports their LinkedIn message archive, what survives about you is two counts and two dates: how many messages they sent you, how many came back, and when the first and the last one was. That is how the studio tells someone they really talk to from a name on a list, and it is the whole of what we keep about a conversation. Beyond that: only that they know you, and where you work.</p>
 
         <h3>What it's used for</h3>
         <p>One thing. When that team prepares a pitch to a target company, the studio looks for a warm path — someone in their network who might be able to introduce them there — and shows them the route: <em>you know this person, who could reach that person at the company you're approaching</em>. It uses public web sources to check the connection it's about to suggest is plausible.</p>
-        <p>An AI model does that matching, so a digest of the network — names, companies, positions, public profile URLs and the member's own notes — is sent to <a href="#subprocessors">Anthropic</a> as part of a prompt. Your email address isn't in it, because it was never stored.</p>
+        <p>An AI model does that matching, so a digest of the network — names, companies, positions, public profile URLs, the member's own notes and, where they imported it, how often and how recently the two of them have spoken — is sent to <a href="#subprocessors">Anthropic</a> as part of a prompt. Your email address isn't in it, because it was never stored.</p>
         <p><strong>Prospektor will never contact you because of this.</strong> Nothing we send is triggered by an import — no notification, no marketing, no mail of any kind. If anyone reaches out, it's the person who already knows you, on their own account, the way they could have anyway.</p>
 
         <h3>Why we think we're allowed to</h3>
