@@ -2,7 +2,7 @@
 layout: base.njk
 title: Privacy
 description: What Prospektor collects, where it goes, who else sees it, and how long it stays. Written to be read, not to cover us.
-updated: 25 August 2026
+updated: 30 August 2026
 ---
 
 <header class="legal-hero">
@@ -242,11 +242,12 @@ updated: 25 August 2026
           <li><code>pps_oauth_state</code> — 10 minutes, protects the sign-in against cross-site request forgery.</li>
           <li><code>pps_share</code> — 10 minutes, remembers which share link sent you to the sign-in page.</li>
         </ul>
-        <p>The last two are cleared as soon as sign-in finishes. It keeps three more things in your browser, which never leave it:</p>
+        <p>The last two are cleared as soon as sign-in finishes. It keeps four more things in your browser, which never leave it:</p>
         <ul class="legal-list">
           <li><code>pps-theme</code> — this device's light/dark choice. Not stored against your account, so nobody, us included, can read how you like to look at the studio. Until you clear site data.</li>
           <li><code>pps-library-sort</code> — how this device likes the library sorted. Until you clear site data.</li>
           <li><code>pps-consent</code> — your answer to the studio's own cookie notice, with the date. 12 months, then it asks again.</li>
+          <li><code>pps-example-gone</code> — that you removed the example pitch from your library, so it stays removed. Until you clear site data.</li>
         </ul>
         <p>That is the whole list, on both properties, and it is the same list the code works from: the studio's own <a href="https://studio.prospektor.ai/#cookies">Cookies</a> link shows it, item by item, and is where you change your answer there.</p>
 
