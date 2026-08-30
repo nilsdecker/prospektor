@@ -5,6 +5,12 @@
 // client-side caching or retry loops here.
 (() => {
   const API = 'https://studio.prospektor.ai/api/scan';
+  // #419: the free run — the whole WHO half, to a stranger with no account.
+  // It takes ?domain= and starts on arrival, so the visitor never types
+  // their site twice. Entry point only: a started run has its own address
+  // (/r/<token>) which the run page writes, and which must never be
+  // published anywhere (HANDOVER-website-funnel.md, PUBLIC-PAGES.md §5c).
+  const RUN = 'https://studio.prospektor.ai/r';
   const POLL_MS = 2000;
   const DEADLINE_MS = 90000;
 
@@ -25,6 +31,7 @@
   const factsEl = document.getElementById('scanFacts');
   const guessEl = document.getElementById('scanGuess');
   const ctaEl = document.getElementById('scanCta');
+  const runCtaEl = document.getElementById('scanRunCta');
   const fallbackEl = document.getElementById('scanFallback');
   const fallbackMsg = document.getElementById('scanFallbackMsg');
   const fallbackCta = document.getElementById('scanFallbackCta');
@@ -69,6 +76,13 @@
     if (company) p.set('company', company);
     const q = p.toString();
     return '/checkout/' + (q ? '?' + q : '');
+  }
+
+  // The domain the scan resolved, not the raw string typed: /r normalises the
+  // same way /api/scan does, but sending the resolved one means the run opens
+  // on exactly the company the card is describing.
+  function runUrl(domain) {
+    return RUN + (domain ? '?domain=' + encodeURIComponent(domain) : '');
   }
 
   function hideAll() {
@@ -180,6 +194,7 @@
     factsEl.hidden = facts.length === 0;
     guessEl.textContent = toProposal(goal);
     ctaEl.href = checkoutUrl(domain, result.name);
+    if (runCtaEl) runCtaEl.href = runUrl(domain);
     // The checkout page picks the scan up from here so the buyer's target
     // sentence survives the navigation without a backend.
     try {

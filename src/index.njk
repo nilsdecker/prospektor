@@ -72,9 +72,21 @@ description: "Find the B2B companies worth pitching, then send them something wo
            happens to be large — and the styling is unchanged because .scan-guess
            was always a class rule, never an element one. -#}
           <p class="scan-guess" id="scanGuess" role="status" aria-live="polite"></p>
+          {#- #419: the free run is the primary action here, not checkout. The
+           studio has answered the whole WHO half to a stranger — no account, no
+           card — since 24 Aug, and nothing on this site linked to it for six
+           days, so it ran at zero. #418 decided the order for exactly the
+           reason this card is the wrong place to ask for $999: the visitor has
+           seen a guess about their own business and no evidence yet. The run
+           is the evidence. Checkout stays on the card as one quiet line —
+           demoted, never removed, because the reader who is already sold must
+           not have to hunt for the way to pay.
+           The note's old sentence ("Off target? Sharpen it after checkout") is
+           gone because the run answers it better: correcting the goal is step
+           two of the run itself, before anybody pays. -#}
           <div class="scan-cta-row">
-            <a class="btn-cta" id="scanCta" href="/checkout/">Start my studio →</a>
-            <p class="scan-cta-note">Off target? Sharpen it in one sentence after checkout.</p>
+            <a class="btn-cta" id="scanRunCta" href="https://studio.prospektor.ai/r">Show me the companies →</a>
+            <p class="scan-cta-note">Free, no sign-up. <a id="scanCta" href="/checkout/">Start my studio →</a></p>
           </div>
         </div>
       </div>
