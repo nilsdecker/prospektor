@@ -55,6 +55,22 @@ describe('llms.txt — the machine-readable front door (#316)', () => {
       'the catch-all 404 in netlify.toml is the honest answer (#300/#316)');
   });
 
+  // #423, and the same rule as test/pages.test.js' — this file is the other
+  // half, because llms.txt is not an HTML page and that sweep cannot see it.
+  // "**No free trial.** The free scan above is the trial" was published here
+  // from #316, and it had gone wrong twice over by 30 Aug: #419 put a second
+  // free thing above it (the run at /r), so "the free scan" undersold, and
+  // #422 built a free tier that one operator env var away makes the denial
+  // flatly false. An agent reading this file quotes it at people.
+  test('it does not deny a free offering the studio is one env var from opening', () => {
+    const denials = [/no\s+free\s+trial/i, /(?:there\s+is|there's)\s+no\s+free/i,
+                     /no\s+free\s+(?:tier|workspace|plan)/i];
+    for (const re of denials) {
+      assert.ok(!re.test(txt),
+        `llms.txt denies a free offering (${re}) — #422 shipped one behind ONBOARDING_OPEN=1 (#423)`);
+    }
+  });
+
   test('every prospektor.ai page it links to actually builds', () => {
     const links = [...txt.matchAll(/https:\/\/prospektor\.ai(\/[^)\s]*)?/g)]
       .map(m => m[1] || '/');

@@ -97,7 +97,9 @@ description: "$999 a month, per workspace. Unlimited runs, your whole team in, n
              placeholder="yourcompany.com" aria-label="Your company website" hidden>
       <p class="reserve-msg is-error" id="buyMsg" hidden></p>
       <p class="buy-note">
-        <span id="buyLive" hidden>Next stop is Stripe. This address becomes your studio's sign-in — a work email brings your whole team in with you. </span>Pay first, money back if it doesn't earn its keep — no trial theater.
+        {#- #423 — the homepage tile's twin, and it changes with it. The
+            reasoning is in src/index.njk beside the same line. -#}
+        <span id="buyLive" hidden>Next stop is Stripe. This address becomes your studio's sign-in — a work email brings your whole team in with you. </span>Money back if it doesn't earn its keep — no fourteen days of hoping you remember to cancel.
       </p>
     </div>
   </div>
@@ -135,11 +137,21 @@ description: "$999 a month, per workspace. Unlimited runs, your whole team in, n
           results, which is the point.</dd>
       </div>
       <div class="pricing-faq-item">
+        {#- #423. The old answer said "no trial theater" and named the scan as
+            the only free thing. Both had gone stale in different directions:
+            #419 put a second free thing on the page (the run at /r), and #422
+            built a free tier whose door opens on one operator env var. This
+            answer is written to survive that flip — it denies the fourteen-day
+            clock, which stays true, rather than denying that anything is free,
+            which does not. -#}
         <dt>Is there a free trial?</dt>
-        <dd>There is a free scan instead: point it at your own site and see who
-          it would hunt for you, with no account and no card. Beyond that, pay
-          first and take the money back if it doesn't earn its keep — no trial
-          theater, no fourteen days of hoping you remember to cancel.</dd>
+        <dd>No clock, no. The scan on the homepage reads your own site and shows
+          who it would hunt for you, and the
+          <a href="https://studio.prospektor.ai/r">free run</a> names companies
+          worth approaching — neither asks for an account or a card. The
+          subscription you pay for up front and take the money back if it
+          doesn't earn its keep, with no fourteen days of hoping you remember to
+          cancel.</dd>
       </div>
       <div class="pricing-faq-item">
         <dt>What does "money back if it doesn't earn its keep" mean?</dt>
