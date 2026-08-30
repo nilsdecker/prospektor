@@ -327,6 +327,15 @@ nav {
   font-size: 0.75rem; color: var(--ink-faint); line-height: 1.5;
   max-width: 220px; text-align: left;
 }
+/* #419: checkout lives in the note now — the free run is the card's primary
+   action. Darker than the note around it so the way to pay is still findable
+   by the reader who is already sold, quiet enough that it does not compete
+   with the button beside it. Coral is reserved for the CTA (see the token). */
+.scan-cta-note a {
+  color: var(--ink-mid); font-weight: 600; text-decoration: none;
+  white-space: nowrap; transition: color .15s;
+}
+.scan-cta-note a:hover { color: var(--ink); text-decoration: underline; }
 
 .scan-fallback { margin-top: 1.25rem; }
 .scan-fallback-msg {

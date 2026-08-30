@@ -121,6 +121,15 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
     check('scan renders no signal bullets (#240)', (await page.locator('#scanSignals li').count()) === 0);
     const href = await page.getAttribute('#scanCta','href');
     check('scan CTA carries domain into /checkout/', /^\/checkout\/\?.*domain=/.test(href) || href === '/checkout/', href);
+    // #419: the free run is the card's primary action. Asked of production
+    // because the defect this closes was invisible to every green build for
+    // six days — the studio answered /r the whole time and nothing here
+    // pointed at it, so the run counted `spent: 0`.
+    const runHref = await page.getAttribute('#scanRunCta','href');
+    check('the scan result offers the free run (#419)',
+      /^https:\/\/studio\.prospektor\.ai\/r/.test(runHref || ''), runHref);
+    check('and it opens on the domain that was scanned (#419)',
+      /[?&]domain=/.test(runHref || ''), runHref);
   }
 
   // ── CLAIM: the pricing tile pays directly ──

@@ -255,6 +255,57 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     check('the proposal still leads the card', m.guess.length > 0, m);
     check('the CTA carries the scan into checkout',
       (await page.getAttribute('#scanCta', 'href')) === '/checkout/?domain=acme.com&company=Acme+GmbH');
+    // #419: the free run is the card's primary action, and it opens on the
+    // company the card is describing — the run page starts from ?domain= on
+    // arrival, so nobody types their site twice. The resolved domain is sent,
+    // not the raw string typed.
+    check('the free run opens on the scanned domain (#419)',
+      (await page.getAttribute('#scanRunCta', 'href')) === 'https://studio.prospektor.ai/r?domain=acme.com');
+    check('the free run is the primary action, checkout the quiet one (#418)',
+      (await page.getAttribute('#scanRunCta', 'class')) === 'btn-cta'
+      && (await page.getAttribute('#scanCta', 'class')) === null);
+    await page.close();
+  }
+
+  // 6c-ii — #419 at the width that breaks buttons. Style rule 9: a label that
+  //      wraps mid-phrase gets shorter, not smaller. The free-run button is a
+  //      longer label than the one it replaced, so it is measured rather than
+  //      eyeballed — and both actions must stay inside the card, since the
+  //      card is pinned to the search bar's width (#240).
+  {
+    const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+    await page.route('https://studio.prospektor.ai/api/scan**', route =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+        domain: 'acme.com', status: 'done', mode: 'live',
+        result: { name: 'Acme GmbH', inferredGoal: 'Mid-size property managers in the DACH region.', facts: ['B2B SaaS'] },
+      }) }));
+    await page.goto('http://localhost:8899/');
+    await page.fill('#scanInput', 'acme.com');
+    await page.click('#scanBtn');
+    await page.waitForSelector('#scanResult:not([hidden])', { timeout: 5000 });
+    const g = await page.evaluate(() => {
+      const b = el => el.getBoundingClientRect();
+      const run = document.getElementById('scanRunCta');
+      const card = document.querySelector('.scan-card');
+      // Line boxes, counted rather than inferred: .btn-cta inherits
+      // `line-height: normal`, which computes to the string "normal" and
+      // parses to NaN, so height-over-line-height cannot answer this. A Range
+      // over the label reports one client rect per line the text actually
+      // occupies, which is the question rule 9 asks.
+      const r = document.createRange();
+      r.selectNodeContents(run);
+      return {
+        lines: r.getClientRects().length,
+        runRight: b(run).right, cardRight: b(card).right,
+        payVisible: !!document.getElementById('scanCta').getClientRects().length,
+      };
+    });
+    check('the free-run button holds one line at 390px (rule 9)',
+      g.lines === 1, g);
+    check('the free-run button stays inside the card at 390px',
+      g.runRight <= g.cardRight + 1, g);
+    check('the way to pay is still on screen at 390px',
+      g.payVisible, g);
     await page.close();
   }
 

@@ -187,6 +187,41 @@ describe('the header, and the pages behind it', () => {
       assert.match(xml, new RegExp(`<loc>https://prospektor\\.ai${url}</loc>`), `sitemap is missing ${url}`);
   });
 
+  // #419: the free run answered the whole WHO half to a stranger for six days
+  // while nothing on this site pointed at it, and it ran at zero — `spent: 0`
+  // was zero distribution, not weak demand. A link nobody can see is the exact
+  // failure that cost those six days, so the door is asserted rather than
+  // remembered. Derived from the built page and from scan.js, never from a
+  // list: the check reads what ships.
+  test('the homepage offers the free run, and it is the card\'s primary action', () => {
+    const html = read('index.html');
+    const RUN = 'https://studio.prospektor.ai/r';
+    assert.ok(html.includes(`href="${RUN}"`),
+      `the homepage no longer links to the free run at ${RUN} — #419 shipped that door because nothing on this site pointed at it for six days and it ran at zero`);
+    // Primary means the button, not a line of small print: the visitor at this
+    // moment has seen a guess about their own business and no evidence yet,
+    // which is #418's whole reason for putting the run in front of the price.
+    const card = html.match(/<div class="scan-cta-row">[\s\S]*?<\/div>/);
+    assert.ok(card, 'the scan result has no CTA row');
+    assert.match(card[0], new RegExp(`<a class="btn-cta" id="scanRunCta" href="${RUN}"`),
+      'the free run is no longer the primary action on the scan result (#418/#419)');
+    // Demoted, never removed — the reader who is already sold must not have to
+    // hunt for the way to pay.
+    assert.match(card[0], /id="scanCta" href="\/checkout\/"/,
+      'checkout has fallen off the scan result entirely — #419 demoted it, it did not delete it');
+  });
+
+  // The run page starts on arrival from ?domain=, so nobody types their site
+  // twice. If this stops being sent, the link still works and the funnel still
+  // silently asks for the domain a second time — which is why it is pinned.
+  test('the free-run link carries the domain the scan resolved', () => {
+    const js = fs.readFileSync(path.join(ROOT, 'src/assets/js/scan.js'), 'utf8');
+    assert.match(js, /runCtaEl\.href = runUrl\(domain\)/,
+      'scan.js no longer points the free-run CTA at the scanned domain (#419)');
+    assert.match(js, /'\?domain=' \+ encodeURIComponent\(domain\)/,
+      'the free-run URL no longer carries ?domain= — the visitor types their site twice (#419)');
+  });
+
   test('no page links to an internal URL that does not build', () => {
     // Redirects declared in netlify.toml resolve at the edge, not in _site.
     const REDIRECTED = ['/app/'];
