@@ -42,7 +42,7 @@ updated: 30 August 2026
       <span class="legal-n">01</span>
       <div>
         <h2>Who we are</h2>
-        <p>Prospektor builds Prospektor Studio, an AI pre-sales tool: a client's sales team enters a target company, the studio researches it, scores it as a partner, drafts sales material, and lists the people worth approaching there.</p>
+        <p>Prospektor builds Prospektor Studio, an AI go-to-market tool: a client's sales team enters a target company, the studio researches it, scores it as a partner, drafts sales material, and lists the people worth approaching there.</p>
         <p>We decide how this website and the studio itself handle personal data, so for that we're the data controller. For the research and drafts produced inside a client's workspace, we're acting on that client's instructions — they choose which companies to research and what to do with the result. We're settling the formal split of responsibility with each client in writing; if you need to know where that stands for a particular workspace, ask us.</p>
         <p>There's no data protection officer. <a href="mailto:{{ site.privacyEmail }}">{{ site.privacyEmail }}</a> reaches a person.</p>
       </div>
@@ -63,6 +63,10 @@ updated: 30 August 2026
           <li>who archived or deleted a pitch</li>
         </ul>
         <p>Everything else in a workspace is the work itself: the target company, the website, any notes typed in, a point of contact if someone entered one, the research result, the drafted material, the progress log and later edits.</p>
+
+        <h3>If you use the support chat</h3>
+        <p>Support inside the studio is answered by AI, not by a person waiting on the other end. Your question and the conversation around it go to Anthropic like the studio's other model calls (<a href="#subprocessors">section 08</a>), and each conversation is saved to your workspace so you can pick it up again later.</p>
+        <p><strong>We read them.</strong> The Prospektor team reads support conversations and the feature requests and feedback people send, to work out what to fix and what to build next — and we export the questions asked so we can look at them together. If you would rather ask us something without it being stored in the studio, email <a href="mailto:{{ site.privacyEmail }}">{{ site.privacyEmail }}</a> instead. Support conversations and feedback notes are deleted with the workspace, like every other record in it.</p>
       </div>
     </section>
 
@@ -123,13 +127,18 @@ updated: 30 August 2026
         <ul class="legal-list">
           <li>the company name, as the site writes it</li>
           <li>a sentence or two on what the site says you sell, and to whom</li>
-          <li>up to four short fragments read off your pages — where you are, what you do, a product or programme you run</li>
+          <li>up to four short fragments — where you are, what you do, a product or programme you run — read off your pages, except that up to two of them may instead be facts the data provider below sold us</li>
           <li>one sentence naming the kind of companies we think you’d want to meet</li>
           <li>two or three observations pointing at the parts of your site we read that from</li>
+          <li>what that data provider told us about the company — headcount, location, industry, founding year — kept whole, whether or not any of it was shown</li>
           <li>our own bookkeeping about what the model call cost us</li>
         </ul>
-        <p>It’s kept so the same lookup doesn’t cost a second one. All of it is read off pages you publish: we open your site — the homepage, and at most one more, usually an <em>about</em> or <em>customers</em> page if the homepage left the question open — and we may run a search or two beyond it. Nothing else. The model is instructed to write down nothing it can’t find on a page it actually opened, and to say so plainly rather than guess when a site won’t open.</p>
+        <p>It’s kept so the same lookup doesn’t cost a second one. Most of it is read off pages you publish: we open your site — the homepage, and at most one more, usually an <em>about</em> or <em>customers</em> page if the homepage left the question open — and we may run a search or two beyond it. The model is instructed to write down nothing it can’t find on a page it actually opened, and to say so plainly rather than guess when a site won’t open.</p>
         <p>And one thing that belongs in this list rather than in the small print: <strong>a reading can end up naming a person</strong>. We don’t go looking for anybody and we take no contact details — but an <em>about</em> page is the page whose job is introducing the people behind a company, so a fragment or an observation can carry a name that was published there. Where the business is one person, the reading is about them.</p>
+
+        <h3>We ask someone else about you too</h3>
+        <p>While the model reads your site, we also ask <strong>Clay</strong> about you — Clay Runner Inc., in the United States, who sell company data. What we send is your web address, or, if somebody typed a company name into the field instead of an address, that name, so it can be turned into an address we can look up. What comes back is what they hold about the company: headcount, location, industry, founding year.</p>
+        <p>We ask Clay nothing about any person at your company — the request has no way to carry an email address or a phone number, and none comes back. Nothing about the person who typed your address reaches them either, because we never had it to send.</p>
 
         <h3>What we don’t keep</h3>
         <p>Anything at all about the person who typed it. No name, no account, no IP address, no referrer. We can’t tell you who looked you up, because we never knew — and we can’t tell a company looking at itself apart from a stranger looking at it, for the same reason.</p>
@@ -293,6 +302,11 @@ updated: 30 August 2026
                 <td>Authentication, typography</td>
               </tr>
               <tr>
+                <td>Clay</td>
+                <td>The web address somebody scanned, or the company name they typed — and nothing else. No identifier, no session, no IP address, and nothing about the person asking, because the scan never knew anything about them. What comes back is about the company, never a person: headcount, location, industry, founding year. It is Clay Runner Inc., based in the United States.</td>
+                <td>Company facts on a scan</td>
+              </tr>
+              <tr>
                 <td>Stripe</td>
                 <td>Your email address, your card and billing details, and the company and goal you gave at checkout. Checkout runs on Stripe's own pages, so your card number never reaches us.</td>
                 <td>Payment</td>
@@ -306,7 +320,7 @@ updated: 30 August 2026
           </table>
         </div>
         <p>Not used, so you can rule them out: no CRM integration, no marketing email or newsletter tool, no session recording, no analytics or advertising vendor of any kind. The email we send is transactional — your receipt, your welcome, your sign-in — never a campaign.</p>
-        <p>Anthropic, Netlify, Stripe and Postmark all process data outside the European Economic Area, mainly in the United States. That's an international transfer, and it needs a documented safeguard — we're working that through with all four providers, and you're welcome to ask us where it stands.</p>
+        <p>Anthropic, Netlify, Stripe, Clay and Postmark all process data outside the European Economic Area, mainly in the United States. That's an international transfer, and it needs a documented safeguard — we're working that through with all five providers, and you're welcome to ask us where it stands.</p>
       </div>
     </section>
 
