@@ -602,6 +602,46 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
     /noindex/i.test((await fetch('https://studio.prospektor.ai/')).headers.get('x-robots-tag') || ''),
     (await fetch('https://studio.prospektor.ai/p/audit-probe')).headers.get('x-robots-tag') || 'absent');
 
+  /* #423 — the one claim on this site whose truth is decided on the OTHER
+   * side of the wire. #422 shipped a free tier: `ONBOARDING_OPEN=1` on the
+   * studio mints a workspace that runs one full pitch, then asks for the
+   * card. Nothing in this repo can see that variable, and the funnel spent
+   * its whole life telling people "no trial theater" and "No free trial" —
+   * so the day the operator sets it, the money pages start lying and every
+   * build here stays green. `npm test` now refuses the denials outright;
+   * this asks the live pair the question the build cannot, in both
+   * directions, because promising a free tier while the door is SHUT is the
+   * same defect pointing the other way and strands whoever clicks.
+   *
+   * The mode is read from the studio's own /api/me. #426 has it 503ing and
+   * dropping connections in bursts, so an unreadable mode is reported as a
+   * fact and asserts nothing — a flaky dependency must never fail a claim
+   * about this site. */
+  let mode = null;
+  for (let attempt = 0; attempt < 3 && !mode; attempt++) {
+    try {
+      const me = await (await fetch('https://studio.prospektor.ai/api/me')).json();
+      mode = (me.environment || {}).onboarding || null;
+    } catch (e) { /* #426 — retried, then reported as unknown */ }
+  }
+  const money = [await (await fetch(SITE + '/')).text(),
+                 await (await fetch(SITE + '/pricing/')).text(),
+                 await (await fetch(SITE + '/llms.txt')).text()].join('\n')
+                 .replace(/<[^>]*>/g, ' ');
+  const denies = /no\s+trial\s+theater|no\s+free\s+trial|(?:there\s+is|there's)\s+no\s+free|no\s+free\s+(?:tier|workspace|plan)/i;
+  const promises = /free\s+(?:workspace|tier)|start\s+free/i;
+  if (!mode) {
+    check('the studio\'s onboarding mode could be read', false,
+      'unreadable after 3 tries (#426) — the free-tier claim below was not asked');
+  } else {
+    check('the funnel does not deny a free offering the studio now has',
+      !(mode === 'open' && denies.test(money)),
+      `studio onboarding=${mode}` + (denies.test(money) ? ` — site says ${JSON.stringify((money.match(denies)||[])[0])}` : ''));
+    check('and does not offer a free workspace the studio would refuse',
+      !(mode !== 'open' && promises.test(money)),
+      `studio onboarding=${mode}` + (promises.test(money) ? ` — site says ${JSON.stringify((money.match(promises)||[])[0])}` : ''));
+  }
+
   await browser.close();
   const bad = R.filter(r=>!r.ok);
   console.log(`\n${R.length-bad.length}/${R.length} claims held`);

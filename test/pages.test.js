@@ -168,6 +168,45 @@ describe('the header, and the pages behind it', () => {
       'these scripts stop the parser mid-document — add defer (#137 F6, #170):\n  ' + blocking.join('\n  '));
   });
 
+  // #423. The funnel published "no trial theater" in the pricing tile and
+  // again in the FAQ, and "No free trial" in llms.txt, for as long as those
+  // pages have existed — and nothing anywhere checked them. #422 then built a
+  // free tier (a workspace that runs one full pitch, then asks for the card)
+  // whose door opens on one operator environment variable, ONBOARDING_OPEN=1,
+  // set on the STUDIO. So the day that variable is set, three sentences on
+  // this site become false with no commit here to notice, on the two pages
+  // where being caught lying costs the most.
+  //
+  // The fix in the copy was to stop denying that anything is free and keep
+  // denying the fourteen-day clock, which is what the sentence was really
+  // promising and which the free tier does not falsify. This is what stops it
+  // coming back. It is a list of CLAIM shapes, never of files: writing a new
+  // page, or a /resources/ article about somebody else's trial funnel, cannot
+  // turn it red — only asserting again that we have no free offering can
+  // (#131, and the same rule the learnings ledger and the help checks keep).
+  test('no page claims there is no free offering', () => {
+    // Each pattern is an absolute denial. "No fourteen days of hoping you
+    // remember to cancel" is deliberately NOT one: it says what we do not do,
+    // which stays true whether the free tier's door is open or shut.
+    const denials = [
+      /no\s+trial\s+theater/i,
+      /no\s+free\s+trial/i,
+      /(?:there\s+is|there's)\s+no\s+free/i,
+      /no\s+free\s+(?:tier|workspace|plan)/i,
+    ];
+    const found = [];
+    for (const file of htmlPages(SITE)) {
+      const text = fs.readFileSync(file, 'utf8').replace(/<[^>]*>/g, ' ');
+      for (const re of denials) {
+        const m = text.match(re);
+        if (m) found.push(`${path.relative(SITE, file)} → ${JSON.stringify(m[0])}`);
+      }
+    }
+    assert.deepEqual(found, [],
+      'the studio has a free tier behind one env var (#422) — these sentences deny it (#423):\n  ' +
+      found.join('\n  '));
+  });
+
   test('every page carries the mobile way into the nav', () => {
     // Under 860px .nav-links is display:none and this button is the only
     // thing that opens it — so a page that ships without it ships a header

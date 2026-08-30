@@ -335,7 +335,18 @@ description: "Find the B2B companies worth pitching, then send them something wo
              placeholder="yourcompany.com" aria-label="Your company website" hidden>
       <p class="reserve-msg is-error" id="buyMsg" hidden></p>
       <p class="buy-note">
-        <span id="buyLive" hidden>Next stop is Stripe. This address becomes your studio's sign-in — a work email brings your whole team in with you. </span>Pay first, money back if it doesn't earn its keep — no trial theater.
+        {#- #423. This line used to end "Pay first … — no trial theater", and
+            both halves were hostages. #422 built a free tier: a workspace that
+            runs one full pitch before it asks for the card. The door is still
+            shut in production (`/api/me` answers "onboarding":"allowlist"), so
+            the old sentence is not false *today* — it goes false the moment the
+            operator sets ONBOARDING_OPEN=1, with no deploy here to catch it.
+            What "no trial theater" was actually promising is the fourteen-day
+            clock we do not run, and that survives the free tier intact: one
+            full pitch is not a countdown. So the promise is kept and the
+            absolute is dropped, and the sentence now needs no edit in either
+            state. test/pages.test.js fails on the absolutes coming back. -#}
+        <span id="buyLive" hidden>Next stop is Stripe. This address becomes your studio's sign-in — a work email brings your whole team in with you. </span>Money back if it doesn't earn its keep — no fourteen days of hoping you remember to cancel.
       </p>
       <p class="buy-note"><a href="/pricing/">What a workspace is, what's included, what happens if you stop →</a></p>
     </div>
@@ -370,7 +381,7 @@ description: "Find the B2B companies worth pitching, then send them something wo
     </details>
     <details>
       <summary>What if it's not for us?<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></summary>
-      <p>Money back if it doesn't earn its keep — no trial theater. And if you want ten thousand scraped emails, this isn't it: the studio goes deep on a shortlist worth pitching.</p>
+      <p>Money back if it doesn't earn its keep — no fourteen days of hoping you remember to cancel. And if you want ten thousand scraped emails, this isn't it: the studio goes deep on a shortlist worth pitching.</p>
     </details>
   </div>
 </section>
