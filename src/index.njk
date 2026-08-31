@@ -1,6 +1,6 @@
 ---
 layout: base.njk
-description: "Find the B2B companies worth pitching, then send them something worth reading: research, decision-makers with sources, and a deck and emails in your voice."
+description: "Teach it what you're after in three minutes. It finds the companies — customers, partners, resellers, investors — and writes what you send them."
 ---
 
 <!-- HERO -->
@@ -32,7 +32,20 @@ description: "Find the B2B companies worth pitching, then send them something wo
          accent lands on the second half deliberately — the WHO is the free
          half and the hook, the WHAT is what anyone is actually paying for. -->
     <h1>Who to pitch.<br><span class="accent">What to send.</span></h1>
-    <p class="hero-sub">A full GTM team on every pitch: a BDR to research it, an SDR to find your way in, an AE to write what you send.</p>
+    {#- #450. This said: "A full GTM team on every pitch: a BDR to research it,
+         an SDR to find your way in, an AE to write what you send." Four pieces
+         of sales-org vocabulary in twenty-one words, in the one sentence on the
+         site whose entire job is comprehension — and two non-sales readers
+         (plausible buyers, both) came away unable to say what the product does.
+
+         What replaces it is the operator's own framing, and it is three claims
+         the rest of the page then earns: the teaching is SHORT and happens
+         ONCE, the targets are NOT only customers (lib/interview.js in the
+         studio has been goal-agnostic since it existed — "distribution
+         partners, resellers, investment targets, acquirers"), and what comes
+         back is something WRITTEN. No acronym reaches the reader before a
+         plain noun does; test/pages.test.js holds that line. -#}
+    <p class="hero-sub">Three minutes to teach it what you're all about. Then it finds the companies — customers, partners, resellers, investors — and writes what you send them.</p>
   </div>
 
   <!-- The scan field: POST /api/scan, poll, render the proposal. scan.js drives it. -->
@@ -43,7 +56,7 @@ description: "Find the B2B companies worth pitching, then send them something wo
              spellcheck="false" placeholder="yourcompany.com" aria-label="Your company website">
       <button class="scan-btn" type="submit" id="scanBtn">Scan</button>
     </form>
-    <p class="scan-hint" id="scanHint">Free · no sign-up · it reads your site and proposes your targets in ~30 seconds</p>
+    <p class="scan-hint" id="scanHint">Free · no sign-up · it reads your site and shows you who it would go after, in ~30 seconds</p>
     <p class="scan-error" id="scanError" hidden></p>
 
     <div aria-live="polite">
@@ -105,6 +118,61 @@ description: "Find the B2B companies worth pitching, then send them something wo
     case the guard was written for, with the DOM guaranteed complete. -#}
 <script src="{{ '/assets/js/scan.js' | asset }}" defer></script>
 
+<!-- WHAT IT ACTUALLY DOES (#450) -->
+{#- The section this page did not have, and the reason two non-sales readers
+    could not describe the product after reading it.
+
+    Everything below the hero was written for somebody who already knows what
+    a pitch is made of: the halves grid routes, the crew grid names the team,
+    the run card shows the machine. All three describe HOW. None of them, in
+    ordinary words, says what a buyer ends up holding — the nouns (deck,
+    one-pager, emails, proposal, call sheet) lived three sections down and on
+    /what-to-send/, past the point a confused reader leaves.
+
+    So this sits first, before the frame rather than inside it, and it is the
+    only section on the page written to be understood by someone who has never
+    worked in sales. It says the three things the operator asked it to say —
+    the teaching is short and happens once, the targets are not only
+    customers, and what comes back is written — and each is a claim the
+    sections under it then evidence.
+
+    On the last line, and why it is worded the way it is: there is NO
+    scheduled hunt. No cron in the studio, and lib/standing.js is a competitor
+    comparison, not a standing run. What is true is that suggest.js offers
+    three companies nobody asked for, every run ends in lookalikes, and a
+    batch takes 100 with the tab closed. "It keeps going" is that and stops
+    exactly there — ROADMAP.md #450 in the studio repo has the long form. -#}
+<section class="section-big plain">
+  <h2 class="sec-big reveal">What it actually does.</h2>
+  <p class="sec-sub reveal">The whole thing, in three steps, with no words you'd have to look up.</p>
+
+  <ol class="plain-steps reveal d1">
+    <li class="plain-step">
+      <span class="plain-n">01</span>
+      <div class="plain-body">
+        <h3>You teach it what you're all about.</h3>
+        <p>It reads your website, drafts your brief for you, and asks a handful of questions you can answer off the top of your head. About three minutes, once — after that you never explain yourself again.</p>
+      </div>
+    </li>
+    <li class="plain-step">
+      <span class="plain-n">02</span>
+      <div class="plain-body">
+        <h3>It goes and finds the companies.</h3>
+        <p>Whoever you actually need: customers, distribution partners, resellers, people to invest in, companies to buy. It reads each one's own site, argues both sides of whether they fit, and names the person who'd make the decision — with a source behind the name.</p>
+      </div>
+    </li>
+    <li class="plain-step">
+      <span class="plain-n">03</span>
+      <div class="plain-body">
+        <h3>You get the pitch, written and ready to edit.</h3>
+        <p>A slide deck, a one-pager, the emails, a written proposal, and a sheet of what they'll push back on and what to say. In your words, about their business, with nothing invented.</p>
+      </div>
+    </li>
+  </ol>
+
+  <p class="sec-sub plain-foot reveal d2">And it keeps going: three companies you never asked for on day one, more like them at the end of every run, and up to a hundred at a time while the tab is closed.</p>
+</section>
+
 <!-- THE TWO HALVES — the reframe (#153) -->
 <!-- This section used to be "The grind, handled.": one flat grid of four verbs
      with nothing to say about which of them is the hard one. The four verbs
@@ -113,7 +181,7 @@ description: "Find the B2B companies worth pitching, then send them something wo
      (CLAUDE.md, The product thesis). Keeps id="what" so old deep links land. -->
 <section class="section-big halves" id="what">
   <h2 class="sec-big reveal">Two questions. Both answered.</h2>
-  <p class="sec-sub reveal">Anyone can hand you a list. The hard half is what goes in the email.</p>
+  <p class="sec-sub reveal">Anyone can sell you a list of companies. The hard half is writing the thing you actually send them.</p>
 
   <div class="halves-grid reveal d1">
 
@@ -123,15 +191,15 @@ description: "Find the B2B companies worth pitching, then send them something wo
         <span class="half-kicker">Who to pitch</span>
       </div>
       <h3 class="half-h">The companies worth your week.</h3>
-      <p class="half-lede">It reads a company's own site before it says a word about them, then scores fit against your brief — with the case for, the case against, and the same-named companies it ruled out.</p>
+      <p class="half-lede">It reads a company's own site before it says a word about them, then scores them against your brief — whether you're hunting customers, partners or something to invest in — with the case for, the case against, and the same-named companies it ruled out.</p>
       <ul class="half-verbs">
         <li>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.3-4.3"></path></svg>
-          <span><strong>Find</strong> — lookalikes worth pitching, scored against your goal.</span>
+          <span><strong>Find</strong> — more companies like the ones that already work for you.</span>
         </li>
         <li>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-          <span><strong>Enrich</strong> — decision-makers with sources. No source, no name.</span>
+          <span><strong>Reach</strong> — the person who decides, with a source. No source, no name.</span>
         </li>
       </ul>
       <a class="half-link" href="/who-to-pitch/">How it picks them →</a>
@@ -180,30 +248,30 @@ description: "Find the B2B companies worth pitching, then send them something wo
      the one a reader has. -#}
 <section class="section-big crew" id="crew">
   <h2 class="sec-big reveal">Five agents.<br>One run.</h2>
-  <p class="sec-sub reveal">A GTM team's worth of work on every company you name — and every one of them shows what it did.</p>
+  <p class="sec-sub reveal">The work a whole sales department would do on one company, done on every company you name — and each one shows what it did.</p>
 
   <div class="crew-grid reveal d1">
 
     <article class="crew-card">
-      <span class="crew-kicker">BDR agent</span>
+      <span class="crew-kicker">BDR agent <em>the researcher</em></span>
       <h3 class="crew-h">Brings you companies worth pitching.</h3>
       <p class="crew-lede">Reads a target's own site before it says a word about them, scores fit against your brief, and names the same-named companies it ruled out.</p>
     </article>
 
     <article class="crew-card">
-      <span class="crew-kicker">SDR agent</span>
+      <span class="crew-kicker">SDR agent <em>the door-opener</em></span>
       <h3 class="crew-h">Finds you the way in.</h3>
       <p class="crew-lede">Decision-makers with a source behind every name and a confidence rating on each — then who in your network can introduce you, and the request they'd forward.</p>
     </article>
 
     <article class="crew-card">
-      <span class="crew-kicker">AE agent</span>
+      <span class="crew-kicker">AE agent <em>the writer</em></span>
       <h3 class="crew-h">Writes what you send.</h3>
       <p class="crew-lede">The deck, the one-pager, the proposal and the emails — in your voice, grounded in what has already worked for you. Plus the sheet for the call it books.</p>
     </article>
 
     <article class="crew-card">
-      <span class="crew-kicker">Sales Ops agent</span>
+      <span class="crew-kicker">Sales Ops agent <em>the fact-checker</em></span>
       {#- #221: this heading is a pinned sentence, not copy. The five one-line
            promises are asserted verbatim by test/agents.test.js in the studio
            repo ("the studio and the website introduce the team in the same
@@ -215,7 +283,7 @@ description: "Find the B2B companies worth pitching, then send them something wo
     </article>
 
     <article class="crew-card is-dark">
-      <span class="crew-kicker">RevOps agent</span>
+      <span class="crew-kicker">RevOps agent <em>the memory</em></span>
       <h3 class="crew-h">Remembers what worked.</h3>
       <p class="crew-lede">Every outcome you record and every edit you save goes into the next run. Run 100 isn't run 1 — and this is the one a competitor can't copy, because it's built out of your work.</p>
     </article>
@@ -232,7 +300,7 @@ description: "Find the B2B companies worth pitching, then send them something wo
 
 <section class="section-big termsec" id="how">
   <h2 class="sec-big reveal">Name a company.<br>That's the job.</h2>
-  <p class="sec-sub reveal">Six stages. Minutes. It shows its work.</p>
+  <p class="sec-sub reveal">One company in. Six stages, a few minutes, and you can watch every one of them.</p>
   <div class="termwrap reveal d1">
     <div class="build-card">
       <div class="build-titlebar">
@@ -253,7 +321,7 @@ description: "Find the B2B companies worth pitching, then send them something wo
           <div class="cl" id="cll8"><span class="ln">8</span><span class="ac">✓</span> <span class="tx">no invented numbers — 1 placeholder flagged</span></div>
           <div class="cl" id="cll9"><span class="ln">9</span>&nbsp;</div>
           <div class="cl" id="cll10"><span class="ln">10</span><span class="cm">// decision-makers — no fabricated people</span></div>
-          <div class="cl" id="cll11"><span class="ln">11</span><span class="ac">✓</span> <span class="tx">2 named with sources · 1 role left for enrichment</span></div>
+          <div class="cl" id="cll11"><span class="ln">11</span><span class="ac">✓</span> <span class="tx">2 named with sources · 1 role left blank, not guessed</span></div>
           <div class="cl" id="cll12"><span class="ln">12</span><span class="ac">✓</span> <span class="tx">4 lookalikes queued — "Run 3 pitches"</span></div>
           <div class="cl" id="cll13"><span class="ln">13</span>&nbsp;</div>
           <div class="cl" id="cll14"><span class="ln">14</span><span class="cm">// compliance read-back</span></div>
@@ -294,7 +362,7 @@ description: "Find the B2B companies worth pitching, then send them something wo
       <span class="batch-num">47 <em>pitches, drafted</em></span>
     </div>
   </div>
-  <p class="sec-sub reveal d2">Paste a list, close the tab. Up to 100 at a time.</p>
+  <p class="sec-sub reveal d2">Paste a list of companies and close the tab. Each one comes back with its own deck, emails and proposal. Up to 100 at a time.</p>
 </section>
 
 <!-- WARM PATHS -->
@@ -307,7 +375,7 @@ description: "Find the B2B companies worth pitching, then send them something wo
     <svg class="warm-arrow" width="36" height="20" viewBox="0 0 36 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 10h28"></path><path d="M24 3l7 7-7 7"></path></svg>
     <span class="warm-chip is-target">northwind.io</span>
   </div>
-  <p class="sec-sub reveal d2">Your network, mapped against every target — with the intro request drafted.</p>
+  <p class="sec-sub reveal d2">Every company checked against the people you already know — and the message asking for the introduction, already written.</p>
 </section>
 
 <!-- PRICING -->
@@ -363,6 +431,19 @@ description: "Find the B2B companies worth pitching, then send them something wo
 <section class="section-big faq">
   <h2 class="sec-mid reveal">The fine print, on request.</h2>
   <div class="faq-list reveal d1">
+    {#- #450. First, because it is the question two non-sales readers had after
+        the whole page and could not answer. The others are fine print; this one
+        is comprehension, and a reader who opens the FAQ to work out whether a
+        product is for them should not have to scroll past four answers about
+        sourcing to find out. -#}
+    <details>
+      <summary>Do I need a sales team to use this?<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></summary>
+      <p>No — it is built for the person doing the selling themselves. Founders, consultants, agency owners, small teams with nobody whose job title starts with "sales". You describe what you're after in your own words and it does the research and the writing; the judgement, and the sending, stay with you.</p>
+    </details>
+    <details>
+      <summary>Does it only find customers?<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></summary>
+      <p>No. It finds whoever your brief describes — distribution partners, resellers who could sell what you make, companies worth investing in or acquiring, or plain new customers. The question it asks you at setup is "what should the studio find for you?", and everything downstream is scored against your answer to it.</p>
+    </details>
     <details>
       <summary>Where do the names come from?<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></summary>
       <p>A decision-maker is named only when a credible public source backs the name, and the pitch links what was read. Every name is rated — confirmed, likely or unverified. No source, no name: the role is returned blank instead.</p>
