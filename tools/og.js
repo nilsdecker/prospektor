@@ -1,12 +1,28 @@
-// Per-article Open Graph cards for /resources/ (#144).
+// Open Graph cards: the sitewide one, and one per /resources/ article (#144).
 //
 // Renders one 1200x630 PNG per article into src/assets/img/og/, using the
 // site's own fonts and tokens so a shared link looks like the site rather than
 // like a generic blog card.
 //
-// Run with `npm run og` after adding or retitling an article. Output is
-// committed — the Netlify build must not need a browser, so this is a local
-// authoring step, not a build step.
+// Run with `npm run og` after adding or retitling an article, and after any
+// edit to site.json's tagline or description. Output is committed — the Netlify
+// build must not need a browser, so this is a local authoring step, not a build
+// step.
+//
+// #450: the SITEWIDE card (src/assets/img/og.png) is rendered here too, and
+// that is new. It used to be a hand-made PNG that nothing regenerated, and it
+// drifted exactly the way #216 predicted the article footers would: #168
+// retired "Your AI pre-sales team" on 25 Aug because presales is an occupied
+// category, every template was corrected the same day — and the image, which
+// is what actually unfurls when somebody pastes prospektor.ai into Slack or
+// LinkedIn, went on saying it for six days. A string in a template gets found
+// by grep; a string baked into a bitmap does not. So the bitmap is generated
+// from site.json now, and `npm run og` is what keeps the two honest.
+//
+// The filename never moves. CLAUDE.md's asset contract excludes /assets/img/
+// from content-hashing precisely because these URLs live in caches this repo
+// does not control — so the card is rewritten in place and picked up as those
+// caches expire (a day, per netlify.toml), never renamed.
 //
 // Reads frontmatter directly rather than going through Eleventy: the only
 // fields it needs are title and topic, and a 20-line parser here is cheaper
@@ -24,6 +40,14 @@ const ROOT = path.join(__dirname, '..');
 const site = require('../src/_data/site.json'); // #216: the card footer used to hard-code the tagline, so it drifted the moment site.json changed.
 const SRC = path.join(ROOT, 'src', 'resources');
 const OUT = path.join(ROOT, 'src', 'assets', 'img', 'og');
+const SITE_CARD = path.join(ROOT, 'src', 'assets', 'img', 'og.png');
+// #450: what the committed PNGs were last rendered FROM. A string baked into a
+// bitmap is invisible to grep and to every check in this repo, which is how the
+// sitewide card went on saying "Your AI pre-sales team" for six days after #168
+// retired it. This manifest is the bitmaps' text, written out so
+// test/assets.test.js can hold it against site.json and the articles' own
+// frontmatter — and fail, naming `npm run og`, the moment they disagree.
+const MANIFEST = path.join(ROOT, 'data', 'og-cards.json');
 const FONTS = path.join(ROOT, 'src', 'assets', 'fonts');
 
 // Minimal frontmatter read: the block between the first two `---` lines.
@@ -45,6 +69,10 @@ function frontmatter(file) {
   }
   return out;
 }
+
+// Exported so the test can read the same titles this renderer reads, rather
+// than a second parser drifting from this one.
+module.exports = { frontmatter };
 
 const esc = s => String(s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -113,6 +141,76 @@ function card({ title, topic }) {
   </body></html>`;
 }
 
+/**
+ * The sitewide card — what unfurls for prospektor.ai itself and for every page
+ * that has not been given one of its own.
+ *
+ * Light where the article cards are dark, so a link to the product and a link
+ * to a post are told apart at a glance in a feed. Every string on it is read
+ * from site.json or stated once here; nothing is transcribed, which is the
+ * whole point of moving it into this file.
+ */
+function siteCard() {
+  return `<!doctype html><html><head><meta charset="utf-8"><style>
+    ${fontFace('Jakarta', 'plus-jakarta-sans-latin.woff2', '200 800')}
+    ${fontFace('Mono', 'jetbrains-mono-latin.woff2', '100 800')}
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      width: 1200px; height: 630px; display: flex; flex-direction: column;
+      justify-content: space-between; padding: 72px 80px;
+      background: #F5F3EF; color: #1A1A18;
+      font-family: 'Jakarta', sans-serif; overflow: hidden;
+    }
+    .top { display: flex; align-items: center; gap: 12px; }
+    .mark {
+      width: 40px; height: 40px; border-radius: 11px; background: #1A1A18;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .mark svg { width: 24px; height: 24px; }
+    .word { font-size: 25px; font-weight: 800; letter-spacing: -0.02em; }
+    .word .dot { color: #00B37E; }
+    h1 {
+      font-size: 74px; font-weight: 800; line-height: 1.06;
+      letter-spacing: -0.038em; max-width: 15ch;
+    }
+    h1 .accent { color: #00B37E; }
+    p {
+      font-size: 27px; line-height: 1.45; color: #55554F;
+      max-width: 30ch; margin-top: 26px;
+    }
+    .foot {
+      display: flex; align-items: center; gap: 14px;
+      font-family: 'Mono', monospace; font-size: 19px; color: #8F8F8A;
+    }
+    .foot .price { color: #1A1A18; }
+    .foot .dot { color: #00B37E; font-size: 15px; }
+  </style></head><body>
+    <div class="top">
+      <div class="mark"><svg viewBox="0 0 12 12" fill="none"><path d="M2 6C2 3.79 3.79 2 6 2s4 1.79 4 4-1.79 4-4 4" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/><circle cx="6" cy="6" r="1.2" fill="#fff"/></svg></div>
+      <span class="word">Prospektor<span class="dot">.</span></span>
+    </div>
+    <div>
+      <h1>Who to pitch.<br><span class="accent">What to send.</span></h1>
+      <p>${esc(TAGLINE_LINE)}</p>
+    </div>
+    <div class="foot">
+      <span class="dot">&#9679;</span><span class="price">$999</span>
+      <span>/ month &nbsp;·&nbsp; per workspace</span>
+    </div>
+  </body></html>`;
+}
+
+/**
+ * The sentence under the headline. #450: it is the hero's own promise, cut to
+ * what fits a card at 27px — not site.description, which is written to a
+ * 160-character search-snippet budget and reads as a meta tag when it is set
+ * this large. The tagline is appended so the one string every other surface
+ * shows is on the picture too.
+ */
+const TAGLINE_LINE =
+  `Teach it what you're after in three minutes — customers, partners, `
+  + `resellers, investors. Then it finds them, and writes what you send.`;
+
 (async () => {
   const files = fs.readdirSync(SRC).filter(f => f.endsWith('.md'));
   if (!files.length) { console.log('no articles'); return; }
@@ -121,11 +219,18 @@ function card({ title, topic }) {
   const browser = await chromium.launch({ executablePath: CHROME });
   const page = await browser.newPage({ viewport: { width: 1200, height: 630 }, deviceScaleFactor: 1 });
 
+  await page.setContent(siteCard(), { waitUntil: 'load' });
+  await page.evaluate(() => document.fonts.ready);
+  await page.screenshot({ path: SITE_CARD });
+  console.log('  wrote', 'src/assets/img/og.png (sitewide)');
+
   let n = 0;
+  const articles = {};
   for (const file of files) {
     const fm = frontmatter(path.join(SRC, file));
     if (!fm || !fm.title) { console.log('  skip (no frontmatter title):', file); continue; }
     const slug = file.replace(/\.md$/, '');
+    articles[slug] = fm.title;
     await page.setContent(card(fm), { waitUntil: 'load' });
     await page.evaluate(() => document.fonts.ready);
     await page.screenshot({ path: path.join(OUT, `${slug}.png`) });
@@ -134,5 +239,17 @@ function card({ title, topic }) {
   }
 
   await browser.close();
+
+  fs.mkdirSync(path.dirname(MANIFEST), { recursive: true });
+  fs.writeFileSync(MANIFEST, JSON.stringify({
+    '//': 'Written by tools/og.js (#450). What the committed OG PNGs actually say. '
+      + 'Held against src/_data/site.json and the articles\' frontmatter by test/assets.test.js — '
+      + 'if that test is red, the pictures have drifted from the words: run `npm run og`.',
+    tagline: site.tagline,
+    siteLine: TAGLINE_LINE,
+    articles,
+  }, null, 2) + '\n');
+  console.log('  wrote', 'data/og-cards.json');
+
   console.log(`${n} card${n === 1 ? '' : 's'}`);
 })();

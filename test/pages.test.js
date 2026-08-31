@@ -207,6 +207,59 @@ describe('the header, and the pages behind it', () => {
       found.join('\n  '));
   });
 
+  // #450. Two non-sales readers — plausible buyers both — could not say what
+  // the product does after reading the homepage. The cause was measurable: the
+  // hero explained the product as "a full GTM team on every pitch: a BDR to
+  // research it, an SDR to find your way in, an AE to write what you send",
+  // and nine acronyms in total landed before the page named, in ordinary
+  // words, the thing a buyer receives.
+  //
+  // Both checks below are a list of JARGON SHAPES, never of files or elements
+  // — the same construction as the free-offering denials above and for the
+  // same reason (#131). Writing a new section, a sixth agent card or a whole
+  // new page cannot turn them red; putting an unexplained acronym in front of
+  // a first-time reader is the only thing that can.
+  const JARGON = /\b(?:GTM|BDR|SDR|AEs?|RevOps|Sales Ops|ICP|TAM|SAM|SAL|MQLs?|SQLs?)\b/;
+
+  test('the hero explains the product without sales-org jargon', () => {
+    const home = read('index.html');
+    const sub = home.match(/<p class="hero-sub">([\s\S]*?)<\/p>/);
+    assert.ok(sub, 'the homepage has no hero sub — the one sentence that has to explain the product');
+    const text = sub[1].replace(/<[^>]*>/g, ' ');
+    const hit = text.match(JARGON);
+    assert.equal(hit, null,
+      `the hero sub is back to explaining the product in sales-org vocabulary (${JSON.stringify(hit && hit[0])}): `
+      + JSON.stringify(text.trim()) + ' — #450: this is the one sentence on the site whose entire job is comprehension');
+  });
+
+  test('the homepage names what a buyer gets before it names who does the work', () => {
+    // Order, not presence. The deliverables were always on this page; they were
+    // three sections below the acronyms, which is past where a confused reader
+    // leaves. Whichever section carries them may move or be rewritten — it just
+    // may not end up underneath the job titles again.
+    const text = read('index.html').replace(/<[^>]*>/g, ' ');
+    const goods = text.search(/\bdeck\b[\s\S]{0,400}?\bproposal\b/i);
+    assert.ok(goods >= 0, 'the homepage never names the deliverables in plain words at all (#450)');
+    const jargon = text.search(JARGON);
+    if (jargon >= 0)
+      assert.ok(goods < jargon,
+        'a sales acronym reaches the reader before the homepage has said what they get, in plain words (#450) — '
+        + `first acronym at ${jargon}, first "deck … proposal" at ${goods}`);
+  });
+
+  test('every agent acronym on the homepage carries a plain-English gloss', () => {
+    // The five kickers are the operator's own ask of 25 Aug and the five card
+    // headings are pinned verbatim by test/agents.test.js in the studio repo,
+    // so neither can be removed here. What #450 added instead is one plain word
+    // beside each. Derived from the built card: a sixth agent can only turn
+    // this red by shipping unglossed.
+    const kickers = [...read('index.html').matchAll(/<span class="crew-kicker">([\s\S]*?)<\/span>/g)];
+    assert.ok(kickers.length, 'the crew cards have lost their kickers');
+    for (const [, inner] of kickers)
+      assert.match(inner, /<em>[^<]+<\/em>/,
+        `the agent label ${JSON.stringify(inner.replace(/<[^>]*>/g, '').trim())} has no plain-English gloss (#450)`);
+  });
+
   test('every page carries the mobile way into the nav', () => {
     // Under 860px .nav-links is display:none and this button is the only
     // thing that opens it — so a page that ships without it ships a header

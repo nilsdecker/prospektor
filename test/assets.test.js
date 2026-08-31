@@ -113,6 +113,59 @@ describe('assets carry a content hash, and are cached forever because of it', ()
   });
 });
 
+// #450. Everything above proves the cards are SERVED. Nothing proved they were
+// TRUE, and they were not: #168 retired "Your AI pre-sales team" on 25 Aug
+// because presales is an occupied category, every template was corrected the
+// same day, and src/assets/img/og.png — the picture that unfurls when somebody
+// pastes prospektor.ai into Slack or LinkedIn — went on saying it for six days.
+// A string in a template gets found by grep. A string baked into a bitmap is
+// invisible to every check in this repo.
+//
+// So `tools/og.js` writes down what it baked, and this holds that record
+// against the words. Derived from site.json and the articles' own frontmatter,
+// never from a list: writing an article, retitling one or deleting one can only
+// turn this red by leaving the pictures behind, and the fix it names is one
+// command. Same rule as everywhere else here (#131).
+describe('the Open Graph cards still say what the site says', () => {
+  const site = require('../src/_data/site.json');
+  const { frontmatter } = require('../tools/og.js');
+  const SRC = path.join(ROOT, 'src', 'resources');
+  const RERUN = 'run `npm run og` (it renders the PNGs and rewrites this file)';
+
+  let baked;
+  try { baked = require('../data/og-cards.json'); } catch { baked = null; }
+
+  test('the manifest of what was rendered exists at all', () => {
+    assert.ok(baked, 'data/og-cards.json is missing — ' + RERUN);
+  });
+
+  test('the tagline on every card is the tagline in site.json', () => {
+    assert.equal(baked.tagline, site.tagline,
+      `the cards were rendered with ${JSON.stringify(baked.tagline)} and site.json now says `
+      + `${JSON.stringify(site.tagline)} — the pictures are lying, ${RERUN}`);
+  });
+
+  test('every article has a card, and the card carries its current title', () => {
+    const files = fs.readdirSync(SRC).filter(f => f.endsWith('.md'));
+    for (const file of files) {
+      const slug = file.replace(/\.md$/, '');
+      const fm = frontmatter(path.join(SRC, file));
+      if (!fm || !fm.title) continue;
+      assert.ok(Object.hasOwn(baked.articles, slug),
+        `/resources/${slug}/ has no Open Graph card — ${RERUN}`);
+      assert.equal(baked.articles[slug], fm.title,
+        `the card for /resources/${slug}/ still says ${JSON.stringify(baked.articles[slug])}, `
+        + `but the article is now titled ${JSON.stringify(fm.title)} — ${RERUN}`);
+    }
+  });
+
+  test('no card survives the article it was rendered for', () => {
+    for (const slug of Object.keys(baked.articles))
+      assert.ok(fs.existsSync(path.join(SRC, `${slug}.md`)),
+        `a card is still rendered for /resources/${slug}/, which no longer exists — ${RERUN}`);
+  });
+});
+
 describe('the cache headers and the hashing are one change', () => {
   // Parsed rather than string-matched, so reordering or reformatting
   // netlify.toml cannot quietly pass or quietly fail.

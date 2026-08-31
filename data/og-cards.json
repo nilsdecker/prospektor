@@ -1,0 +1,31 @@
+{
+  "//": "Written by tools/og.js (#450). What the committed OG PNGs actually say. Held against src/_data/site.json and the articles' frontmatter by test/assets.test.js — if that test is red, the pictures have drifted from the words: run `npm run og`.",
+  "tagline": "Leads that fit you",
+  "siteLine": "Teach it what you're after in three minutes — customers, partners, resellers, investors. Then it finds them, and writes what you send.",
+  "articles": {
+    "ads-as-a-positioning-lab": "Buy ads to learn the words, not to buy the customers",
+    "answer-without-freezing": "How to answer a hard question on a call while you are still thinking",
+    "cold-email-personalisation": "Personalisation that works, and personalisation that costs you trust",
+    "cold-email-sequence": "The cold email sequence that expects no reply to the first email",
+    "do-not-delegate-sales": "The first salesperson you hire should be you, for longer than you want",
+    "fish-where-the-fish-are": "The channel you love is not the channel your buyers are in",
+    "forever-customers": "The customer who cannot leave, and the one who was always going to",
+    "founder-sales-stack": "The sales tools a founder actually needs",
+    "four-reasons-businesses-buy": "The four reasons businesses buy — and why one pitch has to tell all four",
+    "network-beats-audience": "The audience you would spend a year building is worth less than ten emails",
+    "niche-down": "Narrowing your market is how you get the customers outside it",
+    "partnerships-or-wishes": "When a partnership is a strategy, and when it is a wish",
+    "problem-stack": "What to say when everyone already knows the problem",
+    "sell-to-the-career": "Nobody has ever been promoted for saving 20% of their time",
+    "selling-to-agencies": "Why one agency is worth three customers",
+    "size-a-market": "How to size a market in four minutes",
+    "the-best-pond-is-not-the-biggest": "The biggest segment in your market is usually the worst one",
+    "the-ceiling-formula": "The one number that caps how big your company can get",
+    "the-channel-mix-changed": "One channel is no longer a strategy",
+    "the-first-call-is-research": "Treat the first call as a research interview you also happen to be selling on",
+    "time-box-the-experiment": "How long to give an idea before you are allowed to conclude anything",
+    "too-expensive": "\"Too expensive\" is never why they left",
+    "what-your-price-licenses": "Your price decides which sales motion you are allowed to run",
+    "who-to-approach": "The only prospects worth emailing this quarter"
+  }
+}
