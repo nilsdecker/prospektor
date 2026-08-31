@@ -174,17 +174,53 @@ describe('SEO — the #137 findings, pinned', () => {
     // A ring makes the count identical for every article by construction, so
     // this asserts evenness rather than a floor — a floor would pass again the
     // moment somebody re-sorted by date and left one article on top.
+    //
+    // ── #446: the evenness is asserted of the RING, not of every link ──────
+    //
+    // This used to count every `/resources/` link on the page, which conflated
+    // two things that want opposite guarantees. The ring is STRUCTURAL and must
+    // stay perfectly even — that is #137 F4's whole finding. An in-prose link
+    // written by a human into an article's body is EDITORIAL, and a topic
+    // cluster is deliberately uneven on purpose: a pillar page having more
+    // inbound links than its spokes is what makes it the pillar.
+    //
+    // Counting them together meant the first hand-written cluster link failed
+    // this test, and the only ways to pass were to delete the link or to relax
+    // the assertion to a floor — the floor the comment above correctly refuses.
+    // So the ring is measured where the ring actually lives, which is strictly
+    // sharper than before: a prose link can no longer mask a ring that has
+    // stopped being a ring, and it could have.
     const articles = pages().filter(p => /^\/resources\/.+\//.test(p.url));
     assert.ok(articles.length >= 4, 'expected the resources collection to be populated');
-    const inbound = Object.fromEntries(articles.map(a => [a.url, 0]));
+
+    const linksIn = (html, url) => new Set(
+      [...html.matchAll(/href="(\/resources\/[^"#?]+\/)"/g)].map(m => m[1])
+    ).has(url);
+
+    // The "Keep reading" block — what `related` emits, and nothing else.
+    const keepReading = html =>
+      (html.match(/<section class="res-more">[\s\S]*?<\/section>/) || [''])[0];
+
+    const ring = Object.fromEntries(articles.map(a => [a.url, 0]));
+    const total = Object.fromEntries(articles.map(a => [a.url, 0]));
     for (const from of articles) {
-      const links = new Set([...from.html.matchAll(/href="(\/resources\/[^"#?]+\/)"/g)].map(m => m[1]));
-      for (const to of links) if (to !== from.url && to in inbound) inbound[to]++;
+      for (const to of Object.keys(ring)) {
+        if (to === from.url) continue;
+        if (linksIn(keepReading(from.html), to)) ring[to]++;
+        if (linksIn(from.html, to)) total[to]++;
+      }
     }
-    const counts = [...new Set(Object.values(inbound))];
-    assert.strictEqual(counts.length, 1,
-      `articles do not share one inbound-link count: ${JSON.stringify(inbound)}`);
-    assert.ok(counts[0] >= 3, `each article has only ${counts[0]} inbound article links`);
+
+    const ringCounts = [...new Set(Object.values(ring))];
+    assert.strictEqual(ringCounts.length, 1,
+      `the ring is no longer even — is \`related\` sorting again? ${JSON.stringify(ring)}`);
+    assert.ok(ringCounts[0] >= 3, `the ring gives each article only ${ringCounts[0]} inbound links`);
+
+    // And nothing may be BELOW the ring: an article the ring skips is the
+    // orphan F4 was about, whatever the prose does.
+    for (const [url, n] of Object.entries(total)) {
+      assert.ok(n >= ringCounts[0], `${url} has ${n} inbound article links, below the ring's ${ringCounts[0]}`);
+    }
   });
 
   test('every article carries Article and BreadcrumbList', () => {

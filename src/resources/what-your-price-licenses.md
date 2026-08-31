@@ -131,6 +131,10 @@ public price** as the enterprise base — and search upward from there rather th
 anchoring on your list price. And read the indemnification clauses before you sign
 anything, because that is where the asymmetric risk in these contracts lives.
 
+Note what none of this is decided by: your tooling. Price picks the motion, and
+[the software that runs it](/resources/founder-sales-stack/) is a cheaper and much
+later decision than most founders treat it as.
+
 ## Checking yourself
 
 1. **Write down your annual contract value.** Not the monthly price — the annual
