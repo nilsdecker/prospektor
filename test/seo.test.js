@@ -27,6 +27,7 @@ const os = require('node:os');
 const ROOT = path.join(__dirname, '..');
 const site = require('../src/_data/site.json');
 const { siteBuild } = require('./helpers.js');
+const { parse, tagAttr } = require('../tools/seo-audit.js');
 
 // What a search result actually shows. Both are soft limits measured in pixels
 // rather than characters, so they are rounded generously — the point is to
@@ -221,5 +222,55 @@ describe('SEO — the #137 findings, pinned', () => {
       assert.match(p.html, /<html[^>]+lang="en"/, `${p.url}: no lang`);
       assert.match(p.html, /<meta[^>]+name="viewport"/, `${p.url}: no viewport`);
     }
+  });
+
+  // ── #446 ──────────────────────────────────────────────────────────────
+  // Two checks the portable SEO brief asks for that #137's pass did not have.
+  // Neither defect is on this site today; both are silent when they arrive,
+  // which is the only reason they are worth a test rather than a look.
+
+  test('no page leaves a tag unterminated in <head>', () => {
+    // The brief puts this first, and its story is the argument: a scripted
+    // head insert left `<link rel="canonical">` without its `>` across 36
+    // files, swallowing every tag after it, and nobody noticed for weeks.
+    // What makes it worth pinning is how it FAILS — not with a broken page,
+    // but by deleting the canonical, the OG card and the JSON-LD from the
+    // document a crawler sees, so every other check here reports "absent" and
+    // sends the reader to add a tag the template already has.
+    for (const p of pages()) {
+      const { unterminated } = parse(p.html, site.url + p.url);
+      assert.deepEqual(unterminated, [], `${p.url}: unterminated in <head>`);
+    }
+  });
+
+  test('the audit reads an attribute whose value contains the other quote', () => {
+    // `content=["']([^"']*)["']` — the spelling tools/seo-audit.js used until
+    // #446 — terminates on the first quote of EITHER kind, so one apostrophe
+    // inside a double-quoted value truncates the capture and the tool reports
+    // a healthy 155-character description as 30 characters.
+    //
+    // Nothing on this site triggers it, because Nunjucks escapes `'` to
+    // `&#39;` inside an attribute. That is luck rather than design — one
+    // `| safe` on a description starts it lying — and a measuring tool that
+    // lies quietly is worse than no tool, so the delimiter is back-referenced
+    // and this is what says so.
+    const apostrophe = `<meta name="description" content="Toronto's best, and why that matters">`;
+    assert.strictEqual(
+      tagAttr(apostrophe, /<meta[^>]+name=["']description["'][^>]*>/i, 'content'),
+      "Toronto's best, and why that matters");
+
+    const quoted = `<meta name='description' content='She said "no" and meant it'>`;
+    assert.strictEqual(
+      tagAttr(quoted, /<meta[^>]+name=["']description["'][^>]*>/i, 'content'),
+      'She said "no" and meant it');
+
+    // And attribute ORDER stops mattering: `content=` before `name=` is valid
+    // HTML, and the old one-regex spelling needed a hand-written second
+    // alternation to cope with it — which existed for `description` alone, so
+    // every other field was one reordered attribute away from reading null.
+    const reordered = `<meta content="Ordered the other way" name="description">`;
+    assert.strictEqual(
+      tagAttr(reordered, /<meta[^>]+name=["']description["'][^>]*>/i, 'content'),
+      'Ordered the other way');
   });
 });
