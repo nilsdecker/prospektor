@@ -512,7 +512,16 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
                        'https://prospektor.ai/pricing/',
                        'https://prospektor.ai/privacy/',
                        'https://prospektor.ai/terms/', 'https://prospektor.ai/resources/',
-                       'https://prospektor.ai/help/'];
+                       'https://prospektor.ai/help/',
+                       // #456. Ordered as sitemap.njk lists it — this block is
+                       // compared as a PREFIX, in order, so a page appended to
+                       // the sitemap must be appended here too. Anything past
+                       // this prefix has to match /resources/<slug>/ or
+                       // /help/<slug>/, so a forgotten static page fails as
+                       // "not a guide or an article" and names neither itself
+                       // nor the cause. test/drive.js keeps the same list for
+                       // the built sitemap and needs the same edit.
+                       'https://prospektor.ai/contact/'];
   // Everything after the static block is derived — the help guides (#166) and
   // then the articles (#159). Both are checked by SHAPE rather than by count,
   // because both lists are supposed to grow without this file being edited.
