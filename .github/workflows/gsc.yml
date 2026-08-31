@@ -1,0 +1,104 @@
+# Search Console → a committed markdown snapshot (#446).
+#
+# The credential lives HERE, as a repository secret, and nowhere else. This
+# workflow is the only thing that ever holds it: it queries Search Console and
+# commits the DATA into the repo, so every session reads
+# `docs/seo/gsc-latest.md` and never touches the key.
+#
+#   GitHub secret ──> this workflow ──> docs/seo/gsc-latest.md ──> every session
+#      (encrypted)       (daily)            (committed)            (no credential)
+#
+# Not Netlify — no build step reads it, so it would sit in a static site's
+# build environment doing nothing but waiting to leak. Not a Claude Code
+# environment variable — those have no secrets store and anyone who can use the
+# environment can read the value.
+#
+# Setup is RUNBOOK-search-console.md §B. Until the secret exists this workflow
+# runs, fails at `check`, and says which step is missing — which is the
+# intended behaviour, not a broken build: a silent green run that committed
+# nothing is the failure mode the brief warns about hardest.
+name: Search Console snapshot
+
+on:
+  schedule:
+    # Daily, early UTC. Do NOT build anything that assumes it ran by a given
+    # hour: GitHub's scheduled runs are unreliably timed, and the brief this is
+    # built from records a `40 5 * * *` job first firing at 17:40 — twelve
+    # hours late — before settling into roughly the right window.
+    - cron: '40 5 * * *'
+  # So it can be triggered by hand, which is the only way to get data on the
+  # day the secret is first added. NOTE: workflow_dispatch only appears once
+  # this file is on the DEFAULT branch — it 404s from a feature branch.
+  workflow_dispatch:
+
+# One at a time. Two overlapping runs would race on the same file and the
+# loser's rebase would discard a snapshot nobody looked at.
+concurrency:
+  group: gsc-snapshot
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # No `npm ci`: tools/gsc.js has no dependencies. Node signs RS256 in the
+      # standard library, which is why this job installs nothing at all.
+
+      # Named separately so a setup failure is visible as a step rather than
+      # buried in the report's output. `check` walks credential → network →
+      # token exchange → property access and names the one that broke.
+      - name: Check the connection
+        env:
+          GSC_SERVICE_ACCOUNT_KEY: ${{ secrets.GSC_SERVICE_ACCOUNT_KEY }}
+        run: node tools/gsc.js check
+
+      - name: Write the snapshot
+        env:
+          GSC_SERVICE_ACCOUNT_KEY: ${{ secrets.GSC_SERVICE_ACCOUNT_KEY }}
+        run: node tools/gsc.js report
+
+      - name: Commit it
+        run: |
+          set -euo pipefail
+          git config user.name  "prospektor-seo-bot"
+          git config user.email "seo-bot@users.noreply.github.com"
+
+          # STAGE FIRST, then compare the INDEX. `git diff --quiet <path>` does
+          # not see untracked files, so on the very run that CREATES the
+          # snapshot it reports "no change" and the job exits 0 having
+          # committed nothing — a green check that did nothing, which is
+          # precisely the failure the brief spends its longest section on.
+          git add docs/seo/gsc-latest.md
+          if git diff --cached --quiet; then
+            echo "snapshot unchanged — nothing to commit"
+            exit 0
+          fi
+
+          # [skip netlify]: docs/ is outside the Eleventy input (src/), so this
+          # commit cannot change a single served byte. Rebuilding the site
+          # daily for it would spend a build minute to deploy identical output.
+          git commit -q -m "Search Console snapshot $(date -u '+%Y-%m-%d') [skip netlify]"
+
+          # CI commits to the same branch humans and sessions push to, so a
+          # rebase is not optional. Rebase rather than merge: this is one
+          # generated file and a merge commit for it is noise.
+          for i in 1 2 3 4; do
+            git fetch origin "${GITHUB_REF_NAME}" -q
+            if git rebase "origin/${GITHUB_REF_NAME}" -q && git push origin "HEAD:${GITHUB_REF_NAME}"; then
+              echo "pushed"
+              exit 0
+            fi
+            git rebase --abort 2>/dev/null || true
+            sleep $((2 ** i))
+          done
+          echo "::error::could not push the snapshot after 4 attempts"
+          exit 1

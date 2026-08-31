@@ -1,0 +1,156 @@
+{
+  "$comment": [
+    "THE CONTENT QUEUE (#446, §2.3 of SEO-AGENT-SETUP.md). Durable state in the",
+    "repo — never in a conversation, never in a scratchpad. #293 is the standing",
+    "worked example of why: an SEO thread reported two real findings into a session",
+    "transcript and nothing on this surface can read one back, so they are gone.",
+    "",
+    "HOW THIS SECTION IS DIFFERENT FROM THE BRIEF'S ASSUMPTIONS, and it changes the",
+    "shape of every item here. /resources/ is defined as ONE ARTICLE PER LEARNING",
+    "(#159): data/learnings.json is the ledger, test/learnings.test.js enforces it",
+    "in both directions, and an article declaring no learning fails npm test. A",
+    "queue commissioned against a KEYWORD therefore cannot just be written — each",
+    "item names the ledger row it will carry, and that row has to be a real finding",
+    "in prospektor-ai/studio -> docs/research/growth-playbook.md.",
+    "",
+    "The ledger's own scope note is what makes this legitimate rather than a",
+    "workaround. It covers Parts 1, 3, 5, 8 and 9, and says of the rest: 'Promote a",
+    "row out of them the day one turns out to be — the rule is the reader, not the",
+    "part number.' Part 7 (the AI era) turns out to hold exactly the material the",
+    "operator's tools ask needs, so items below promote rows out of it.",
+    "",
+    "STATUS values: queued | writing | published. An item is only 'published' once",
+    "the page answers 200 on prospektor.ai — rule 5 of the thread protocol."
+  ],
+
+  "cluster": {
+    "name": "founder-led sales",
+    "ordered_by": "the operator, 31 Aug 2026",
+    "verbatim_ask": "First series I want to opitmize for, is a series of articles on 'founder led sales' and how modern user friendly sales tools, can help the founder",
+    "shape": "pillar + spokes. The pillar is an EXISTING article promoted, not a new URL.",
+    "shape_decided_by": [
+      "The operator, 31 Aug 2026, choosing 'Promote the existing article' over a new",
+      "pillar and over spokes-only. /resources/do-not-delegate-sales/ already holds",
+      "the head term in its own description ('Why founder-led sales cannot be",
+      "delegated early') and already carries FIVE §8.5 learnings, so it is the",
+      "founder-led-sales hub in substance already. A second page aimed at the term",
+      "would have been the exact defect `distinct_from` exists to prevent — and",
+      "promoting keeps the page's age, its inbound links and its URL, at the cost",
+      "of no redirect and no cannibalisation window."
+    ],
+    "register": "teaching-first, tool categories generic",
+    "register_decided_by": [
+      "The operator, 31 Aug 2026, choosing 'Teaching-first, tools generic' over",
+      "comparison pages naming rivals. So: no competitor is named, no feature matrix,",
+      "no pricing claim about anybody else. This is also the cheap way to stay true —",
+      "a claim about a rival's plan is stale the week after it is written, and",
+      "docs/seo/project-facts.md bans it unless read off their live page and dated."
+    ]
+  },
+
+  "queue": [
+    {
+      "slug": "do-not-delegate-sales",
+      "type": "article",
+      "action": "promote-in-place",
+      "cluster": "founder-led-sales",
+      "title": "The first salesperson you hire should be you, for longer than you want",
+      "primary_keyword": "founder-led sales",
+      "target_words": null,
+      "faq": false,
+      "angle": "Already the cluster's substance; it just does not SAY the head term where a search result reads it. Retitle for search only, add the section that makes it a pillar, link down to the spokes.",
+      "internal_links": ["/resources/founder-sales-stack/"],
+      "distinct_from": "Nothing — it IS the pillar. The point of promoting rather than adding is that no second page competes with it.",
+      "ledger": "already carries do-not-delegate-sales, two-reps-or-none, learning-before-scale, introvert-script, activity-model. No new row needed.",
+      "risk": "The <h1> must not change: it is what a returning reader recognises, and #137 established that seoTitle changes the search result ONLY. Changing the URL is out — that is a 301 on a live page and needs the operator.",
+      "status": "writing"
+    },
+    {
+      "slug": "founder-sales-stack",
+      "type": "article",
+      "action": "new",
+      "cluster": "founder-led-sales",
+      "title": "The sales tools a founder actually needs, and the one they should never build",
+      "seo_title": "Sales tools for founders: buy or build",
+      "primary_keyword": "sales tools for founders",
+      "target_words": 1100,
+      "faq": false,
+      "angle": "The operator's 'modern user friendly sales tools help the founder' half, answered honestly rather than as a listicle: the arithmetic that says buy it, and the two conditions under which building is not a mistake.",
+      "internal_links": ["/resources/do-not-delegate-sales/", "/resources/what-your-price-licenses/", "/#scan"],
+      "distinct_from": "what-your-price-licenses decides which MOTION your price licenses; this decides what you run that motion ON, and never mentions a threshold. do-not-delegate-sales is about WHO does the selling, this is about what they hold while doing it. Nothing on the site currently mentions tooling, build-vs-buy, or the cost of a founder's own hours — verified against all 23 articles, 31 Aug.",
+      "ledger": "NEW ROW — build-to-save-is-a-rounding-error, §7.1, promoted out of Part 7 under the ledger's own scope rule.",
+      "status": "writing"
+    },
+    {
+      "slug": "learn-a-channel-fast",
+      "type": "article",
+      "action": "new",
+      "cluster": "founder-led-sales",
+      "title": "How to get competent at a sales channel you have never run",
+      "seo_title": "Learning a sales channel from scratch",
+      "primary_keyword": "how to learn cold calling as a founder",
+      "target_words": 1100,
+      "faq": false,
+      "angle": "The five-step procedure, including the counter-intuitive one: time-box the reading to a day or two and make the first call badly. Answers the objection every Prospektor buyer raises — that they do not know how to run outbound.",
+      "internal_links": ["/resources/do-not-delegate-sales/", "/resources/fish-where-the-fish-are/"],
+      "distinct_from": "fish-where-the-fish-are picks WHICH channel to run; this is how to get good at one already picked, and does not re-argue the choice. time-box-the-experiment time-boxes an EXPERIMENT to decide if an idea works; this time-boxes the LEARNING before the first attempt — different clock, different decision.",
+      "ledger": "NEW ROW — learn-a-channel-fast, §7.6, promoted out of Part 7.",
+      "risk": "§7.6 names practitioners and a company blog. Naming a person as a source is fine; the register decision means no tool is recommended by name.",
+      "depends_on": "founder-sales-stack",
+      "status": "queued"
+    },
+    {
+      "slug": "sell-the-job-not-the-persona",
+      "type": "article",
+      "action": "new",
+      "cluster": "founder-led-sales",
+      "title": "Why they buy is not who they are",
+      "seo_title": "Jobs to be done vs buyer personas",
+      "primary_keyword": "jobs to be done vs personas b2b",
+      "target_words": 1000,
+      "faq": false,
+      "angle": "Two independent experts, one conclusion: segment by the workflow and the job, not the industry. The correction to persona-first targeting.",
+      "internal_links": ["/resources/who-to-approach/", "/resources/niche-down/"],
+      "distinct_from": "niche-down argues narrowing wins MORE customers — a size argument. This is about the AXIS you narrow on, and would be wrong to write as a second niching article. who-to-approach qualifies a named prospect for readiness; this decides what makes a prospect a candidate at all. NEEDS RE-CHECKING against niche-down at write time — this is the weakest distinct_from in the queue and the one most likely to fail honestly.",
+      "ledger": "NEW ROW — job-not-persona, §7.5, promoted out of Part 7.",
+      "risk": "Closest call in the cluster. If it cannot be defended against niche-down on the day, it does not get written — the brief's rule, and #137 F2's duplicate-description finding is what that failure looks like in production.",
+      "depends_on": "founder-sales-stack",
+      "status": "queued"
+    }
+  ],
+
+  "maintenance": [
+    {
+      "id": "help-screens-heading",
+      "first_action": "In the help corpus entry rendered at /help/screens/, find the heading that renders as <h3> directly beneath the page <h1> ('What a report says') and make it an <h2>.",
+      "why": "The only finding on production as of 31 Aug 2026 — node tools/seo-audit.js reports it as the site's single MINOR. A jump from h1 to h3 tells a crawler a level is missing.",
+      "needs_operator": null,
+      "size": "S",
+      "status": "queued"
+    },
+    {
+      "id": "gsc-first-read",
+      "first_action": "Read docs/seo/gsc-latest.md. If it reports zero impressions, stop and record the date — that is the expected answer until roughly 14 Sep 2026 and it is not a fault.",
+      "why": "Everything data-driven in this queue waits on it. The pipeline commits the file daily from 31 Aug; Search Console does not backfill from before the property was verified.",
+      "needs_operator": "RUNBOOK-search-console.md §B — the service account, ~15 minutes — plus steps 6 and 7, still outstanding from #135.",
+      "size": "S",
+      "status": "queued"
+    },
+    {
+      "id": "cannibalisation-sweep",
+      "first_action": "Run `npm run gsc:cannibals` and write its output into this file as a dated note, whatever it says.",
+      "why": "The brief says check before every publish. Recording the answer even when it is empty is what makes the first non-empty one legible.",
+      "needs_operator": null,
+      "size": "S",
+      "status": "queued"
+    },
+    {
+      "id": "homepage-vocabulary",
+      "first_action": "Run `npm run gsc:opportunities` and paste the top twenty queries into SEO-AUDIT.md under R1, dated. That is the whole first action — it makes the decision possible and does not take it.",
+      "why": "#137 R1: nineteen buyer phrases were measured against the homepage and ZERO appear in its title or description. It has been open since 24 Aug waiting on exactly this data.",
+      "needs_operator": "Whether the homepage title and tagline should meet those words or keep their own is repositioning — a CEO call (#141, #130), not a builder's. The data goes in the file; the decision waits.",
+      "size": "S",
+      "status": "queued"
+    }
+  ]
+}

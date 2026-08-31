@@ -168,6 +168,22 @@ were picked, so the evenness survives it.
 — a floor would pass again the moment somebody re-sorted by date and left one
 article on top.
 
+**Refined 31 Aug 2026 (#446): the equality is asserted of the RING, not of every
+link on the page.** The original spelling counted every `/resources/` link
+anywhere in an article, which conflated two things that want opposite
+guarantees. The ring is *structural* and must stay perfectly even — that is this
+finding. An in-prose link written by hand into an article's body is *editorial*,
+and a topic cluster is **deliberately uneven**: a pillar page carrying more
+inbound links than its spokes is what makes it the pillar. Counted together, the
+first hand-written cluster link failed the suite, and the only ways to pass were
+to delete the link or to relax the assertion to the floor this paragraph
+correctly refuses. So the count is now taken inside the `res-more` block, where
+the ring actually lives, plus a second assertion that no article falls *below*
+the ring — which is strictly sharper than before, because a prose link can no
+longer mask a ring that has stopped being one. Verified by reintroducing the
+date sort: the suite goes red naming the cause, with the distribution 23, 23, 3,
+0, …
+
 ### F5 · Two heading-structure defects · **minor**
 
 - The **homepage outline read `h1` → `h3`(empty) → `h2`**. The scan result was

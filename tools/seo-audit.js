@@ -36,27 +36,73 @@ const strip = s => s.replace(/<[^>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&
   .replace(/&#39;|&apos;/g, "'").replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>')
   .replace(/\s+/g, ' ').trim();
 
+// Read one attribute off the first tag matching `tagRe` — the tag is found
+// first, then the attribute is read out of it.
+//
+// Two steps rather than one regex, for two reasons #446 hit. **The delimiter is
+// BACK-REFERENCED** (`(["'])(.*?)\\1`) instead of re-matched as a class: the
+// obvious `content=["']([^"']*)["']`, which is what this file used until now,
+// terminates the capture on the first quote of EITHER kind, so a single
+// apostrophe inside a double-quoted value truncates it and the tool reports a
+// healthy 155-character description as 30 characters and a MINOR that is not
+// there. Nothing on this site triggers it today only because Nunjucks escapes
+// `'` to `&#39;` inside an attribute — which is luck, not design: one `| safe`
+// on a description would start this lying, and a measuring tool that lies
+// quietly is worse than no tool.
+//
+// And it makes attribute ORDER stop mattering. `content=` before `name=` is
+// valid HTML, and the one-regex spelling needed a second alternation to cope
+// with it — which existed for `description` and for nothing else, so every
+// other field was one hand-written attribute away from reading null.
+const tagAttr = (html, tagRe, name) => {
+  const tag = html.match(tagRe);
+  if (!tag) return null;
+  const m = tag[0].match(new RegExp(`\\s${name}=(["'])([\\s\\S]*?)\\1`, 'i'));
+  return m ? strip(m[2]) : null;
+};
 const meta = (html, re) => { const m = html.match(re); return m ? strip(m[1]) : null; };
 
 function parse(html, url) {
   const p = {};
   p.title = meta(html, /<title[^>]*>([\s\S]*?)<\/title>/i);
   p.titleLen = p.title ? p.title.length : 0;
-  p.description = meta(html, /<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)["']/i)
-    || meta(html, /<meta[^>]+content=["']([^"']*)["'][^>]+name=["']description["']/i);
+  p.description = tagAttr(html, /<meta[^>]+name=["']description["'][^>]*>/i, 'content');
   p.descLen = p.description ? p.description.length : 0;
-  p.canonical = (html.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']*)["']/i) || [])[1] || null;
-  p.robots = meta(html, /<meta[^>]+name=["']robots["'][^>]+content=["']([^"']*)["']/i);
-  p.lang = (html.match(/<html[^>]*\slang=["']([^"']*)["']/i) || [])[1] || null;
+  p.canonical = tagAttr(html, /<link[^>]+rel=["']canonical["'][^>]*>/i, 'href');
+  p.robots = tagAttr(html, /<meta[^>]+name=["']robots["'][^>]*>/i, 'content');
+  p.lang = tagAttr(html, /<html[^>]*>/i, 'lang');
   p.viewport = !!html.match(/<meta[^>]+name=["']viewport["']/i);
   p.charset = !!html.match(/<meta[^>]+charset=/i);
-  p.ogTitle = meta(html, /<meta[^>]+property=["']og:title["'][^>]+content=["']([^"']*)["']/i);
-  p.ogDesc = meta(html, /<meta[^>]+property=["']og:description["'][^>]+content=["']([^"']*)["']/i);
-  p.ogImage = (html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']*)["']/i) || [])[1] || null;
-  p.ogType = meta(html, /<meta[^>]+property=["']og:type["'][^>]+content=["']([^"']*)["']/i);
-  p.ogUrl = (html.match(/<meta[^>]+property=["']og:url["'][^>]+content=["']([^"']*)["']/i) || [])[1] || null;
-  p.twCard = meta(html, /<meta[^>]+name=["']twitter:card["'][^>]+content=["']([^"']*)["']/i);
-  p.twImage = (html.match(/<meta[^>]+name=["']twitter:image["'][^>]+content=["']([^"']*)["']/i) || [])[1] || null;
+
+  // Every tag inside <head> is TERMINATED. This is the first check in the
+  // portable brief #446 was built from, and it is there because it is the one
+  // that hides: a scripted head insert left `<link rel="canonical">` without
+  // its `>` across 36 files, which swallowed everything after it in the head,
+  // and nobody noticed for weeks. Nothing else here would catch it — an
+  // unterminated tag does not break the page, it silently deletes the
+  // canonical, the OG card and the JSON-LD from the document the crawler sees,
+  // and every one of those checks below would then report "absent" and send
+  // the reader off to add a tag that is already in the template.
+  //
+  // Comments and script/style bodies come out first: a `<` inside either is
+  // text, not a tag, and JSON-LD is where this site keeps its longest strings.
+  const headHtml = (html.match(/<head[\s\S]*?<\/head>/i) || [''])[0]
+    .replace(/<!--[\s\S]*?-->/g, '')
+    .replace(/<(script|style)\b[\s\S]*?<\/\1>/gi, '');
+  p.unterminated = [];
+  for (let i = headHtml.indexOf('<'); i >= 0; i = headHtml.indexOf('<', i + 1)) {
+    const gt = headHtml.indexOf('>', i), lt = headHtml.indexOf('<', i + 1);
+    if (gt < 0 || (lt >= 0 && lt < gt)) {
+      p.unterminated.push(headHtml.slice(i, i + 60).replace(/\s+/g, ' ').trim());
+    }
+  }
+  p.ogTitle = tagAttr(html, /<meta[^>]+property=["']og:title["'][^>]*>/i, 'content');
+  p.ogDesc = tagAttr(html, /<meta[^>]+property=["']og:description["'][^>]*>/i, 'content');
+  p.ogImage = tagAttr(html, /<meta[^>]+property=["']og:image["'][^>]*>/i, 'content');
+  p.ogType = tagAttr(html, /<meta[^>]+property=["']og:type["'][^>]*>/i, 'content');
+  p.ogUrl = tagAttr(html, /<meta[^>]+property=["']og:url["'][^>]*>/i, 'content');
+  p.twCard = tagAttr(html, /<meta[^>]+name=["']twitter:card["'][^>]*>/i, 'content');
+  p.twImage = tagAttr(html, /<meta[^>]+name=["']twitter:image["'][^>]*>/i, 'content');
 
   // Heading outline, in document order.
   p.headings = [...html.matchAll(/<h([1-6])\b[^>]*>([\s\S]*?)<\/h\1>/gi)]
@@ -95,8 +141,8 @@ function parse(html, url) {
 
   // Images: alt text and explicit dimensions (the CLS-relevant half).
   p.images = [...html.matchAll(/<img\b[^>]*>/gi)].map(m => ({
-    src: (m[0].match(/\ssrc=["']([^"']*)["']/i) || [])[1] || null,
-    alt: (m[0].match(/\salt=["']([^"']*)["']/i) || [])[1] ?? null,
+    src: (m[0].match(/\ssrc=(["'])([\s\S]*?)\1/i) || [])[2] || null,
+    alt: (m[0].match(/\salt=(["'])([\s\S]*?)\1/i) || [])[2] ?? null,
     hasDims: /\swidth=/i.test(m[0]) && /\sheight=/i.test(m[0]),
     loading: (m[0].match(/\sloading=["']([^"']*)["']/i) || [])[1] || null,
   }));
@@ -123,6 +169,14 @@ function parse(html, url) {
   p.words = strip(body).split(/\s+/).filter(Boolean).length;
   return p;
 }
+
+// Library plus CLI, the same shape as `tools/learning-coverage.js` and for the
+// same reason: the parsing this tool does is worth pinning in `npm test`, and a
+// module that audits production the moment it is required cannot be imported by
+// a test at all. Requiring this file now gives you `parse`; running it audits.
+module.exports = { parse, tagAttr, strip };
+
+if (require.main !== module) return;
 
 (async () => {
   const sm = await get(SITE + '/sitemap.xml');
@@ -153,6 +207,9 @@ function parse(html, url) {
   for (const [path, p] of Object.entries(pages)) {
     if (p.status !== 200) { if (p.inSitemap) flag('BLOCKER', path, `sitemap URL answers ${p.status}`); continue; }
     const indexable = p.inSitemap && !/noindex/i.test(p.robots || '') && !/noindex/i.test(p.xRobots || '');
+    for (const t of p.unterminated) {
+      flag('BLOCKER', path, `unterminated tag in <head> — everything after it is swallowed: ${t}`);
+    }
     if (!p.title) flag('BLOCKER', path, 'no <title>');
     else {
       if (p.titleLen > 60) flag('MAJOR', path, `title ${p.titleLen} chars — truncated in results (>60)`);

@@ -1,8 +1,8 @@
 ---
 title: "The first salesperson you hire should be you, for longer than you want"
-seoTitle: "Do not delegate sales yet"
+seoTitle: "Founder-led sales, and when it ends"
 dek: "There is a revenue number below which nothing sales-related should leave the founder, and it is higher than most people expect. The gate before any hire is not a budget — it is a count."
-description: "Why founder-led sales cannot be delegated early, the revenue thresholds for each kind of sales hire, and why you hire two reps or none."
+description: "How to run founder-led sales: the revenue thresholds that decide when it ends, why you hire two reps or none, and the script if you hate selling."
 topic: sales motion
 learnings: do-not-delegate-sales, two-reps-or-none, learning-before-scale, introvert-script, activity-model
 date: 2026-08-24
@@ -127,6 +127,11 @@ objections written down with short answers, a handful of specific examples you c
 recall rather than invent, and the price said out loud on the first call. Those
 three remove most of what makes selling uncomfortable, and none of them requires
 being an extrovert.
+
+None of them requires much software either. The stack that supports all of this is
+[four jobs and a spreadsheet](/resources/founder-sales-stack/) for longer than most
+founders expect, and the hours you would spend assembling something better are the
+most expensive thing you own.
 
 ## Five things
 

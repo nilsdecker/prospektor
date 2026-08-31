@@ -27,6 +27,7 @@ const os = require('node:os');
 const ROOT = path.join(__dirname, '..');
 const site = require('../src/_data/site.json');
 const { siteBuild } = require('./helpers.js');
+const { parse, tagAttr } = require('../tools/seo-audit.js');
 
 // What a search result actually shows. Both are soft limits measured in pixels
 // rather than characters, so they are rounded generously — the point is to
@@ -173,17 +174,53 @@ describe('SEO — the #137 findings, pinned', () => {
     // A ring makes the count identical for every article by construction, so
     // this asserts evenness rather than a floor — a floor would pass again the
     // moment somebody re-sorted by date and left one article on top.
+    //
+    // ── #446: the evenness is asserted of the RING, not of every link ──────
+    //
+    // This used to count every `/resources/` link on the page, which conflated
+    // two things that want opposite guarantees. The ring is STRUCTURAL and must
+    // stay perfectly even — that is #137 F4's whole finding. An in-prose link
+    // written by a human into an article's body is EDITORIAL, and a topic
+    // cluster is deliberately uneven on purpose: a pillar page having more
+    // inbound links than its spokes is what makes it the pillar.
+    //
+    // Counting them together meant the first hand-written cluster link failed
+    // this test, and the only ways to pass were to delete the link or to relax
+    // the assertion to a floor — the floor the comment above correctly refuses.
+    // So the ring is measured where the ring actually lives, which is strictly
+    // sharper than before: a prose link can no longer mask a ring that has
+    // stopped being a ring, and it could have.
     const articles = pages().filter(p => /^\/resources\/.+\//.test(p.url));
     assert.ok(articles.length >= 4, 'expected the resources collection to be populated');
-    const inbound = Object.fromEntries(articles.map(a => [a.url, 0]));
+
+    const linksIn = (html, url) => new Set(
+      [...html.matchAll(/href="(\/resources\/[^"#?]+\/)"/g)].map(m => m[1])
+    ).has(url);
+
+    // The "Keep reading" block — what `related` emits, and nothing else.
+    const keepReading = html =>
+      (html.match(/<section class="res-more">[\s\S]*?<\/section>/) || [''])[0];
+
+    const ring = Object.fromEntries(articles.map(a => [a.url, 0]));
+    const total = Object.fromEntries(articles.map(a => [a.url, 0]));
     for (const from of articles) {
-      const links = new Set([...from.html.matchAll(/href="(\/resources\/[^"#?]+\/)"/g)].map(m => m[1]));
-      for (const to of links) if (to !== from.url && to in inbound) inbound[to]++;
+      for (const to of Object.keys(ring)) {
+        if (to === from.url) continue;
+        if (linksIn(keepReading(from.html), to)) ring[to]++;
+        if (linksIn(from.html, to)) total[to]++;
+      }
     }
-    const counts = [...new Set(Object.values(inbound))];
-    assert.strictEqual(counts.length, 1,
-      `articles do not share one inbound-link count: ${JSON.stringify(inbound)}`);
-    assert.ok(counts[0] >= 3, `each article has only ${counts[0]} inbound article links`);
+
+    const ringCounts = [...new Set(Object.values(ring))];
+    assert.strictEqual(ringCounts.length, 1,
+      `the ring is no longer even — is \`related\` sorting again? ${JSON.stringify(ring)}`);
+    assert.ok(ringCounts[0] >= 3, `the ring gives each article only ${ringCounts[0]} inbound links`);
+
+    // And nothing may be BELOW the ring: an article the ring skips is the
+    // orphan F4 was about, whatever the prose does.
+    for (const [url, n] of Object.entries(total)) {
+      assert.ok(n >= ringCounts[0], `${url} has ${n} inbound article links, below the ring's ${ringCounts[0]}`);
+    }
   });
 
   test('every article carries Article and BreadcrumbList', () => {
@@ -221,5 +258,55 @@ describe('SEO — the #137 findings, pinned', () => {
       assert.match(p.html, /<html[^>]+lang="en"/, `${p.url}: no lang`);
       assert.match(p.html, /<meta[^>]+name="viewport"/, `${p.url}: no viewport`);
     }
+  });
+
+  // ── #446 ──────────────────────────────────────────────────────────────
+  // Two checks the portable SEO brief asks for that #137's pass did not have.
+  // Neither defect is on this site today; both are silent when they arrive,
+  // which is the only reason they are worth a test rather than a look.
+
+  test('no page leaves a tag unterminated in <head>', () => {
+    // The brief puts this first, and its story is the argument: a scripted
+    // head insert left `<link rel="canonical">` without its `>` across 36
+    // files, swallowing every tag after it, and nobody noticed for weeks.
+    // What makes it worth pinning is how it FAILS — not with a broken page,
+    // but by deleting the canonical, the OG card and the JSON-LD from the
+    // document a crawler sees, so every other check here reports "absent" and
+    // sends the reader to add a tag the template already has.
+    for (const p of pages()) {
+      const { unterminated } = parse(p.html, site.url + p.url);
+      assert.deepEqual(unterminated, [], `${p.url}: unterminated in <head>`);
+    }
+  });
+
+  test('the audit reads an attribute whose value contains the other quote', () => {
+    // `content=["']([^"']*)["']` — the spelling tools/seo-audit.js used until
+    // #446 — terminates on the first quote of EITHER kind, so one apostrophe
+    // inside a double-quoted value truncates the capture and the tool reports
+    // a healthy 155-character description as 30 characters.
+    //
+    // Nothing on this site triggers it, because Nunjucks escapes `'` to
+    // `&#39;` inside an attribute. That is luck rather than design — one
+    // `| safe` on a description starts it lying — and a measuring tool that
+    // lies quietly is worse than no tool, so the delimiter is back-referenced
+    // and this is what says so.
+    const apostrophe = `<meta name="description" content="Toronto's best, and why that matters">`;
+    assert.strictEqual(
+      tagAttr(apostrophe, /<meta[^>]+name=["']description["'][^>]*>/i, 'content'),
+      "Toronto's best, and why that matters");
+
+    const quoted = `<meta name='description' content='She said "no" and meant it'>`;
+    assert.strictEqual(
+      tagAttr(quoted, /<meta[^>]+name=["']description["'][^>]*>/i, 'content'),
+      'She said "no" and meant it');
+
+    // And attribute ORDER stops mattering: `content=` before `name=` is valid
+    // HTML, and the old one-regex spelling needed a hand-written second
+    // alternation to cope with it — which existed for `description` alone, so
+    // every other field was one reordered attribute away from reading null.
+    const reordered = `<meta content="Ordered the other way" name="description">`;
+    assert.strictEqual(
+      tagAttr(reordered, /<meta[^>]+name=["']description["'][^>]*>/i, 'content'),
+      'Ordered the other way');
   });
 });

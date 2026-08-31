@@ -10,7 +10,12 @@
     "audit": "node test/audit-live.js",
     "og": "node tools/og.js",
     "help:snapshot": "node tools/help-snapshot.js",
-    "learnings": "node tools/learning-coverage.js"
+    "learnings": "node tools/learning-coverage.js",
+    "gsc": "node tools/gsc.js",
+    "gsc:check": "node tools/gsc.js check",
+    "gsc:report": "node tools/gsc.js report",
+    "gsc:opportunities": "node tools/gsc.js opportunities",
+    "gsc:cannibals": "node tools/gsc.js cannibals"
   },
   "devDependencies": {
     "@11ty/eleventy": "^2.0.1"

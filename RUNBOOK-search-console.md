@@ -256,6 +256,138 @@ Shipped and live before this runbook; you do not need to touch any of it.
   it. `npm run audit` asks the same of production, plus that the studio's
   refusal is really being served.
 
+## B · The data pipeline — a service account, so the reports reach the repo
+
+**Added by #446, 31 Aug 2026.** Steps 1–7 above put the property in the
+operator's browser. This section puts the *data* in the repository, which is a
+different problem: every content decision the SEO work makes wants the
+Performance report, and neither a session nor a scheduled run can open a
+browser. **#137's R1 and #166's follow-up are both explicitly waiting on this**,
+and so is the founder-led-sales series (#447).
+
+**About fifteen minutes, once.** After it, `docs/seo/gsc-latest.md` refreshes
+itself daily and anything that needs the data reads a committed file.
+
+### Where the key goes, and the two places it must not
+
+It goes in **GitHub Actions secrets**. `.github/workflows/gsc.yml` is the only
+thing that ever holds it; it commits the *data*, and every session reads that.
+
+```
+GitHub secret ──> Actions workflow ──> docs/seo/gsc-latest.md ──> every session
+   (encrypted)        (daily)              (committed)            (no credential)
+```
+
+**Not Netlify.** No build step reads it, so it would sit in a static site's
+build environment doing nothing but waiting to leak — and Netlify's secret
+scanner would then fail every build that found the value anywhere in the repo,
+which is #281's four-hour outage wearing a different hat.
+
+**Not a Claude Code environment variable.** Those have no secrets store, and
+anyone who can use the environment can read the value. #293 records the
+previous SEO thread reporting it had put the key exactly there; that is the
+arrangement this section replaces.
+
+### B1 · Create the service account
+
+1. <https://console.cloud.google.com> → sign in with **the same Google account
+   that owns the Search Console property**. A different account works but adds
+   a sharing step, so use the same one.
+2. Create a project (or pick one). Name it anything — `prospektor-seo` is fine.
+3. **APIs & Services → Library** → search **Google Search Console API** →
+   **Enable**. Miss this and every call answers 403 with a message about the
+   API not being enabled for the project.
+4. **APIs & Services → Credentials → Create credentials → Service account.**
+   - Name: `seo-agent`.
+   - **Grant this service account access to the project: skip it.** Project
+     roles are about Google Cloud resources; Search Console access is granted
+     in Search Console, at B3. Adding an IAM role here does nothing useful and
+     an Owner role here would be a real over-grant.
+5. Open the new service account → **Keys → Add key → Create new key → JSON**.
+   A `.json` file downloads. **That file is the credential** — treat it the way
+   you would a password.
+
+> **Take the JSON key, not the OAuth client.** The Credentials screen offers
+> *OAuth client ID* right beside it and its JSON looks similar. It has no
+> `client_email` and cannot work here. `node tools/gsc.js check` says so by
+> name rather than letting a stack trace out, but it is easier not to.
+
+### B2 · Copy the service account's email
+
+In the service account's details, an address like
+`seo-agent@<project-id>.iam.gserviceaccount.com`. It is also the
+`client_email` field inside the JSON. You need it at B3.
+
+### B3 · Give it read access to the property
+
+1. <https://search.google.com/search-console> → select the **`prospektor.ai`
+   Domain property** (the one verified at steps 1–5).
+2. **Settings → Users and permissions → Add user.**
+3. Paste the service account email. Permission: **Restricted**.
+4. **Add.**
+
+**Restricted, not Full, and not Owner.** Restricted is read-only and is
+everything the reporting needs. Full buys two things: sitemap submission, which
+is close to worthless — Google calls submission *"merely a hint"* and the ping
+endpoint is retired, so accurate `lastmod` is the actual lever and this repo
+already generates it — and the URL Inspection API, which is genuinely useful
+but not worth making a leaked key able to write. A read-only key that leaks
+discloses our traffic numbers; a Full one lets a stranger act on the property.
+
+### B4 · Store the key as a repository secret
+
+1. GitHub → `prospektor-ai/prospektor-website` → **Settings → Secrets and
+   variables → Actions → New repository secret.**
+2. Name: **`GSC_SERVICE_ACCOUNT_KEY`** — exactly, it is read by that name.
+3. Value: **the entire contents of the JSON file**, opening brace to closing
+   brace. Not the path, not just the private key, and no surrounding quotes.
+4. **Add secret.**
+5. **Delete the downloaded `.json` from your machine.** GitHub cannot show it
+   back to you, which is the point; if it is ever needed again, make a new key
+   and delete the old one from the Cloud console.
+
+### B5 · Run it once by hand
+
+GitHub → **Actions → Search Console snapshot → Run workflow.**
+
+**If the button is not there**, the workflow file is not on `main` yet —
+`workflow_dispatch` 404s from a feature branch. Merge first.
+
+The run either commits `docs/seo/gsc-latest.md` or fails at **Check the
+connection** naming the step that broke. Both are useful answers; a green run
+that committed nothing is the one thing it will not do.
+
+### B6 · What it will say at first, and why that is right
+
+**Zero rows, for two to three weeks.** The property was verified on 24 Aug 2026
+and Search Console does not backfill from before verification. The snapshot
+says so in its own header rather than looking broken.
+
+That is also the honest answer to *"when does the content plan get written from
+data"*: not this week. `node tools/gsc.js check` is what distinguishes *no data
+yet* from *no pipeline* — the reporting commands cannot, because both answer
+with an empty list.
+
+### Using it
+
+```
+node tools/gsc.js check           # names the failing step, run this first
+npm run gsc:opportunities         # >=50 impressions, position > 10 — write against these
+npm run gsc:cannibals             # two of our URLs on one query — check before every publish
+node tools/gsc.js page /resources/do-not-delegate-sales/
+```
+
+**`opportunities` is the list to write against** and `cannibals` is the check
+before publishing. An impression Google is already giving us is evidence; a
+keyword tool's volume number is a guess about a stranger.
+
+### Still outstanding from steps 6–7
+
+Unchanged and still five minutes: **submit `sitemap.xml`** in the console, and
+**add a second owner** so the property survives losing one account. B4 does not
+replace either — a service account is a reader, never an owner, and cannot
+recover a property.
+
 ## If you have to use the meta tag instead
 
 Only if DNS is impossible. It gives a weaker property (`https://prospektor.ai/`

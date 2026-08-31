@@ -30,7 +30,15 @@
       "Prospektor's own growth diagnosis, its product roadmap, its four-week plan and",
       "its AI-era strategic argument. None is a finding about finding or winning a",
       "customer, which is what this section is for. Promote a row out of them the day",
-      "one turns out to be — the rule is the reader, not the part number."
+      "one turns out to be — the rule is the reader, not the part number.",
+      "",
+      "PROMOTED, 31 Aug 2026 (#446/#447): build-to-save-is-a-rounding-error, out of",
+      "§7.1. It is the first row taken from an out-of-scope part, under the rule",
+      "immediately above, and it qualifies on the reader test rather than by",
+      "exception — a founder deciding what to run their own sales on is deciding",
+      "how to win a customer, and the arithmetic is theirs to apply, not this",
+      "company's. Part 7 is otherwise what the scope note says it is: a strategic",
+      "argument about where this business sits, which is not a finding for a reader."
     ]
   },
   "learnings": [
@@ -134,6 +142,7 @@
     { "id": "concierge-onboarding", "ref": "§9.5", "title": "Concierge onboarding is indicated above $100/mo or 20 seats, and the barbell that makes the mid-range dangerous", "verdict": "not-publishable", "reason": "About activating a customer who has already bought. This section stops at the sale; taking it further would need a second section with its own remit rather than a stray article about onboarding." },
     { "id": "cancellation-toolkit", "ref": "§9.6", "title": "Instrument why people cancel: multiple choice not freeform, offer a pause, route by reason", "verdict": "not-publishable", "reason": "Post-sale retention mechanics. The one part a seller acts on — that the stated reason is usually not the real one — is the too-expensive article, which has its own row." },
     { "id": "pricing-mechanics", "ref": "§9.7", "title": "The rule of 15, the announced annual increase, and why freemium is not a distribution fix", "verdict": "not-publishable", "reason": "Price-book operations for a company with a live subscriber base. What a price licenses you to *do* in sales is the row that has an article; what you charge existing customers next year is not this section's subject." },
-    { "id": "expansion-revenue", "ref": "§9.4", "title": "Expansion revenue is the missing holy grail", "verdict": "not-publishable", "reason": "Revenue growth inside accounts you already won. Out of remit for the same reason as concierge onboarding — this section is about the sale, up to and including the moment it closes." }
+    { "id": "expansion-revenue", "ref": "§9.4", "title": "Expansion revenue is the missing holy grail", "verdict": "not-publishable", "reason": "Revenue growth inside accounts you already won. Out of remit for the same reason as concierge onboarding — this section is about the sale, up to and including the moment it closes." },
+    { "id": "build-to-save-is-a-rounding-error", "ref": "§7.1", "title": "Building a tool to save money is a rounding error against the enterprise value a growing month produces — and the two cases that survive the arithmetic", "verdict": "article", "article": "founder-sales-stack" }
   ]
 }
