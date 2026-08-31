@@ -128,13 +128,44 @@ describe('the header, and the pages behind it', () => {
         `#${id} is gone from the homepage — Stripe's cancel_url and every old deep link land on it`);
   });
 
-  test('the homepage frames the two questions and reaches both pages', () => {
+  // #453 moved the two questions out of the h1 and into the deck under it: the
+  // h1 is the promise now ("Find leads that fit you."), which is what the
+  // <title> has always said and what a stranger can act on. #153's requirement
+  // is unchanged and is what this still holds — the frame must be ON the
+  // homepage, prominently, and must reach both pages. Scoped to the hero
+  // deliberately: the header carries the same two strings on every page of the
+  // site, so a page-wide match would pass on the nav alone and assert nothing.
+  test('the homepage frames the two questions in the hero, and reaches both pages', () => {
     const home = read('index.html');
+    const hero = home.match(/<section class="hero"[^>]*>([\s\S]*?)<\/section>/);
+    assert.ok(hero, 'the homepage has no hero section');
+    assert.ok(/Who to pitch\./.test(hero[1]) && /What to send\./.test(hero[1]),
+      'the two questions have left the hero — the nav, both product pages and the halves '
+      + 'section are all built on that frame (#153), so it may be demoted but not dropped');
     const h1 = home.match(/<h1>([\s\S]*?)<\/h1>/);
-    assert.ok(h1 && /Who to pitch\./.test(h1[1]) && /What to send\./.test(h1[1]),
-      'the homepage h1 is no longer the two questions (#153)');
+    assert.ok(h1 && h1[1].replace(/<[^>]*>/g, '').trim().length > 8,
+      'the homepage has no h1 worth reading');
     assert.match(home, /href="\/who-to-pitch\/"[^]*href="\/what-to-send\/"/,
       'the two halves do not both link through to their pages');
+  });
+
+  // #453. The <title> is "Prospektor · <tagline>" and the h1 is the same
+  // promise; they said different things until this change, which is the one
+  // shape a search result should never have. Derived from site.json — editing
+  // the tagline is allowed and editing the h1 is allowed, drifting them apart
+  // silently is not.
+  // Punctuation-insensitive on purpose: the h1 breaks the promise across two
+  // lines with a full stop in the middle ("Find Leads." / "That fit you."), and
+  // the tagline is one phrase. Comparing the WORDS is the claim; comparing the
+  // typography would fail on a line break somebody was right to add.
+  const words = t => t.replace(/<[^>]*>/g, ' ').toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ').trim();
+  test('the homepage h1 says what the title says', () => {
+    const h1 = words(read('index.html').match(/<h1>([\s\S]*?)<\/h1>/)[1]);
+    const key = words(site.tagline).replace(/^your /, '');
+    assert.ok(h1.includes(key),
+      `the h1 (${JSON.stringify(h1)}) no longer carries the tagline the <title> shows `
+      + `(${JSON.stringify(site.tagline)}) — a page whose headline and search result disagree (#453)`);
   });
 
   // #137 deferred four scripts (F6) and left /help/'s alone, because #136's

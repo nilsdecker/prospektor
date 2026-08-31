@@ -174,6 +174,14 @@ function siteCard() {
       letter-spacing: -0.038em; max-width: 15ch;
     }
     h1 .accent { color: #00B37E; }
+    /* #453: the two questions ride above the headline here exactly as they ride
+       in the hero's tag pill — the card is the hero in picture form, and a card
+       showing a headline the page no longer has is the drift data/og-cards.json
+       and test/assets.test.js exist to catch. */
+    .frame {
+      display: block; font-family: 'Mono', monospace; font-size: 19px;
+      letter-spacing: 0.06em; color: #8F8F8A; margin-bottom: 18px;
+    }
     p {
       font-size: 27px; line-height: 1.45; color: #55554F;
       max-width: 30ch; margin-top: 26px;
@@ -190,7 +198,8 @@ function siteCard() {
       <span class="word">Prospektor<span class="dot">.</span></span>
     </div>
     <div>
-      <h1>Who to pitch.<br><span class="accent">What to send.</span></h1>
+      <span class="frame">Who to pitch. What to send.</span>
+      <h1>Find Leads.<br><span class="accent">That fit you.</span></h1>
       <p>${esc(TAGLINE_LINE)}</p>
     </div>
     <div class="foot">
