@@ -153,8 +153,20 @@
         be as easy as granting (GDPR Art. 7(3)), which means it has to be here,
         on every page, and not only on the visit where the banner appeared. -#}
     <li><a href="#cookies" data-cookies>Cookies</a></li>
+    {#- #456. Contact is NOT in site.legal and deliberately so — that list is
+        the legal pages, and a contact form is not one. It gets its own entry
+        here, after the legal links, as the operator's second door to the form
+        (the first is the header nav).
+
+        It also REPLACES the bare `hello@prospektor.ai` this footer used to
+        print as text. A footer offering an address and a form is two answers
+        to one question on every page of the site; the form is the answer now
+        and the address is still on /contact/ for anyone who would rather use
+        their own mail client. The five other places that publish the address
+        (help hub, each guide, /pricing/, /terms/) are untouched — there it
+        reads as a courtesy in context, not as a competing route. -#}
+    <li><a href="/contact/">Contact</a></li>
   </ul>
-  <span>{{ site.email }}</span>
 </footer>
 
 {#- defer (#137). This sat mid-document without it, so the parser stopped

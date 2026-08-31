@@ -1,0 +1,115 @@
+---
+layout: base.njk
+permalink: /contact/
+title: Contact
+description: "A question about Prospektor, or something you need from us? Send it here and we reply by email. No sales call, and no demo to sit through."
+---
+
+{#- #456, 31 Aug 2026. Operator: *"spawn a contact form thread. that form will
+    be reachable both via the main nav and footer. I enabled contact forms in
+    netlify"*.
+
+    THE ONE RULE THIS PAGE MUST NOT BREAK: it is not a sales-call door.
+    `llms.txt` says *"No sales call. The price is on the page and checkout is
+    the next click"*, and that was deliberate — a contact form is the obvious
+    way to reintroduce a qualification call by the back door. So the lede says
+    the opposite out loud, there is no "book a demo", no company-size field and
+    no phone number. Somebody who wants to buy is one click from Stripe and
+    this page tells them so.
+
+    Three fields, and that is the whole argument for the design (the style
+    skill's rule 8, one thing at a time). A support question and a partnership
+    enquiry want different fields; asking for the union of them gets neither,
+    so the message box does that work and a person reads it.
+
+    Netlify Forms handles the POST — the operator enabled it, and the site
+    already registers `founding-spot` the same way from /checkout/. Honeypot,
+    not reCAPTCHA (#456): reCAPTCHA puts an active Google script on the page,
+    which lands on consent.js's gate, on privacy §08's table and on §12's
+    transfer paragraph — three documents and a consent decision, to stop spam
+    a form with no traffic yet is not getting. If it ever needs one, that is
+    its own row. -#}
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ContactPage",
+  "name": "Contact Prospektor",
+  "url": "{{ site.url }}/contact/",
+  "description": {{ description | dump | safe }},
+  "isPartOf": { "@id": "{{ site.url }}/#website" },
+  "about": { "@id": "{{ site.url }}/#organization" },
+  "mainEntity": {
+    "@type": "ContactPoint",
+    "contactType": "customer support",
+    "email": "{{ site.email }}",
+    "url": "{{ site.url }}/contact/",
+    "availableLanguage": "English"
+  }
+}
+</script>
+
+<header class="page-hero">
+  <div class="page-hero-inner">
+    <span class="tag">contact</span>
+    <h1 class="page-h1">Ask us anything.</h1>
+    <p class="page-lede">
+      This goes to our inbox and we reply by email. You don't need to talk to
+      anyone to buy — the price is on <a href="/pricing/">the pricing page</a>
+      and checkout is the next click.
+    </p>
+  </div>
+</header>
+
+<section class="section contact-section">
+  <div class="contact-inner">
+
+    {#- action= is a page this build really writes (src/contact-thanks.njk).
+        netlify.toml ends in a /* → /404.html catch-all and Netlify handles form
+        POSTs ahead of redirects, but the success URL is resolved as an ordinary
+        request afterwards — so a thanks page that did not build would 404 the
+        person who just wrote to us. test/contact.test.js asserts the file
+        exists rather than trusting it. -#}
+    <form class="contact-form" name="contact" method="POST" action="/contact/thanks/"
+          netlify netlify-honeypot="bot-field">
+      {#- Netlify needs the form's name in the POST body itself; without this
+          the submission is accepted and filed under nothing. -#}
+      <input type="hidden" name="form-name" value="contact">
+
+      <div class="contact-row">
+        <label class="contact-label" for="contactName">Your name</label>
+        <input class="contact-input" id="contactName" name="name" type="text"
+               autocomplete="name" required>
+      </div>
+
+      <div class="contact-row">
+        <label class="contact-label" for="contactEmail">Your email</label>
+        <input class="contact-input" id="contactEmail" name="email" type="email"
+               autocomplete="email" placeholder="you@yourcompany.com" required>
+      </div>
+
+      <div class="contact-row">
+        <label class="contact-label" for="contactMessage">Your message</label>
+        <textarea class="contact-input contact-textarea" id="contactMessage"
+                  name="message" rows="6" required></textarea>
+      </div>
+
+      {#- The honeypot. Off-screen rather than display:none, and aria-hidden, so
+          a screen reader never offers it and a bot filling every field trips
+          it. Same idiom as the reserve form on /checkout/. -#}
+      <input type="text" name="bot-field" tabindex="-1" autocomplete="off"
+             style="position:absolute;left:-9999px;" aria-hidden="true">
+
+      <button class="btn-cta contact-submit" type="submit">Send it</button>
+    </form>
+
+    <p class="contact-note">
+      Your name, address and message reach us through Netlify's form service and
+      are read to answer you — nothing else, and no mailing list, because we
+      don't run one. <a href="/privacy/#applicants">What we do with it, in full</a>.
+      You can also just write to
+      <a href="mailto:{{ site.email }}">{{ site.email }}</a>.
+    </p>
+
+  </div>
+</section>
