@@ -26,6 +26,11 @@ const ROOT = path.join(__dirname, '..');
 const ALLOWED = new Set([
   'prospektor.ai',                                    // ours
   'yourcompany.com', 'acme.com', 'example.com', 'example.org',  // placeholders in copy and doc comments
+  // GitHub's reserved noreply domain. `.github/workflows/gsc.yml` has to give
+  // git a committer identity to commit the Search Console snapshot at all, and
+  // this is the domain GitHub reserves for exactly that: it routes nowhere, it
+  // is not a mailbox, and it is our own bot rather than a person. (#446)
+  'users.noreply.github.com',
 ]);
 
 const EMAIL = /\b[A-Za-z0-9._%+-]+@([A-Za-z0-9.-]+\.[A-Za-z]{2,})\b/g;
