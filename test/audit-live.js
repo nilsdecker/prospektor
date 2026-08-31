@@ -459,9 +459,23 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
         r.status === 200 && /<h1[^>]*>/.test(body), r.status + (r.ok ? '' : ' — ' + item.url));
     }
 
-    check('the homepage h1 asks both questions (#153)',
-      /Who to pitch\./.test(home) && /What to send\./.test(home),
-      (home.match(/<h1>([\s\S]*?)<\/h1>/) || [, '(none)'])[1].replace(/\s+/g, ' ').trim());
+    // #453: the two questions moved out of the h1 and into the deck under it,
+    // so this asks production the two things that actually matter — the frame
+    // is still in the hero (#153), and the h1 is the promise the <title> makes.
+    const liveHero = (home.match(/<section class="hero"[^>]*>([\s\S]*?)<\/section>/) || [, ''])[1];
+    check('the two questions are still in the live hero (#153)',
+      /Who to pitch\./.test(liveHero) && /What to send\./.test(liveHero),
+      (liveHero.match(/<div class="hero-ai-tag">([\s\S]*?)<\/div>/) || [, '(none)'])[1]
+        .replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim());
+    // Words, not typography: the h1 breaks the promise over two lines with a
+    // full stop in the middle, and the tagline is one phrase.
+    const liveWords = t => t.replace(/<[^>]*>/g, ' ').toLowerCase()
+      .replace(/[^a-z0-9]+/g, ' ').trim();
+    const liveH1 = (home.match(/<h1>([\s\S]*?)<\/h1>/) || [, '(none)'])[1];
+    const liveTitle = (home.match(/<title>([^<]*)<\/title>/) || [, ''])[1];
+    check('and the live h1 says what the live <title> says (#453)',
+      liveWords(liveH1).includes(liveWords(liveTitle.split('·').pop() || '').replace(/^your /, '')),
+      liveH1.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim() + '  ·  ' + liveTitle);
 
     // The trap CLAUDE.md names: a pricing page that looks right and quietly
     // degrades to the multi-step /checkout/ page is the regression that

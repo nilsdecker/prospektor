@@ -23,28 +23,44 @@ description: "Teach it what you're after in three minutes. It finds the companie
      other in-page targets (#what, #how, #pricing, #try) all carry 7rem of
      their own and were never affected. -->
 <section class="hero" id="scan">
-  <div class="hero-ai-tag">Prospektor Studio</div>
+  {#- #453. The tag pill was "Prospektor Studio" — the brand, which the nav
+      already carries twice. It holds the two questions now, because they moved
+      out of the h1 and this is where they still belong: the frame the nav, both
+      product pages and the halves section are built on (#153) is worth keeping
+      in the hero, and is not worth the largest type on the site. -#}
+  <div class="hero-ai-tag">Who to pitch. What to send.</div>
 
   <!-- The headline sits inside .hero-rest so a scan's focus mode still
        collapses it: from the moment a scan starts, the scan is the page. -->
   <div class="hero-rest" id="heroRest">
-    <!-- #153: the two questions, in the order the product answers them. The
-         accent lands on the second half deliberately — the WHO is the free
-         half and the hook, the WHAT is what anyone is actually paying for. -->
-    <h1>Who to pitch.<br><span class="accent">What to send.</span></h1>
-    {#- #450. This said: "A full GTM team on every pitch: a BDR to research it,
-         an SDR to find your way in, an AE to write what you send." Four pieces
-         of sales-org vocabulary in twenty-one words, in the one sentence on the
-         site whose entire job is comprehension — and two non-sales readers
-         (plausible buyers, both) came away unable to say what the product does.
+    {#- #453, and this shape is the operator's own — mocked up in devtools on
+        the live page and taken verbatim, pill and line break included.
 
-         What replaces it is the operator's own framing, and it is three claims
-         the rest of the page then earns: the teaching is SHORT and happens
-         ONCE, the targets are NOT only customers (lib/interview.js in the
-         studio has been goal-agnostic since it existed — "distribution
-         partners, resellers, investment targets, acquirers"), and what comes
-         back is something WRITTEN. No acronym reaches the reader before a
-         plain noun does; test/pages.test.js holds that line. -#}
+        "Who to pitch. What to send." was the h1 from #153 until 31 Aug. It is
+        a good line, and it stays on the page — but it is a RIDDLE rather than
+        a promise: it names the two questions without answering either, so a
+        reader who does not already know what a pitch is made of cannot tell
+        what they would be buying. That is exactly the defect #450 fixed one
+        line further down, left standing in the largest type on the site.
+
+        The h1 answers instead, and three things follow that are worth knowing
+        before any of it moves back:
+
+        - It agrees with the <title>, which is "Prospektor · Leads that fit
+          you". A page whose headline and search result say different things is
+          the one shape a result should never have, and that is what this was.
+        - "Leads" is the word people search and the word the operator reached
+          for unprompted. "Pitch" is the word the trade uses.
+        - The two-line break with the accent on the SECOND line is #153's
+          composition, kept: the emerald has always landed on the half you are
+          actually paying for. Here it lands on "That fit you.", which is the
+          half that is hard — anyone can sell you a list.
+
+        test/pages.test.js holds both halves of this: the two questions must
+        still be in the hero (scoped to the hero on purpose — the header
+        carries the same two strings on every page, so a page-wide match would
+        assert nothing), and the h1 must still carry what the title shows. -#}
+    <h1>Find Leads.<br><span class="accent">That fit you.</span></h1>
     <p class="hero-sub">Three minutes to teach it what you're all about. Then it finds the companies — customers, partners, resellers, investors — and writes what you send them.</p>
   </div>
 
