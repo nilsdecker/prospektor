@@ -687,7 +687,14 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
                     'https://prospektor.ai/pricing/',
                     'https://prospektor.ai/privacy/',
                     'https://prospektor.ai/terms/', 'https://prospektor.ai/resources/',
-                    'https://prospektor.ai/help/'];
+                    'https://prospektor.ai/help/',
+                    // #456. A static page like the rest, and it carries no
+                    // <lastmod> for the same reason they don't. It is listed
+                    // here because anything NOT in this list is treated as an
+                    // article below — so a new static page that is forgotten
+                    // here fails as "one article too many, and it has no date",
+                    // which names neither the page nor the cause.
+                    'https://prospektor.ai/contact/'];
     const derived = locs.filter(l => !STATIC.includes(l));
     const guideLocs = derived.filter(l => l.startsWith('https://prospektor.ai/help/'));
     const articleLocs = derived.filter(l => !l.startsWith('https://prospektor.ai/help/'));

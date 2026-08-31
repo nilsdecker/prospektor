@@ -8,7 +8,7 @@
   "email": "hello@prospektor.ai",
   "privacyEmail": "privacy@prospektor.ai",
   "description": "Teach Prospektor what you're after — customers, partners, resellers, investors — and it finds the companies, names who to contact, and writes what you send.",
-  "//nav": "#153, 24 Aug 2026. Every item is a real page. Three of the five used to be same-page anchors (/#what, /#how, /#pricing), so the header taught nothing and every click landed on the document you were already reading — the operator's words: \"the header is not concise/ good anymore now\". The first two are named after the two questions the product answers (CLAUDE.md, The product thesis: WHOM to approach, WHAT to send) rather than after themselves, so the nav carries the positioning instead of restating the word \"it\" twice. The homepage keeps its #what/#how/#pricing ids — deep links from elsewhere still land.",
+  "//nav": "#153, 24 Aug 2026. Every item is a real page. Three of the five used to be same-page anchors (/#what, /#how, /#pricing), so the header taught nothing and every click landed on the document you were already reading — the operator's words: \"the header is not concise/ good anymore now\". The first two are named after the two questions the product answers (CLAUDE.md, The product thesis: WHOM to approach, WHAT to send) rather than after themselves, so the nav carries the positioning instead of restating the word \"it\" twice. The homepage keeps its #what/#how/#pricing ids — deep links from elsewhere still land. #456, 31 Aug 2026: Contact joined, making six items beside a badge, a sign-in and a CTA. The six need 1002px of bar, measured in a browser rather than estimated, so they would have overflowed silently from about 1000px down — a laptop in a non-maximised window, not a rare width. main.css carries a 861–1040px band that drops the AI_FIRST badge (decoration, already dropped at 860px) and tightens the gaps; below 860px the whole list was already a panel behind the toggle. Adding a SEVENTH item needs that band re-measured, not assumed.",
   "nav": [
     {
       "label": "Who to pitch",
@@ -29,6 +29,10 @@
     {
       "label": "Help",
       "url": "/help/"
+    },
+    {
+      "label": "Contact",
+      "url": "/contact/"
     }
   ],
   "legal": [

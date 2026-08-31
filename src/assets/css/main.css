@@ -1742,3 +1742,65 @@ footer {
   .pricing-faq { padding: 3.5rem 1.25rem; }
   .half { padding: 1.6rem 1.4rem 1.4rem; }
 }
+
+/* ── CONTACT (#456) ──────────────────────────────────────────────────────
+   Three fields stacked, one button. The style skill's rule 8 — one primary
+   action per screen — is the whole layout: no field groups side by side, no
+   optional extras, no second CTA competing with Send. */
+.contact-section { padding: 4rem 2.5rem 5rem; }
+.contact-inner { max-width: 560px; margin: 0 auto; }
+
+.contact-form { display: flex; flex-direction: column; gap: 1.4rem; }
+
+.contact-row { display: flex; flex-direction: column; gap: 0.5rem; text-align: left; }
+
+.contact-label {
+  font-size: 0.8rem; font-weight: 700; color: var(--ink);
+}
+
+/* Square-cornered rather than the pill .reserve-input uses: a pill reads as a
+   single-line control, and the message box next to it is six rows tall. */
+.contact-input {
+  width: 100%; box-sizing: border-box;
+  font-family: var(--mono); font-size: 0.88rem; font-weight: 500;
+  color: var(--ink); background: var(--white);
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 0.8rem 1rem; outline: none;
+  transition: border-color .15s;
+}
+.contact-input:focus { border-color: var(--accent); }
+.contact-input::placeholder { color: var(--ink-faint); }
+
+.contact-textarea { resize: vertical; min-height: 9rem; line-height: 1.6; }
+
+.contact-submit { align-self: flex-start; border: none; cursor: pointer; font-family: inherit; }
+
+.contact-note {
+  margin-top: 2rem; font-size: 0.8rem; line-height: 1.7;
+  color: var(--ink-mid); text-align: left;
+}
+.contact-note a { color: var(--ink); }
+
+@media (max-width: 860px) {
+  .contact-section { padding: 3rem 1.25rem 4rem; }
+  .contact-submit { align-self: stretch; text-align: center; }
+}
+
+/* ── The six-item header (#456) ──────────────────────────────────────────
+   Contact makes six nav items beside a badge, a sign-in and a CTA. Measured
+   rather than guessed: at 900px the six items plus .nav-right overflow the
+   58px bar, and the row wraps into the page. Below 860px .nav-links is
+   already a panel behind .nav-toggle, so the squeeze is entirely in the band
+   between the two — which is where a laptop at a non-maximised window sits,
+   not a rare width.
+
+   The badge goes first because it is decoration (it is already dropped at
+   860px for the same reason), then the gap tightens. Nothing is hidden that
+   is a way to somewhere. */
+@media (max-width: 1040px) and (min-width: 861px) {
+  nav { padding: 0 1.5rem; }
+  .nav-ai-badge { display: none; }
+  .nav-links { gap: 1.15rem; }
+  .nav-right { gap: 0.75rem; }
+  .nav-cta { padding: 0.5rem 0.9rem; }
+}

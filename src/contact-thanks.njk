@@ -1,0 +1,28 @@
+---
+layout: base.njk
+permalink: /contact/thanks/
+title: Message sent
+noindex: true
+description: "Your message reached the Prospektor inbox. We read it and reply by email, to the address you gave. Nothing else happens with it."
+---
+
+{#- #456. Netlify Forms redirects here after a successful POST from /contact/,
+    so this URL has to be one the build really writes: netlify.toml ends in a
+    /* → /404.html catch-all, and the success page is fetched as an ordinary
+    request once the POST is handled. test/contact.test.js pins the form's
+    action to a built file for exactly that reason.
+
+    noindex, and deliberately out of the sitemap: it is the /checkout/done/
+    case — thin, transactional, and meaningless to anyone who arrives at it
+    cold. It answers no search. One primary action, back to the product. -#}
+
+<header class="page-hero">
+  <div class="page-hero-inner">
+    <span class="tag">contact</span>
+    <h1 class="page-h1">Message sent.</h1>
+    <p class="page-lede">
+      It's in our inbox. We reply by email, to the address you gave.
+    </p>
+    <a class="btn-cta" href="/">Back to Prospektor</a>
+  </div>
+</header>
