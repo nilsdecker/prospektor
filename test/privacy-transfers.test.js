@@ -31,8 +31,13 @@ const path = require('node:path');
 const { siteBuild } = require('./helpers.js');
 
 // Recipients on the table that do NOT belong in the transfer sentence, each
-// with the reason it is out. Empty today: every provider we use is American.
-const INSIDE_THE_EEA = {};
+// with the reason it is out.
+const INSIDE_THE_EEA = {
+  // #468, 2 Sep 2026: Findymail's GDPR page puts its servers with Hetzner in
+  // Finland and says it stores and processes all its data inside the EU. The
+  // sentence still names it — as the exception, after the transfer list.
+  Findymail: 'EU-hosted (Hetzner, Finland) — named in the sentence as the exception, not a transfer',
+};
 
 const strip = html => html.replace(/<[^>]*>/g, ' ').replace(/&mdash;/g, '—')
   .replace(/&amp;/g, '&').replace(/&#39;|&rsquo;/g, "'").replace(/\s+/g, ' ').trim();

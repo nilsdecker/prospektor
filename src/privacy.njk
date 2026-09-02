@@ -97,20 +97,21 @@ updated: 31 August 2026
           <li>a LinkedIn profile URL, where a source actually contained one</li>
           <li>a sentence on why that person is the right one to approach now</li>
           <li>a confidence rating, and the URL of the source the name came from</li>
+          <li>a work email address, where one of two contact-data providers had a verified one — with whether it was verified, and which provider found it</li>
         </ul>
 
         <h3>Where it comes from</h3>
-        <p>Publicly available web sources, found by an AI model running up to ten web searches during a single run. We don't buy contact lists and we don't take anything from behind a login. The studio is instructed never to invent a person: if it can't attach a credible source to a name, it returns the role with the name left blank.</p>
-        <p>The research itself doesn't collect personal email addresses or phone numbers. A user can type free-text notes into a run, though, so anything they choose to type is stored with it.</p>
+        <p>Names, roles and profiles: publicly available web sources, found by an AI model running up to ten web searches during a single run. We don't take anything from behind a login. The studio is instructed never to invent a person: if it can't attach a credible source to a name, it returns the role with the name left blank — and may then ask a contact-data provider who holds that role, so a blank can be filled by a person that provider names, with their profile as the source.</p>
+        <p><strong>Work email addresses are bought, one person at a time.</strong> For each named person the studio sends the name and the target company's web domain — or the LinkedIn profile URL, where it read one — to <strong>Tomba</strong> and, if Tomba has nothing, to <strong>Findymail</strong> (both in <a href="#subprocessors">section 08</a>), and gets back a verified work address or nothing. We don't buy lists, and we hold no address neither provider could verify. Personal email addresses and phone numbers are never requested and never come back. A user can type free-text notes into a run, though, so anything they choose to type is stored with it.</p>
 
         <h3>Why we think we're allowed to</h3>
         <p>We rely on legitimate interests — ours and our client's interest in working out who to approach about a business partnership. What we hold is professional information, published in a professional context, about your job rather than your private life, and limited to what's needed to decide whether to contact you. Weighed against that, we think the intrusion is small. You're entitled to disagree, and the balance is yours to challenge: see <a href="#rights">your rights</a>.</p>
 
         <h3>How you'd know</h3>
-        <p>We don't write to people to tell them they've appeared in a run. We usually hold no way to reach them — no email address, no phone number — and doing it at the volume the studio produces would mean contacting far more people than any client ever approaches. This page is the notice instead. If you want to know whether you're in there, ask and we'll look.</p>
+        <p>We don't write to people to tell them they've appeared in a run. Since 2 September 2026 we may hold a work address for you, but writing to everyone at the volume the studio produces would mean contacting far more people than any client ever approaches. This page is the notice instead. If you want to know whether you're in there, ask and we'll look.</p>
 
         <h3>Who sees it</h3>
-        <p>The list is visible to the client's team inside their own workspace. It isn't sold, published, or shared with anyone else — except that a pitch containing it can be shared with a named person by link, which is covered in <a href="#viewers">section 07</a>. It's processed by the providers in <a href="#subprocessors">section 08</a>, and it isn't deleted on a schedule: see <a href="#retention">section 09</a>.</p>
+        <p>The list is visible to the client's team inside their own workspace. It isn't sold, published, or shared with anyone else — except that a pitch containing it can be shared with a named person by link, which is covered in <a href="#viewers">section 07</a>; the shared copy carries the name, role and profile, never the email address. It's processed by the providers in <a href="#subprocessors">section 08</a>, and it isn't deleted on a schedule: see <a href="#retention">section 09</a>.</p>
 
         <div class="legal-note">
           <span class="legal-note-tag">object</span>
@@ -311,6 +312,16 @@ updated: 31 August 2026
                 <td>Company facts on a scan</td>
               </tr>
               <tr>
+                <td>Tomba</td>
+                <td>For each named person in a research result: their name and the target company's web domain, or their LinkedIn profile URL — and nothing about the client, the user or the workspace. What comes back is that person's work email address, whether it was verified, and a confidence score; if they have nothing, nothing. It is Tomba Technology Web Service LLC, based in the United States, which says its data is stored and processed in the European Union.</td>
+                <td>Work email addresses for decision-makers</td>
+              </tr>
+              <tr>
+                <td>Findymail</td>
+                <td>The same identifiers as Tomba, only when Tomba had nothing — and, for a role nobody could be named for, the role title and the company's web domain, which comes back as one person's name, job title and LinkedIn profile. It is Peanuts SaaS Studio, trading as Findymail, whose servers are in Finland and which says it stores and processes all its data inside the European Union.</td>
+                <td>Work email addresses, and who holds a role</td>
+              </tr>
+              <tr>
                 <td>Stripe</td>
                 <td>Your email address, your card and billing details, and the company and goal you gave at checkout. Checkout runs on Stripe's own pages, so your card number never reaches us.</td>
                 <td>Payment</td>
@@ -325,7 +336,7 @@ updated: 31 August 2026
         </div>
         <p><strong>We do run marketing email.</strong> If you have an account, subscribed to our newsletter, or ticked the box when you asked for a free run, we send product news, new features and occasional offers alongside the transactional mail — your receipt, your welcome, your sign-in. That goes through our email provider above and through a newsletter platform, and we can see whether a message was opened and which links were clicked. <strong>Every marketing message carries a one-click unsubscribe</strong>, and unsubscribing never stops the transactional mail, because that is how having an account works.</p>
         <p>Not used, so you can rule them out: no CRM integration, no session recording, and no advertising vendor.</p>
-        <p>Anthropic, Netlify, Google, Clay, Stripe and Postmark all process data outside the European Economic Area, mainly in the United States. That's an international transfer, and it needs a documented safeguard &mdash; standard contractual clauses, or each provider's own data-processing terms. We haven't completed that documentation. Ask us and we'll tell you where it stands.</p>
+        <p>Anthropic, Netlify, Google, Clay, Tomba, Stripe and Postmark all process data outside the European Economic Area, mainly in the United States; Findymail processes only inside it. That's an international transfer, and it needs a documented safeguard &mdash; standard contractual clauses, or each provider's own data-processing terms. We haven't completed that documentation. Ask us and we'll tell you where it stands.</p>
       </div>
     </section>
 
