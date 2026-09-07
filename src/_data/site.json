@@ -43,6 +43,10 @@
     {
       "label": "Terms",
       "url": "/terms/"
+    },
+    {
+      "label": "DPA",
+      "url": "/dpa/"
     }
   ],
   "//description": "Fallback <meta name=description> and the WebSite node's description. Every page carries its own now (#137) so this is a last resort, but it is still the one a new page inherits before anyone writes it one — so it stays inside the 160 characters a search result shows."
