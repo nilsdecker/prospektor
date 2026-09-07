@@ -1264,6 +1264,97 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     await es.close();
   }
 
+  // 16 — the wait says what the scan is doing (#323). Timed against the real
+  //      envelope (20 s bound, ~9 s median) rather than the 60–70 s one, and
+  //      when the studio serves `notes` on the poll, the last note is the
+  //      sentence. The old stages at 20–75 s described a scan that had already
+  //      failed; they are gone, and their catalogue entries with them.
+  {
+    const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+    let polls = 0;
+    await page.route('https://studio.prospektor.ai/api/scan**', async route => {
+      if (route.request().method() === 'POST') {
+        return route.fulfill({ status: 202, contentType: 'application/json',
+          body: JSON.stringify({ domain: 'acme.com', status: 'queued', result: null }) });
+      }
+      polls++;
+      if (polls === 1) return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+        domain: 'acme.com', status: 'running', result: null,
+        notes: [{ kind: 'search', detail: 'Searched “acme”', query: 'acme' },
+                { kind: 'read', detail: 'Read https://www.acme.com/about/', sources: 1, url: 'https://www.acme.com/about/' }],
+      }) });
+      if (polls === 2) return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+        domain: 'acme.com', status: 'running', result: null,
+        notes: [{ kind: 'search', detail: 'Searched “acme anvils”', query: 'acme anvils' }],
+      }) });
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+        domain: 'acme.com', status: 'done', mode: 'live',
+        result: { name: 'Acme', inferredGoal: 'Coyotes with a grudge.', facts: ['B2B'] },
+      }) });
+    });
+    await page.goto('http://localhost:8899/');
+    await page.fill('#scanInput', 'acme.com');
+    await page.click('#scanBtn');
+    await page.waitForSelector('#scanStatus:not([hidden])', { timeout: 3000 });
+    const first = await page.textContent('#scanStatusMsg');
+    check('the wait opens on the domain', first === 'opening acme.com…', first);
+    // The first poll (2 s in) carries notes; the LAST one is the sentence.
+    await page.waitForFunction(() => /reading acme\.com\/about…/.test(document.getElementById('scanStatusMsg').textContent), null, { timeout: 5000 })
+      .then(() => check('a read note becomes “reading acme.com/about…” — host and path, no scheme, no www', true))
+      .catch(async () => check('a read note becomes “reading acme.com/about…” — host and path, no scheme, no www', false, await page.textContent('#scanStatusMsg')));
+    await page.waitForFunction(() => /searching for “acme anvils”…/.test(document.getElementById('scanStatusMsg').textContent), null, { timeout: 5000 })
+      .then(() => check('a search note becomes “searching for “…”…”', true))
+      .catch(async () => check('a search note becomes “searching for “…”…”', false, await page.textContent('#scanStatusMsg')));
+    const bar = await page.evaluate(() => parseFloat(document.getElementById('scanBarFill').style.width));
+    check('the bar is past a third by the time the second poll lands (~4 s)', bar > 33, bar);
+    await page.waitForSelector('#scanResult:not([hidden])', { timeout: 8000 });
+    check('and the result still lands', (await page.textContent('#scanName')) === 'Acme');
+    await page.close();
+
+    // No notes at all — the timed sentences, against the real envelope.
+    const p2 = await browser.newPage();
+    let t0 = 0;
+    await p2.route('https://studio.prospektor.ai/api/scan**', async route => {
+      if (route.request().method() === 'POST') { t0 = Date.now(); return route.fulfill({ status: 202, contentType: 'application/json', body: JSON.stringify({ domain: 'slow.example', status: 'queued', result: null }) }); }
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ domain: 'slow.example', status: 'running', result: null }) });
+    });
+    await p2.goto('http://localhost:8899/');
+    await p2.fill('#scanInput', 'slow.example');
+    await p2.click('#scanBtn');
+    await p2.waitForSelector('#scanStatus:not([hidden])', { timeout: 3000 });
+    await p2.waitForFunction(() => document.getElementById('scanStatusMsg').textContent === 'reading slow.example…', null, { timeout: 4000 })
+      .then(() => check('with no notes, “reading <domain>…” by 2 s', true))
+      .catch(async () => check('with no notes, “reading <domain>…” by 2 s', false, await p2.textContent('#scanStatusMsg')));
+    await p2.waitForFunction(() => document.getElementById('scanStatusMsg').textContent === 'writing what it found…', null, { timeout: 8000 })
+      .then(() => check('“writing what it found…” by 8 s', true))
+      .catch(async () => check('“writing what it found…” by 8 s', false, await p2.textContent('#scanStatusMsg')));
+    await p2.waitForFunction(() => /taking longer than usual/.test(document.getElementById('scanStatusMsg').textContent), null, { timeout: 8000 })
+      .then(() => check('past 14 s it says the honest thing: taking longer than usual', true))
+      .catch(async () => check('past 14 s it says the honest thing: taking longer than usual', false, await p2.textContent('#scanStatusMsg')));
+    check('no sentence describes a stage the 20 s bound cannot reach',
+      !/drafting your proposal|tightening the wording|one search beyond/.test(await p2.evaluate(() => document.documentElement.outerHTML)));
+    await p2.close();
+
+    // /es/ — the same wait, in Spanish, notes included.
+    const es = await browser.newPage();
+    let esPolls = 0;
+    await es.route('https://studio.prospektor.ai/api/scan**', async route => {
+      if (route.request().method() === 'POST') return route.fulfill({ status: 202, contentType: 'application/json', body: JSON.stringify({ domain: 'acme.com', status: 'queued', result: null }) });
+      esPolls++;
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ domain: 'acme.com', status: 'running', result: null,
+        notes: esPolls === 1 ? [{ kind: 'read', url: 'https://acme.com/equipo' }] : [] }) });
+    });
+    await es.goto('http://localhost:8899/es/');
+    await es.fill('#scanInput', 'acme.com');
+    await es.click('#scanBtn');
+    await es.waitForSelector('#scanStatus:not([hidden])', { timeout: 3000 });
+    check('on /es/ the wait opens in Spanish', (await es.textContent('#scanStatusMsg')) === 'abriendo acme.com…', await es.textContent('#scanStatusMsg'));
+    await es.waitForFunction(() => document.getElementById('scanStatusMsg').textContent === 'leyendo acme.com/equipo…', null, { timeout: 5000 })
+      .then(() => check('and a note reads in Spanish too', true))
+      .catch(async () => check('and a note reads in Spanish too', false, await es.textContent('#scanStatusMsg')));
+    await es.close();
+  }
+
   // 13 — the /resources topic filter (#159). The section is one article per
   //      useful learning, so it grows; a flat grid of every article was fine at
   //      nine and is a wall at twenty-three. Two properties matter and neither
