@@ -18,7 +18,7 @@ site:
   has_staging:     false                            # THERE IS NO STAGING. main IS production.
 
 business:
-  what_it_sells:   A Prospektor Studio workspace — research target companies,
+  what_it_sells:   A Prospektor workspace — research target companies,
                    score fit, draft the deck/emails/proposal/call prep.
   primary_locations: none — not a local business, no local SEO, no NAP
   canonical_NAP:   NOT PUBLISHED, and not to be invented. #55 (Impressum) is

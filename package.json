@@ -1,7 +1,7 @@
 {
   "name": "prospektor-site",
   "version": "1.0.0",
-  "description": "Prospektor \u2014 prospektor.ai: the landing page, the scan field, and the checkout that provisions a Prospektor Studio.",
+  "description": "Prospektor \u2014 prospektor.ai: the landing page, the scan field, and the checkout that provisions a Prospektor workspace.",
   "scripts": {
     "start": "eleventy --serve",
     "build": "eleventy",

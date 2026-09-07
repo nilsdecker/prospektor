@@ -59,7 +59,7 @@ describe('stripe-webhook', () => {
     assert.equal(r.statusCode, 200);
     const w = mail(calls).find(m => /estudio está listo/.test(m.Subject));
     assert.ok(w, 'the welcome subject is Spanish');
-    assert.ok(w.TextBody.includes('Tu Prospektor Studio está listo.'), 'the text body is Spanish');
+    assert.ok(w.TextBody.includes('Tu espacio de trabajo de Prospektor está listo.'), 'the text body is Spanish');
     assert.ok(w.HtmlBody.includes('Entrar en tu estudio &rarr;'), 'the button is Spanish');
     assert.ok(w.TextBody.includes('/?signin=' + encodeURIComponent('b@acme.com')), 'the sign-in link still prefills');
     assert.ok(!/Your studio is ready/.test(w.TextBody + w.HtmlBody), 'no English sentence leaks into the Spanish mail');
@@ -73,7 +73,7 @@ describe('stripe-webhook', () => {
     const calls = stubFetch([provisioned({ goal: true }), ['postmarkapp', { status: 200, body: {} }]]);
     await fn.handler(signedStripeEvent(SECRET, checkoutSessionCompleted({ email: 'b@acme.com', metadata: { domain: 'acme.com' } })));
     const w = welcome(calls);
-    assert.ok(w && w.TextBody.startsWith('Your Prospektor Studio is ready.'));
+    assert.ok(w && w.TextBody.startsWith('Your Prospektor workspace is ready.'));
     assert.ok(!/Language:/.test(notice(calls).TextBody), 'nothing to say about English');
     const body = JSON.parse(calls.find(c => c.url.includes('/api/provision')).body);
     assert.ok(!('language' in body), 'an older studio sees nothing new');

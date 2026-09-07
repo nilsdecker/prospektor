@@ -305,7 +305,7 @@ async function sendWelcomeEmail(email, language) {
   const signin = 'https://studio.prospektor.ai/?signin=' + encodeURIComponent(email);
 
   const textBody = [
-    t('Your Prospektor Studio is ready.', L),
+    t('Your Prospektor workspace is ready.', L),
     '',
     t('Sign in here: {url}', L, { url: signin }),
     t('Sign in with Google, using this address — the one you paid with — or have the studio email you a sign-in link from that page. Either way, that is the whole setup.', L),
@@ -337,7 +337,7 @@ async function sendWelcomeEmail(email, language) {
     <p style="font-size:13px;color:${BRAND.inkFaint};line-height:1.65;margin:20px 0 0;">
       ${t('Paid with your work email? Every colleague on your domain can sign in the same way.', L)}
     </p>`,
-    t('You&#39;re getting this one email because you started a Prospektor Studio. Questions? Just reply — it reaches a human at hello@prospektor.ai.', L));
+    t('You&#39;re getting this one email because you started a Prospektor workspace. Questions? Just reply — it reaches a human at hello@prospektor.ai.', L));
 
   await sendMail({ to: email, subject: t('Your studio is ready — sign in', L), textBody, htmlBody });
 }
