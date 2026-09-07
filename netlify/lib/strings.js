@@ -9,4 +9,5 @@
 module.exports = {
   es: require('../../src/_data/strings/es.json'),
   de: require('../../src/_data/strings/de.json'),
+  nl: require('../../src/_data/strings/nl.json'),
 };
