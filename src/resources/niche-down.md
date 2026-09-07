@@ -120,7 +120,9 @@ is that clarity is what brought them.
 ## Doing it this week
 
 1. **Name one reader on the homepage.** A role, not an industry, unless you already
-   know the industry. One sentence: *for the {role} who has to {the thing}.*
+   know the industry. One sentence: *for the {role} who has to {the thing}.* The
+   role is a proxy for [the job they are hiring you
+   for](/resources/sell-the-job-not-the-persona/); if you know the job, name that.
 2. **Write down the trade-offs you actually make** — what you are worse at than the
    obvious alternative — and put the important one somewhere a buyer will see it.
    This is the counterintuitive move and it is the one that works.
