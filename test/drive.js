@@ -686,7 +686,13 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
                     'https://prospektor.ai/who-to-pitch/', 'https://prospektor.ai/what-to-send/',
                     'https://prospektor.ai/pricing/',
                     'https://prospektor.ai/privacy/',
-                    'https://prospektor.ai/terms/', 'https://prospektor.ai/resources/',
+                    'https://prospektor.ai/terms/',
+                    // #109. The data processing addendum — a legal page like
+                    // /terms/ and /privacy/, asked to be ranked for the same
+                    // reason /contact/ is: "prospektor dpa" is a query a buyer's
+                    // procurement types, and this is the site's own answer.
+                    'https://prospektor.ai/dpa/',
+                    'https://prospektor.ai/resources/',
                     'https://prospektor.ai/help/',
                     // #456. A static page like the rest, and it carries no
                     // <lastmod> for the same reason they don't. It is listed
@@ -902,7 +908,7 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     //       would quietly retire the check.
     {
       const OURS = ['localhost:8899', 'prospektor.ai', 'studio.prospektor.ai'];
-      const pages = ['/', '/who-to-pitch/', '/what-to-send/', '/pricing/', '/privacy/', '/terms/', '/checkout/', '/help/', '/help/workspace/', '/resources/', '/resources/who-to-approach/'];
+      const pages = ['/', '/who-to-pitch/', '/what-to-send/', '/pricing/', '/privacy/', '/terms/', '/dpa/', '/checkout/', '/help/', '/help/workspace/', '/resources/', '/resources/who-to-approach/'];
       const strays = [];
       for (const pathname of pages) {
         const page = await browser.newPage();
