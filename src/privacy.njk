@@ -162,7 +162,7 @@ updated: 31 August 2026
         <p>Into the studio, if that company becomes a customer: it’s what saves them entering their own details a second time. Nowhere else. <strong>We do not publish it</strong>, we don’t list or publish the companies that have been scanned, we don’t sell it, and there’s no page anywhere that can be browsed for it. It’s processed by the providers in <a href="#subprocessors">section 08</a>.</p>
 
         <h3>If you’re the one who typed a domain in</h3>
-        <p>Then this is about you rather than about the company you looked up, and the answer is short. Typing an address into the field leaves us no IP address, no user agent, no referrer and no cookie — the endpoint reads none of them.</p>
+        <p>Then this is about you rather than about the company you looked up, and the answer is short. Typing an address into the field leaves us no IP address, no user agent, no referrer and no cookie — the endpoint reads none of them. While you type, the characters so far go through our server to Clearbit, which suggests companies to pick from — that is the one thing that leaves before you press Scan, and section 08 says exactly what they get.</p>
         <p>If you go on to a free run, that run holds the domain you typed, the reading of it, whatever you put in the box asking what you’re hunting for, the companies it found, our own token counts, and — if you asked for one — a report on a competitor you named. That report is a reading of that company’s public pages, and holds nothing about you. It’s addressed only by an unguessable link, and there’s no way to list runs or look one up by domain. If you ask us to email you the result, we store the address on that run, use it once for that mail, and never show it to anybody who has the link. That send puts you on no list and starts no sequence. The one box that would is beside it — product news and tips, unticked unless you tick it, and one click in any mail we send stops it.</p>
 
         <h3>It’s a glance, and it can be wrong</h3>
@@ -273,8 +273,9 @@ updated: 31 August 2026
              Two traps for whoever edits this next:
                1. Do not restore a whole-PRODUCT "no third-party request"
                   claim. It is true of loading a page and not true of the
-                  studio's company-name autocomplete, which sends the typed
-                  name to Clearbit from our own server. Clearbit has had its
+                  company-name autocomplete — the studio's, and since #241 the
+                  scan field's on this site — which sends the typed characters
+                  to Clearbit from our own server. Clearbit has had its
                   own row in the table below since 7 Sep 2026 (#90) — an
                   uncontracted recipient, named rather than left silent.
                2. The 22 Aug replacement text offered in the handover ends
@@ -308,8 +309,8 @@ updated: 31 August 2026
               </tr>
               <tr>
                 <td>Clearbit</td>
-                <td>The company name a member types into one of the studio's company fields, as they type it — and nothing else. No identifier, no session, no IP address: the request goes from our server, never from your browser. What comes back is a list of company names and web domains to pick from. Only a signed-in member or somebody mid-signup can reach it, so the scan field on this site never does. It is Clearbit, a HubSpot company, based in the United States — and it is the one provider on this list we have <strong>no contract with</strong>: the endpoint is public and free, so nothing but their own terms governs what they do with a typed name.</td>
-                <td>Company-name autocomplete in the studio</td>
+                <td>The characters typed into a company field, as they are typed — the studio's company fields, and since 7 September 2026 the scan field on this site's front page — and nothing else. No identifier, no session, no IP address: the request goes from our server, never from your browser. What comes back is a list of company names and web domains to pick from. It is Clearbit, a HubSpot company, based in the United States — and it is the one provider on this list we have <strong>no contract with</strong>: the endpoint is public and free, so nothing but their own terms governs what they do with a typed name.</td>
+                <td>Company-name autocomplete, in the studio and on the scan field</td>
               </tr>
               <tr>
                 <td>Clay</td>

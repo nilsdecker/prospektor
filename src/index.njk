@@ -78,9 +78,16 @@ permalink: "{{ language.prefix }}/"
   <div class="scan-hero">
     <form class="scan-form" id="scanForm" novalidate>
       <span class="scan-form-label">$&nbsp;scan</span>
-      <input class="scan-input" id="scanInput" type="text" inputmode="url" autocomplete="url"
+      {#- #241: the field is a combobox over #scanSuggest — the browser's own
+          URL autofill is off so it cannot draw a second list over ours. -#}
+      <input class="scan-input" id="scanInput" type="text" inputmode="url" autocomplete="off"
+             role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="scanSuggest"
              spellcheck="false" placeholder="yourcompany.com" aria-label="{% t %}Your company website{% endt %}">
       <button class="scan-btn" type="submit" id="scanBtn">{% t %}Scan{% endt %}</button>
+      {#- #241: companies matching what has been typed, one line each — name,
+          domain — written by scan.js from the site's own company-suggest
+          function. Picking one fills the field; nothing else moves. -#}
+      <ul class="scan-suggest" id="scanSuggest" role="listbox" hidden></ul>
     </form>
     <p class="scan-hint" id="scanHint">{% t %}Free · no sign-up · it reads your site and shows you who it would go after, in ~30 seconds{% endt %}</p>
     <p class="scan-error" id="scanError" hidden></p>

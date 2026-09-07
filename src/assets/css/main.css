@@ -203,6 +203,36 @@ nav {
 }
 .scan-form:focus-within { border-color: var(--accent); }
 
+/* The typeahead (#241): one line per company — name, then domain — hanging
+   under the field at the field's own width, in the field's own box style. It
+   is absolute inside the form so it covers the hint rather than moving it:
+   nothing else on the page shifts while a visitor picks. */
+.scan-form { position: relative; }
+.scan-suggest {
+  position: absolute; left: -1px; right: -1px; top: calc(100% + 6px);
+  margin: 0; padding: 0.35rem 0; list-style: none;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+  z-index: 5; text-align: left;
+}
+.scan-suggest li {
+  display: flex; align-items: baseline; gap: 0.6rem;
+  padding: 0.5rem 1.25rem; cursor: pointer;
+  white-space: nowrap; overflow: hidden;
+}
+.scan-suggest li:hover,
+.scan-suggest li[aria-selected="true"] { background: var(--off-white); }
+.scan-suggest-name {
+  font-size: 0.9rem; font-weight: 600; color: var(--ink);
+  overflow: hidden; text-overflow: ellipsis;
+}
+.scan-suggest-domain {
+  font-family: var(--mono); font-size: 0.72rem; color: var(--ink-faint);
+  overflow: hidden; text-overflow: ellipsis; flex-shrink: 0;
+}
+
 .scan-form-label {
   font-family: var(--mono); font-size: 0.72rem; font-weight: 500;
   color: var(--ink-faint); white-space: nowrap; flex-shrink: 0;

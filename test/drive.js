@@ -1123,6 +1123,141 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     await ctx.close();
   }
 
+  // 15 — the scan field's typeahead (#241). Companies matching what has been
+  //      typed, one line each — name, domain — from the site's OWN function,
+  //      never from the provider: the browser must make no request to
+  //      autocomplete.clearbit.com, which is the whole of /privacy/ §08's
+  //      "never from your browser" sentence. A pick fills the field with the
+  //      domain and submits nothing; Scan is still the visitor's press.
+  {
+    const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+    const asked = [];
+    const outside = [];
+    await page.route('**/*', route => {
+      const u = new URL(route.request().url());
+      if (!['localhost'].includes(u.hostname)) outside.push(u.hostname);
+      return route.continue();
+    });
+    await page.route('**/.netlify/functions/company-suggest**', route => {
+      const q = new URL(route.request().url()).searchParams.get('q');
+      asked.push(q);
+      const all = [
+        { name: 'Acme Corporation', domain: 'acme.com' },
+        { name: 'Acme Widgets', domain: 'acmewidgets.io' },
+        { name: 'Acmeta', domain: 'acmeta.example' },
+      ];
+      return route.fulfill({ status: 200, contentType: 'application/json',
+        body: JSON.stringify({ suggestions: all.filter(e => e.name.toLowerCase().startsWith(q.toLowerCase())) }) });
+    });
+    const scans = [];
+    await page.route('https://studio.prospektor.ai/api/scan**', async route => {
+      if (route.request().method() === 'POST') scans.push(JSON.parse(route.request().postData()));
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+        domain: 'acme.com', status: 'done', mode: 'live',
+        result: { name: 'Acme Corporation', inferredGoal: 'Mid-size property managers.', facts: ['B2B'] },
+      }) });
+    });
+    await page.goto('http://localhost:8899/');
+    check('the list is there and hidden before anyone types', await page.evaluate(() =>
+      document.getElementById('scanSuggest').hidden && document.getElementById('scanInput').getAttribute('aria-expanded') === 'false'));
+    check('the browser’s own URL autofill is off, so it cannot draw over ours',
+      (await page.getAttribute('#scanInput', 'autocomplete')) === 'off');
+
+    await page.click('#scanInput');
+    await page.keyboard.type('a');
+    await page.waitForTimeout(400);
+    check('one character asks for nothing', asked.length === 0 && await page.evaluate(() => document.getElementById('scanSuggest').hidden));
+
+    await page.keyboard.type('cm');
+    await page.waitForSelector('#scanSuggest:not([hidden])', { timeout: 3000 });
+    const rows = await page.evaluate(() => [...document.querySelectorAll('#scanSuggest li')].map(li => ({
+      name: li.querySelector('.scan-suggest-name').textContent,
+      domain: li.querySelector('.scan-suggest-domain').textContent,
+      lines: li.getClientRects().length, role: li.getAttribute('role'),
+      h: li.getBoundingClientRect().height,
+    })));
+    check('typing "acm" lists the matches, one line each — name, domain', rows.length === 3
+      && rows[0].name === 'Acme Corporation' && rows[0].domain === 'acme.com'
+      && rows.every(r => r.role === 'option' && r.h < 40), rows);
+    check('the debounce asked once for the three characters, not once per keystroke',
+      asked.length === 1 && asked[0] === 'acm', asked);
+    const geo = await page.evaluate(() => {
+      const b = el => el.getBoundingClientRect();
+      const f = b(document.querySelector('.scan-form')), l = b(document.getElementById('scanSuggest'));
+      const hint = b(document.getElementById('scanHint'));
+      return { formW: f.width, listW: l.width, under: l.top >= f.bottom, hintTop: hint.top, formBottom: f.bottom };
+    });
+    check('the list hangs under the field at the field’s width', Math.abs(geo.listW - geo.formW) < 3 && geo.under, geo);
+    check('and nothing else on the page moved to make room', geo.hintTop - geo.formBottom < 30, geo);
+    check('the list speaks the page’s language (aria-label through t())',
+      (await page.getAttribute('#scanSuggest', 'aria-label')) === 'Suggestions');
+    check('the list is a listbox the field controls', await page.evaluate(() =>
+      document.getElementById('scanInput').getAttribute('aria-controls') === 'scanSuggest'
+      && document.getElementById('scanInput').getAttribute('aria-expanded') === 'true'));
+
+    // Keyboard: down, down, Enter picks the second — and submits nothing.
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('ArrowDown');
+    check('arrow keys mark a row, and the field says which',
+      await page.evaluate(() => document.querySelector('#scanSuggest li[aria-selected="true"]').id === 'scanSuggest-1'
+        && document.getElementById('scanInput').getAttribute('aria-activedescendant') === 'scanSuggest-1'));
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(300);
+    check('Enter on a marked row fills the field with its domain', (await page.inputValue('#scanInput')) === 'acmewidgets.io');
+    check('and closes the list', await page.evaluate(() => document.getElementById('scanSuggest').hidden));
+    check('and submits nothing — Scan is still the visitor’s press', scans.length === 0
+      && await page.evaluate(() => document.getElementById('scanStatus').hidden && document.getElementById('scanResult').hidden));
+    check('focus stays in the field', await page.evaluate(() => document.activeElement.id === 'scanInput'));
+
+    // Mouse: retype, click the first row.
+    await page.fill('#scanInput', '');
+    await page.keyboard.type('acme');
+    await page.waitForSelector('#scanSuggest:not([hidden])', { timeout: 3000 });
+    await page.click('#scanSuggest li:first-child');
+    await page.waitForTimeout(200);
+    check('a click picks too', (await page.inputValue('#scanInput')) === 'acme.com'
+      && await page.evaluate(() => document.getElementById('scanSuggest').hidden));
+
+    // Escape closes without touching the value; blur closes too.
+    await page.keyboard.type('x');
+    await page.fill('#scanInput', 'acm');
+    await page.keyboard.type('e');
+    await page.waitForSelector('#scanSuggest:not([hidden])', { timeout: 3000 });
+    await page.keyboard.press('Escape');
+    check('Escape closes the list and leaves what was typed', (await page.inputValue('#scanInput')) === 'acme'
+      && await page.evaluate(() => document.getElementById('scanSuggest').hidden));
+
+    // Enter with nothing marked is the ordinary submit, and the scan runs on
+    // what is in the field.
+    await page.fill('#scanInput', 'acme.com');
+    await page.keyboard.press('Enter');
+    await page.waitForSelector('#scanResult:not([hidden])', { timeout: 5000 });
+    check('Enter with no row marked scans what is in the field', scans.length === 1 && scans[0].website === 'acme.com', scans);
+    check('the browser asked nobody outside this origin — the function is the one door (§08)',
+      !outside.some(h => /clearbit/.test(h)) && outside.every(h => h === 'studio.prospektor.ai'), [...new Set(outside)]);
+
+    // An unreachable function is simply no list.
+    await page.unroute('**/.netlify/functions/company-suggest**');
+    await page.route('**/.netlify/functions/company-suggest**', route => route.abort());
+    await page.fill('#scanInput', '');
+    await page.keyboard.type('acm');
+    await page.waitForTimeout(600);
+    check('a dead function is no list, never an error', await page.evaluate(() =>
+      document.getElementById('scanSuggest').hidden && document.getElementById('scanError').hidden));
+    await page.close();
+
+    // The Spanish page: the same list, labelled in Spanish.
+    const es = await browser.newPage();
+    await es.route('**/.netlify/functions/company-suggest**', route =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ suggestions: [{ name: 'Acme', domain: 'acme.com' }] }) }));
+    await es.goto('http://localhost:8899/es/');
+    await es.click('#scanInput');
+    await es.keyboard.type('acm');
+    await es.waitForSelector('#scanSuggest:not([hidden])', { timeout: 3000 });
+    check('on /es/ the list is labelled in Spanish', (await es.getAttribute('#scanSuggest', 'aria-label')) === 'Sugerencias');
+    await es.close();
+  }
+
   // 13 — the /resources topic filter (#159). The section is one article per
   //      useful learning, so it grows; a flat grid of every article was fine at
   //      nine and is a wall at twenty-three. Two properties matter and neither

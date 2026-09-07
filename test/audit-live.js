@@ -101,6 +101,27 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
   const page = await ctx.newPage();
   await page.goto(SITE+'/', { waitUntil: 'domcontentloaded' });
   check('scan field is the hero', await page.isVisible('#scanForm'));
+  // #241: the typeahead — the site's own function answers, and the page
+  // draws the answer under the field. Asked of production because the
+  // function is deployed beside the page and a green build says nothing
+  // about whether Netlify actually serves it.
+  {
+    const r = await fetch(SITE + '/.netlify/functions/company-suggest?q=stripe');
+    const data = r.ok ? await r.json().catch(() => null) : null;
+    const list = data && Array.isArray(data.suggestions) ? data.suggestions : null;
+    check('company-suggest answers from this origin (#241)', !!list, 'status ' + r.status);
+    check('and hands back names and domains only — no logo URL (#241)',
+      !!list && list.length > 0 && list.every(e => Object.keys(e).sort().join(',') === 'domain,name'),
+      JSON.stringify((list || []).slice(0, 2)));
+    await page.click('#scanInput');
+    await page.keyboard.type('stri');
+    let listed = false;
+    try { await page.waitForSelector('#scanSuggest:not([hidden]) li', { timeout: 8000 }); listed = true; } catch (e) {}
+    check('the scan field suggests companies as you type (#241)', listed,
+      listed ? (await page.textContent('#scanSuggest li:first-child')).trim().slice(0, 60) : 'no list within 8 s');
+    await page.keyboard.press('Escape');
+    await page.fill('#scanInput', '');
+  }
   await page.fill('#scanInput', 'stripe.com');
   await page.click('#scanBtn');
   let scanOutcome = 'timeout';

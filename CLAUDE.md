@@ -203,6 +203,38 @@ finish parsing.
   of two hashes, not a race, so `defer` cannot break it — and the drive proves
   it rather than the reasoning doing so.
 
+## The typeahead contract — one door, and nothing but the characters typed (#241)
+
+The scan field suggests companies as the visitor types — one line each, name
+and domain — and a pick fills the field with the domain, because the scan is
+domain-keyed underneath. Nothing else on the page moves, and Scan is still the
+visitor's press.
+
+- **The source is Clearbit's public suggest endpoint, and only that.** It is
+  what the studio has called since before #42 wrote it down, and `/privacy/`
+  §08 names it as the recipient (#90). No new third party, no key, no account.
+- **The browser never talks to the provider.** `netlify/functions/company-suggest.js`
+  is the one door: it forwards the typed characters and nothing else — no
+  header, no identifier — and answers `{ name, domain }` pairs. A provider
+  entry is **never a URL** (studio #443): Clearbit's `logo` is dropped at the
+  boundary, so a browser can never be made to fetch from `logo.clearbit.com`.
+  `test/company-suggest.test.js` pins both; `test/drive.js` §15 watches the
+  browser's outbound hosts while it types.
+- **Every failure is no list.** A dead, slow or odd provider — or the function
+  itself unreachable — answers an empty list or nothing, and the field is the
+  plain text box it was before. There is no error state to draw.
+- **The cost posture per keystroke** is a 200 ms debounce, two characters
+  minimum, one request in flight (the previous one is aborted), a ten-minute
+  memo in the warm container and a ten-minute browser cache on the answer.
+  The provider is free; the meter is Netlify invocations.
+- **The list speaks the page's language** through `t()`, the same way every
+  other sentence a script says does — its one sentence is in every catalogue.
+- **`/privacy/` §08's Clearbit row and §05's typed-in paragraph say the scan
+  field sends this.** They said the opposite until #241; the row and the
+  sentence were changed in the same push as the field, because the notice may
+  never state something false. Studio-side, `DATA-HANDLING.md` §2 and §5 carry
+  the same correction.
+
 ## The language contract — the English sentence is the key (#114)
 
 The funnel — `/`, `/pricing/`, `/checkout/`, `/checkout/done/` — is served in

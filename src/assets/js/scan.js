@@ -71,6 +71,113 @@
     if (e.target.closest && e.target.closest('a[href$="#scan"]')) focusField();
   });
 
+  // ── The typeahead (#241) ──
+  // Companies matching what has been typed so far, one line each — name,
+  // domain — under the field, from the site's own function (never the
+  // provider directly: the function is the one door, so nothing but the
+  // characters typed leaves the visitor's browser). Picking one fills the
+  // field with the domain, because the scan is domain-keyed underneath, and
+  // changes nothing else: the visitor still presses Scan. Every failure is
+  // simply no list — the field was a plain text box until today and still is.
+  const SUGGEST = '/.netlify/functions/company-suggest?q=';
+  const SUGGEST_MIN = 2;
+  const SUGGEST_DEBOUNCE_MS = 200;
+  const listEl = document.getElementById('scanSuggest');
+  const suggest = (() => {
+    if (!listEl) return { close: () => {} };
+    listEl.setAttribute('aria-label', t('Suggestions'));
+    let timer = null, inflight = null, shown = [], active = -1;
+
+    function close() {
+      if (timer) { clearTimeout(timer); timer = null; }
+      if (inflight) { inflight.abort(); inflight = null; }
+      listEl.hidden = true;
+      listEl.textContent = '';
+      shown = []; active = -1;
+      input.setAttribute('aria-expanded', 'false');
+      input.removeAttribute('aria-activedescendant');
+    }
+
+    function mark(i) {
+      active = i;
+      const items = listEl.children;
+      for (let k = 0; k < items.length; k++) items[k].setAttribute('aria-selected', k === i ? 'true' : 'false');
+      if (i >= 0) input.setAttribute('aria-activedescendant', items[i].id);
+      else input.removeAttribute('aria-activedescendant');
+    }
+
+    function pick(entry) {
+      if (!entry) return;
+      input.value = entry.domain;
+      close();
+      input.focus();
+    }
+
+    function render(entries) {
+      listEl.textContent = '';
+      entries.forEach((entry, i) => {
+        const li = document.createElement('li');
+        li.id = 'scanSuggest-' + i;
+        li.setAttribute('role', 'option');
+        li.setAttribute('aria-selected', 'false');
+        li.dataset.i = String(i);
+        const name = document.createElement('span');
+        name.className = 'scan-suggest-name';
+        name.textContent = entry.name;
+        const domain = document.createElement('span');
+        domain.className = 'scan-suggest-domain';
+        domain.textContent = entry.domain;
+        li.appendChild(name);
+        li.appendChild(domain);
+        listEl.appendChild(li);
+      });
+      shown = entries; active = -1;
+      listEl.hidden = entries.length === 0;
+      input.setAttribute('aria-expanded', entries.length ? 'true' : 'false');
+    }
+
+    async function ask(q) {
+      if (inflight) inflight.abort();
+      const ctl = new AbortController();
+      inflight = ctl;
+      let entries = [];
+      try {
+        const r = await fetch(SUGGEST + encodeURIComponent(q), { signal: ctl.signal });
+        const data = r.ok ? await r.json() : null;
+        entries = (data && Array.isArray(data.suggestions) ? data.suggestions : [])
+          .filter(e => e && e.name && e.domain).slice(0, 6);
+      } catch (e) { /* aborted, offline, or the function is down — no list */ }
+      if (inflight !== ctl) return;
+      inflight = null;
+      // Only for the characters still in the field, and only while it has focus.
+      if (input.value.trim() !== q || document.activeElement !== input) return;
+      render(entries);
+    }
+
+    input.addEventListener('input', () => {
+      const q = input.value.trim();
+      if (timer) clearTimeout(timer);
+      if (q.length < SUGGEST_MIN) { close(); return; }
+      timer = setTimeout(() => { timer = null; ask(q); }, SUGGEST_DEBOUNCE_MS);
+    });
+    input.addEventListener('keydown', e => {
+      if (listEl.hidden) return;
+      if (e.key === 'ArrowDown') { e.preventDefault(); mark((active + 1) % shown.length); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); mark(active <= 0 ? shown.length - 1 : active - 1); }
+      else if (e.key === 'Enter') { if (active >= 0) { e.preventDefault(); pick(shown[active]); } else close(); }
+      else if (e.key === 'Escape') { close(); }
+    });
+    input.addEventListener('blur', close);
+    // A press on the list must not blur the field — the click that follows
+    // needs the list still there.
+    listEl.addEventListener('mousedown', e => e.preventDefault());
+    listEl.addEventListener('click', e => {
+      const li = e.target.closest && e.target.closest('li[data-i]');
+      if (li) pick(shown[Number(li.dataset.i)]);
+    });
+    return { close };
+  })();
+
   // Bumped on every submit; stale polls and status tickers check it and stop.
   let generation = 0;
   let statusTimer = null;
@@ -238,6 +345,7 @@
     if (!raw) { input.focus(); return; }
 
     const gen = ++generation;
+    suggest.close();
     hideAll();
     if (hintEl) hintEl.hidden = true;
     // Focus mode: the scan is the page now; the pitch copy steps back.
