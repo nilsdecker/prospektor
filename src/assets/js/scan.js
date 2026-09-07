@@ -218,28 +218,59 @@
     settle();
   }
 
-  // A live scan takes up to a minute or so. The bar climbs asymptotically
-  // toward ~92% on elapsed time (the status endpoint reports no stages) and
-  // the message advances so the wait reads as work, not a hang.
+  // ── The wait (#323) ──
+  // A scan is bounded at 20 s on the studio's side (#319) and answers in
+  // ~9 s at the median (#239's measurement), so the wait is timed against
+  // THAT envelope — not the 60–70 s one the first build had, whose stages
+  // at 20, 38, 55 and 75 s described a scan that had already failed. The
+  // sentence changes when the work does: opening, reading, writing; and
+  // past 14 s it says the one thing that is true of nearly every slow scan
+  // (9% spend over 7.5 s waiting on the origin) — it is taking longer than
+  // usual — rather than inventing a stage. The bar climbs toward ~92% with
+  // the median in mind, so a scan that lands at 9 s lands past halfway.
+  //
+  // And when the studio serves what the scan is actually doing — `notes` on
+  // GET /api/scan while it runs, each `{ kind: 'read' | 'search', url |
+  // query }` (HANDOVER-website-funnel.md §1) — the LAST note is the
+  // sentence, in place of the timed one: "reading acme.com/about…" is
+  // better than any guess. Nothing here needs those notes to exist; a poll
+  // that carries none leaves the timed sentence in place.
+  const STAGES = [
+    [0,  d => t('opening {domain}…', { domain: d })],
+    [2,  d => t('reading {domain}…', { domain: d })],
+    [8,  () => t('writing what it found…')],
+    [14, d => t('still reading {domain} — taking longer than usual…', { domain: d })],
+  ];
+  let liveNote = '';
+
+  // One sentence from the studio's notes, in this page's language, or '' —
+  // the timed sentence stands in for anything this cannot read.
+  function noteLine(notes) {
+    if (!Array.isArray(notes) || !notes.length) return '';
+    const last = notes[notes.length - 1];
+    if (!last || typeof last !== 'object') return '';
+    if (last.kind === 'read' && last.url) {
+      try {
+        const u = new URL(String(last.url));
+        const page = (u.host + u.pathname).replace(/^www\./, '').replace(/\/$/, '');
+        return page ? t('reading {page}…', { page: page }) : '';
+      } catch (e) { return ''; }
+    }
+    if (last.kind === 'search' && last.query) return t('searching for “{query}”…', { query: String(last.query) });
+    return '';
+  }
+
   function showStatus(domain, gen) {
-    const stages = [
-      [0,  t('opening {domain}…', { domain: domain })],
-      [6,  t('reading what you sell…')],
-      [20, t('checking who you sell to…')],
-      [38, t('looking one search beyond your site…')],
-      [55, t('drafting your proposal…')],
-      [75, t('almost there — tightening the wording…')],
-    ];
     const t0 = Date.now();
     statusEl.hidden = false;
     if (barEl) barEl.style.width = '2%';
     const tick = () => {
       if (gen !== generation) { clearInterval(statusTimer); return; }
       const elapsed = (Date.now() - t0) / 1000;
-      let msg = stages[0][1];
-      for (const [at, m] of stages) if (elapsed >= at) msg = m;
-      statusMsg.textContent = msg;
-      if (barEl) barEl.style.width = (92 * (1 - Math.exp(-elapsed / 30))).toFixed(1) + '%';
+      let msg = STAGES[0][1](domain);
+      for (const [at, m] of STAGES) if (elapsed >= at) msg = m(domain);
+      statusMsg.textContent = liveNote || msg;
+      if (barEl) barEl.style.width = (92 * (1 - Math.exp(-elapsed / 8))).toFixed(1) + '%';
     };
     tick();
     statusTimer = setInterval(tick, 500);
@@ -334,6 +365,8 @@
       if (data) {
         if (data.status === 'done' && data.result) { renderResult(data.domain || domain, data.result); return; }
         if (data.status === 'failed') { showFallback(domain); return; }
+        // #323: what the scan is doing right now, when the studio says.
+        liveNote = noteLine(data.notes) || liveNote;
       }
     }
     if (gen === generation) showFallback(domain);
@@ -345,6 +378,7 @@
     if (!raw) { input.focus(); return; }
 
     const gen = ++generation;
+    liveNote = '';
     suggest.close();
     hideAll();
     if (hintEl) hintEl.hidden = true;

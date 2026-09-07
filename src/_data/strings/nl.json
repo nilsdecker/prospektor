@@ -201,11 +201,6 @@
  "Checking the draft...": "Versie controleren...",
  "Pitch ready ✓": "Pitch klaar ✓",
  "opening {domain}…": "{domain} openen…",
- "reading what you sell…": "lezen wat je verkoopt…",
- "checking who you sell to…": "kijken aan wie je verkoopt…",
- "looking one search beyond your site…": "één zoekopdracht verder kijken dan je website…",
- "drafting your proposal…": "je voorstel schrijven…",
- "almost there — tightening the wording…": "bijna klaar — de formulering aanscherpen…",
  "That doesn’t look like a domain — try something like acme.com.": "Dat ziet er niet uit als een domein — probeer iets als acme.com.",
  "At capacity today — scans are back tomorrow.": "Vandaag zitten we vol — morgen zijn er weer scans.",
  "Your Prospektor workspace is ready.": "Je Prospektor-workspace staat klaar.",
@@ -222,5 +217,10 @@
  "Three researched prospects are waiting to run your first pitches.": "Drie onderzochte prospects staan klaar voor je eerste pitches.",
  "You&#39;re getting this one email because you started a Prospektor workspace. Questions? Just reply — it reaches a human at hello@prospektor.ai.": "Je krijgt deze ene e-mail omdat je een Prospektor-workspace hebt gestart. Vragen? Beantwoord deze mail — hij komt bij een mens terecht op hello@prospektor.ai.",
  "Your studio is ready — sign in": "Je studio staat klaar — log in",
- "Suggestions": "Suggesties"
+ "Suggestions": "Suggesties",
+ "reading {domain}…": "{domain} lezen…",
+ "writing what it found…": "opschrijven wat het vond…",
+ "still reading {domain} — taking longer than usual…": "nog steeds {domain} aan het lezen — duurt langer dan normaal…",
+ "reading {page}…": "{page} lezen…",
+ "searching for “{query}”…": "zoeken naar “{query}”…"
 }

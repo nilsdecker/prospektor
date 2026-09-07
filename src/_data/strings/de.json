@@ -201,11 +201,6 @@
  "Checking the draft...": "Entwurf prüfen...",
  "Pitch ready ✓": "Pitch fertig ✓",
  "opening {domain}…": "{domain} wird geöffnet…",
- "reading what you sell…": "lesen, was du verkaufst…",
- "checking who you sell to…": "prüfen, an wen du verkaufst…",
- "looking one search beyond your site…": "eine Suche über deine Website hinaus…",
- "drafting your proposal…": "dein Vorschlag wird entworfen…",
- "almost there — tightening the wording…": "fast fertig — Formulierung wird geschärft…",
  "That doesn’t look like a domain — try something like acme.com.": "Das sieht nicht nach einer Domain aus — versuch etwas wie acme.com.",
  "At capacity today — scans are back tomorrow.": "Für heute ausgelastet — morgen gibt es wieder Scans.",
  "Your Prospektor workspace is ready.": "Dein Prospektor-Workspace ist bereit.",
@@ -222,5 +217,10 @@
  "Three researched prospects are waiting to run your first pitches.": "Drei recherchierte Kandidaten warten auf deine ersten Pitches.",
  "You&#39;re getting this one email because you started a Prospektor workspace. Questions? Just reply — it reaches a human at hello@prospektor.ai.": "Du bekommst diese eine E-Mail, weil du einen Prospektor-Workspace gestartet hast. Fragen? Antworte einfach — sie erreicht einen Menschen unter hello@prospektor.ai.",
  "Your studio is ready — sign in": "Dein Studio ist bereit — melde dich an",
- "Suggestions": "Vorschläge"
+ "Suggestions": "Vorschläge",
+ "reading {domain}…": "{domain} wird gelesen…",
+ "writing what it found…": "schreibt auf, was es gefunden hat…",
+ "still reading {domain} — taking longer than usual…": "{domain} wird noch gelesen — dauert länger als sonst…",
+ "reading {page}…": "{page} wird gelesen…",
+ "searching for “{query}”…": "suche nach „{query}“…"
 }
