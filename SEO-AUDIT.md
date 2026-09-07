@@ -451,7 +451,13 @@ does, and `test/i18n.test.js` pins: every page canonicalises to itself, a page
 with a twin names every twin, itself and `x-default` (the English page), and a
 page with no twin carries no `hreflang` at all. The sitemap lists the twins
 beside their English pages. `og:locale` is written off English only.
-`CLAUDE.md` → *The language contract* has the whole shape.
+`CLAUDE.md` → *The language contract* has the whole shape. **#535 (7 Sep)**
+extended the same mechanism to the two product pages, `/contact/`, the cookie
+notice and `/help/` — the help section as one *edition* per language the
+studio holds a guide in, each guide page naming its twin; a guide the studio
+still serves in English on a translated edition is `noindex`, out of the
+sitemap and still named by `hreflang`, so the English twin is the one that
+ranks and the cluster is never told two URLs carry the same text.
 
 ### R6 · Field Core Web Vitals · **operator · 5 minutes, then wait**
 

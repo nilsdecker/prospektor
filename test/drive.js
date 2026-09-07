@@ -11,6 +11,7 @@ const path = require('path');
 const ROOT = require('path').join(__dirname, '..', '_site');
 
 const { serve } = require('./serve');
+const H = require('../src/assets/js/help-render.js');
 
 let pass = 0, fail = 0;
 const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else { fail++; console.log('  FAIL', n, x !== undefined ? JSON.stringify(x) : ''); } };
@@ -452,7 +453,7 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
       /New client workspace/.test(await page.textContent('#guide-workspace')));
     check('its title is the page\'s h1, said once',
       (await page.$$eval('h1', hs => hs.map(h => h.textContent.trim())))
-        .join('|') === 'Workspace settings, members, billing');
+        .join('|') === H.titleOf(SNAPSHOT.files.find(f => f.name.indexOf('workspace') > -1).text));
     check('studio-relative links point at the studio',
       (await page.getAttribute('.help-guide a[target="_blank"]', 'href') || '').startsWith('https://studio.prospektor.ai/'));
     check('there is a way back to the hub', await page.isVisible('.res-back'));
@@ -507,7 +508,7 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
       check('the title is still said exactly once after a re-render',
         (await page.$$eval('h1', hs => hs.length)) === 1
         && (await page.$$eval('#guide-workspace h2', hs => hs.map(h => h.textContent)))
-             .every(t => t !== 'Workspace settings, members, billing'));
+             .every(t => t !== H.titleOf(SNAPSHOT.files.find(f => f.name.indexOf('workspace') > -1).text)));
       await page.close();
     }
 
@@ -614,7 +615,7 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
       check('and the fetch gives up rather than staying open',
         said.some(t => /could not be read/.test(t)), said);
       check('with no error shown over a page full of answers',
-        !/could not be loaded/.test(await page.textContent('body')));
+        !/could not be loaded/.test(await page.textContent('#helpHub')));
       await page.close();
     }
 
@@ -657,6 +658,108 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
         await page.isVisible('#helpRetry'));
       check('and says the studio did not answer in time',
         /did not answer in time/.test(await page.textContent('body')));
+      await page.close();
+    }
+  }
+
+  // 7f — the help section in Spanish (#535): the website's half of the joint
+  //      the #114 spec named. The studio answers `?lang=es` per file — Spanish
+  //      where a translation exists, English where not — and the page has to
+  //      say which, at build time AND at runtime, without a website deploy in
+  //      between (#76's property, kept). Strings are read from the catalogue,
+  //      never written here, so a reworded translation does not turn this red.
+  {
+    const ES = require('../src/_data/strings/es.json');
+    const SNAPSHOT_ES = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'help-corpus.es.json'), 'utf8'));
+    const SNAPSHOT = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'help-corpus.json'), 'utf8'));
+    const isEs = u => u.href === 'https://studio.prospektor.ai/api/help?lang=es';
+    const serve = files => route => route.fulfill({ status: 200, contentType: 'application/json',
+      body: JSON.stringify({ language: 'es', languages: ['en', 'es'], files }) });
+
+    // (a) the hub, built from the Spanish corpus and reconciled against the
+    //     same one: nothing to redraw, everything in Spanish, every link under /es/.
+    {
+      const page = await browser.newPage();
+      const asked = [];
+      await page.route(u => u.pathname === '/api/help', route => { asked.push(route.request().url()); return serve(SNAPSHOT_ES.files)(route); });
+      await page.goto('http://localhost:8899/es/help/');
+      await page.waitForTimeout(500);
+      check('/es/help/ asks the studio for the Spanish corpus, and only that',
+        asked.length === 1 && isEs(new URL(asked[0])), asked);
+      check('the Spanish hub is Spanish', (await page.textContent('h1')).trim() === ES['How can we help?']);
+      check('a card per guide, each linking to its Spanish page',
+        (await page.$$eval('.card > a', as => as.map(a => a.getAttribute('href')))).length === SNAPSHOT_ES.files.length
+        && (await page.$$eval('.card > a', as => as.map(a => a.getAttribute('href')))).every(h => /^\/es\/help\/[a-z0-9-]+\/$/.test(h)));
+      check('no card is marked as not yet translated when every file is',
+        (await page.$$('.card-topic span[lang]')).length === 0);
+      check('the reconcile touched nothing: the build already had this corpus',
+        (await page.getAttribute('#helpGuides', 'data-corpus-source')) !== 'runtime');
+      await page.fill('#helpSearch', 'crear un espacio de trabajo');
+      await page.waitForSelector('#helpResults:not([hidden])', { timeout: 5000 });
+      check('search answers in Spanish over the Spanish corpus',
+        (await page.$$('#helpResults .help-hit')).length > 0
+        && /^\/es\/help\//.test(await page.getAttribute('#helpResults .help-hit-title', 'href')));
+      await page.fill('#helpSearch', 'zzzunfindable');
+      await page.waitForTimeout(300);
+      check('a miss says so in Spanish', (await page.textContent('#helpResults')).includes(ES['Nothing in the guides matches “{query}”. The <strong>Support</strong> pill inside the studio can still answer it.'].replace(/<[^>]+>/g, '').replace('{query}', 'zzzunfindable')));
+      await page.click('.footer-langs a[hreflang="en"]');
+      await page.waitForLoadState('domcontentloaded');
+      check('the switcher on the Spanish hub reaches the English hub', new URL(page.url()).pathname === '/help/', page.url());
+      check('and the English hub carries a switcher now: it has a twin', await page.isVisible('.footer-langs'));
+      await page.close();
+    }
+
+    // (b) a guide page: Spanish body, no note, hreflang both ways.
+    {
+      const page = await browser.newPage();
+      await page.route(u => u.pathname === '/api/help', serve(SNAPSHOT_ES.files));
+      await page.goto('http://localhost:8899/es/help/workspace/');
+      await page.waitForTimeout(500);
+      check('/es/help/workspace/ is the Spanish guide', (await page.getAttribute('html', 'lang')) === 'es'
+        && /Nuevo espacio del cliente/.test(await page.textContent('#guide-workspace')));
+      check('and says nothing about a missing translation', await page.isHidden('#guideLangNote'));
+      check('its siblings and the hub are Spanish too',
+        (await page.$$eval('.help-more .res-more-list a, .res-back', as => as.map(a => a.getAttribute('href')))).every(h => h.startsWith('/es/help/')));
+      const hreflang = await page.$$eval('link[rel="alternate"][hreflang]', ls => ls.map(l => l.getAttribute('hreflang') + ' ' + l.getAttribute('href')));
+      check('hreflang names the English twin and itself',
+        hreflang.includes('en https://prospektor.ai/help/workspace/') && hreflang.includes('es https://prospektor.ai/es/help/workspace/'), hreflang);
+      await page.close();
+    }
+
+    // (c) the runtime half of "not yet in Spanish": the studio retires a
+    //     translation (or never had one) after this site was built. The page
+    //     re-renders the English, marks it as English, and says so.
+    {
+      const en = SNAPSHOT.files.find(f => f.name.indexOf('workspace') > -1);
+      const files = SNAPSHOT_ES.files.map(f => f.name === en.name ? { name: f.name, text: en.text, language: 'en' } : f);
+      const page = await browser.newPage();
+      await page.route(u => u.pathname === '/api/help', serve(files));
+      await page.goto('http://localhost:8899/es/help/workspace/');
+      await page.waitForSelector('#guideLangNote:not([hidden])', { timeout: 5000 });
+      check('a guide the studio now serves in English says so on the Spanish page',
+        (await page.textContent('#guideLangNote')).trim() === ES['This guide is not in {language} yet, so it is shown in English until it is.'].replace('{language}', 'Español'));
+      check('and shows the English, marked as English',
+        /New client workspace/.test(await page.textContent('#guide-workspace'))
+        && (await page.getAttribute('#guide-workspace', 'lang')) === 'en'
+        && (await page.getAttribute('#guide-workspace', 'data-guide-source')) === 'runtime');
+      await page.close();
+    }
+
+    // (d) the hub's runtime half: a guide the build never saw arrives in
+    //     English on the Spanish edition — inline, under a card that says so.
+    {
+      const moved = SNAPSHOT_ES.files.concat([{ name: '99-brand-new.md', language: 'en', text: '# A brand new guide\n\nShipped by the studio after this site was built.\n' }]);
+      const page = await browser.newPage();
+      await page.route(u => u.pathname === '/api/help', serve(moved));
+      await page.goto('http://localhost:8899/es/help/');
+      await page.waitForSelector('#guide-brand-new', { timeout: 5000 });
+      check('a new English guide on the Spanish hub is readable inline', /Shipped by the studio/.test(await page.textContent('#guide-brand-new')));
+      check('its card says it is not yet in Spanish',
+        (await page.textContent('.card:last-child .card-topic')).includes(ES['not yet in {language}'].replace('{language}', 'Español')));
+      check('and the repainted cards still say Spanish',
+        (await page.textContent('.card:first-child .card-cta')).includes(ES['Read the guide']));
+      check('while the guides with Spanish pages are still linked under /es/',
+        (await page.getAttribute('.card:first-child > a', 'href')) === '/es/help/getting-started/');
       await page.close();
     }
   }
@@ -705,13 +808,29 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
       'https://prospektor.ai' + i18n.twin(loc.replace('https://prospektor.ai', ''), l.code))
       .filter(u => fs.existsSync(path.join(ROOT, new URL(u).pathname, 'index.html'))));
     const derived = locs.filter(l => !staticWithTwins.includes(l));
-    const guideLocs = derived.filter(l => l.startsWith('https://prospektor.ai/help/'));
-    const articleLocs = derived.filter(l => !l.startsWith('https://prospektor.ai/help/'));
+    // A guide URL lives under /help/ in any built language's prefix (#535).
+    const isGuide = l => i18n.built().some(x => l.startsWith('https://prospektor.ai' + x.prefix + '/help/'));
+    const guideLocs = derived.filter(isGuide);
+    const articleLocs = derived.filter(l => !isGuide(l));
     check('sitemap lists exactly the static pages we want ranked, each with its built twins',
       JSON.stringify(locs.slice(0, staticWithTwins.length)) === JSON.stringify(staticWithTwins), locs);
     check('the Spanish funnel is in the sitemap beside its English pages (#114)',
-      staticWithTwins.includes('https://prospektor.ai/es/') && staticWithTwins.includes('https://prospektor.ai/es/pricing/')
-      && !staticWithTwins.includes('https://prospektor.ai/es/help/'), staticWithTwins);
+      staticWithTwins.includes('https://prospektor.ai/es/') && staticWithTwins.includes('https://prospektor.ai/es/pricing/'), staticWithTwins);
+    // #535: a help edition is in the sitemap exactly where its snapshot is —
+    // the hub as a static twin, and every guide the studio served in the
+    // language after the English guides.
+    for (const l of i18n.built().filter(l => l.code !== 'en')) {
+      const snap = path.join(__dirname, '..', 'data', `help-corpus.${l.code}.json`);
+      const has = fs.existsSync(snap);
+      check(`${l.prefix}/help/ is in the sitemap exactly when the studio holds ${l.name} guides (#535)`,
+        staticWithTwins.includes(`https://prospektor.ai${l.prefix}/help/`) === has, has ? 'snapshot present' : 'no snapshot');
+      if (!has) continue;
+      const own = JSON.parse(fs.readFileSync(snap, 'utf8')).files.filter(f => (f.language || 'en') === l.code);
+      check(`and every ${l.name} guide page is listed, after the English ones`,
+        own.length > 0 && own.every(f => guideLocs.includes(`https://prospektor.ai${l.prefix}/help/${f.name.replace(/^\d+-/, '').replace(/\.md$/, '')}/`))
+        && guideLocs.findIndex(g => g.startsWith(`https://prospektor.ai${l.prefix}/help/`)) >= guideLocs.filter(g => g.startsWith('https://prospektor.ai/help/')).length,
+        `${own.length} ${l.name} guides, ${guideLocs.length} guide URLs`);
+    }
 
     const slugs = fs.readdirSync(path.join(__dirname, '..', 'src', 'resources'))
       .filter(f => f.endsWith('.md')).map(f => f.replace(/\.md$/, ''));
@@ -723,12 +842,19 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     // The guide URLs, the same way (#166): derived from the corpus rather than
     // listed, so a guide the studio adds is submitted at the next build and one
     // it retires stops being submitted, with nobody editing sitemap.njk.
-    const guideSlugs = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'help-corpus.json'), 'utf8'))
-      .files.map(f => f.name.replace(/^\d+-/, '').replace(/\.md$/, ''));
-    check('sitemap lists every help guide and nothing else under /help/',
-      guideLocs.length === guideSlugs.length
-      && guideSlugs.every(g => guideLocs.includes('https://prospektor.ai/help/' + g + '/')),
-      { listed: guideLocs.length, inCorpus: guideSlugs.length });
+    // Since #535 the same holds per EDITION: the English corpus's guides
+    // under /help/, and each language's translated guides under its prefix.
+    const slugOf = f => f.name.replace(/^\d+-/, '').replace(/\.md$/, '');
+    const wantedGuides = i18n.built().flatMap(l => {
+      const snap = path.join(__dirname, '..', 'data', l.code === 'en' ? 'help-corpus.json' : `help-corpus.${l.code}.json`);
+      if (!fs.existsSync(snap)) return [];
+      return JSON.parse(fs.readFileSync(snap, 'utf8')).files
+        .filter(f => (f.language || 'en') === l.code)
+        .map(f => `https://prospektor.ai${l.prefix}/help/${slugOf(f)}/`);
+    });
+    check('sitemap lists every help guide in every edition and nothing else under /help/',
+      guideLocs.length === wantedGuides.length && wantedGuides.every(g => guideLocs.includes(g)),
+      { listed: guideLocs.length, inCorpora: wantedGuides.length });
 
     // A <lastmod> is a promise a crawler acts on, so it has to be a real date
     // rather than a build stamp — the terms #135 set for adding them at all.
@@ -898,7 +1024,7 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
       // number (#131): a storage key added to the inventory — #114's
       // `prospektor.lang` was the first — must not turn this red by existing.
       const declared = (fs.readFileSync(path.join(__dirname, '..', 'src', 'assets', 'js', 'consent.js'), 'utf8')
-        .match(/^\s+kind: '[^']+',$/gm) || []).length;
+        .match(/^\s+kind: t\('[^']+'\),$/gm) || []).length;
       check('the panel names every declared item', declared > 0 && rows.length === declared, { rows, declared });
       check('and names the one third party by name', rows.includes('Netlify Real User Metrics'), rows);
       await page.close();
@@ -1095,10 +1221,43 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     check('the Spanish pricing tile reaches Stripe', page.url().startsWith('https://checkout.stripe.com/'));
     check('and told the server the buyer read Spanish', posts.length === 1 && posts[0].locale === 'es' && posts[0].from === 'pricing', posts);
     await page.goto('http://localhost:8899/es/');
-    await page.click('.nav-links a[href="/help/"]');
+    await page.click('.nav-links a[href="/resources/"]');
     await page.waitForLoadState('domcontentloaded');
-    check('Ayuda lands on the English /help/ — there is no Spanish one, and no dead link', new URL(page.url()).pathname === '/help/', page.url());
-    check('and /help/ carries no switcher: it has no twin', !(await page.$('.footer-langs')));
+    check('Recursos lands on the English /resources/ — there is no Spanish one, and no dead link', new URL(page.url()).pathname === '/resources/', page.url());
+    check('and /resources/ carries no switcher: it has no twin', !(await page.$('.footer-langs')));
+    await page.goto('http://localhost:8899/es/');
+    await page.click('.nav-links a[href="/es/help/"]');
+    await page.waitForLoadState('domcontentloaded');
+    check('Ayuda lands on /es/help/ (#535)', new URL(page.url()).pathname === '/es/help/', page.url());
+    for (const [item, twin] of [['A quién vender', '/es/who-to-pitch/'], ['Qué enviar', '/es/what-to-send/'], ['Contacto', '/es/contact/']]) {
+      await page.goto('http://localhost:8899/es/');
+      await page.click(`.nav-links a[href="${twin}"]`);
+      await page.waitForLoadState('domcontentloaded');
+      check(`${item} lands on ${twin} and it is Spanish (#535)`,
+        new URL(page.url()).pathname === twin && (await page.getAttribute('html', 'lang')) === 'es'
+        && !/Who to pitch|What to send|Ask us anything/.test(await page.textContent('h1')), page.url());
+    }
+    // The contact form posts to the Spanish thanks page, which exists.
+    await page.goto('http://localhost:8899/es/contact/');
+    check('the Spanish contact form posts to the Spanish thanks page', (await page.getAttribute('form.contact-form', 'action')) === '/es/contact/thanks/');
+    await page.goto('http://localhost:8899/es/contact/thanks/');
+    check('which is served, in Spanish', (await page.getAttribute('html', 'lang')) === 'es' && !/Message sent/.test(await page.textContent('h1')));
+    // The cookie notice speaks the page's language (#535, the website's #533).
+    {
+      const ES = require('../src/_data/strings/es.json');
+      const fresh = await ctx.newPage();
+      await fresh.goto('http://localhost:8899/es/pricing/');
+      await fresh.waitForSelector('.ppsc-bar', { timeout: 5000 });
+      const bar = await fresh.textContent('.ppsc-bar');
+      const expected = ES['<strong>Your choice about how you are measured.</strong> This site sets no cookies. It keeps a couple of things in your own browser so the scan you asked for survives the trip to checkout — those always run. Anything that measures your visit is off until you turn it on.'].replace(/<[^>]+>/g, '');
+      check('the cookie notice is in Spanish on a Spanish page', bar.includes(expected), bar.slice(0, 80));
+      check('and so are its buttons', (await fresh.$$eval('.ppsc-bar .ppsc-btn', ns => ns.map(n => n.textContent))).join('|') === [ES['Reject'], ES['Accept']].join('|'));
+      await fresh.click('.ppsc-bar .ppsc-link');
+      await fresh.waitForSelector('.ppsc-panel', { timeout: 5000 });
+      check('the preferences panel is Spanish too', (await fresh.textContent('#ppsc-title')) === ES['Cookies and your choices']
+        && (await fresh.textContent('.ppsc-panel')).includes(ES['Strictly necessary']));
+      await fresh.close();
+    }
 
     // The switcher, both ways.
     await page.goto('http://localhost:8899/es/pricing/');

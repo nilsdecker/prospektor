@@ -2,6 +2,17 @@
 layout: base.njk
 title: Help
 description: How to use Prospektor — guides, answers and a search box, served straight from the running product so they always describe the version that is live.
+# One hub per EDITION of the corpus (#535): the English one at /help/, and
+# /<code>/help/ for every language the studio holds at least one guide in —
+# src/_data/help.js decides the list from the studio's own answer, never from
+# a list kept here. German and Dutch get no hub until the studio ships a guide
+# in them; the nav's Help item then falls back to /help/ by the localize rule.
+pagination:
+  data: help.editions
+  size: 1
+  alias: edition
+  addAllPagesToCollections: true
+permalink: "{{ edition.prefix }}/help/"
 faqs:
   - q: What does Prospektor cost?
     a: $999 a month per workspace, taken by Stripe. The scan on the home page is free and needs no sign-up — point it at a site and it reads that company before it says a word about them.
@@ -25,12 +36,12 @@ faqs:
 
 <header class="help-hero">
   <div class="help-hero-inner">
-    <span class="tag">help</span>
-    <h1 class="help-h1">How can we help?</h1>
-    <p class="help-lede">Guides and step-by-step answers for Prospektor — each on its own page, all searchable from here. They read the same documentation the product itself runs on, so they always describe the version that is live.</p>
+    <span class="tag">{% t %}help{% endt %}</span>
+    <h1 class="help-h1">{% t %}How can we help?{% endt %}</h1>
+    <p class="help-lede">{% t %}Guides and step-by-step answers for Prospektor — each on its own page, all searchable from here. They read the same documentation the product itself runs on, so they always describe the version that is live.{% endt %}</p>
     <div class="help-search">
       <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.6"/><path d="M11 11l3.2 3.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-      <input id="helpSearch" type="search" placeholder="Search the guides — try &ldquo;how do I create a new workspace&rdquo;" autocomplete="off" aria-label="Search the help guides">
+      <input id="helpSearch" type="search" placeholder="{% t %}Search the guides — try &ldquo;how do I create a new workspace&rdquo;{% endt %}" autocomplete="off" aria-label="{% t %}Search the help guides{% endt %}">
     </div>
   </div>
 </header>
@@ -46,18 +57,20 @@ faqs:
     shared rather than copied.
 
     Since #166 a card is a link to /help/<slug>/ rather than an anchor into a
-    stack of eleven guides on this page. -#}
+    stack of eleven guides on this page. Since #535 the link is the guide's
+    page in THIS edition's language, and a guide the studio has not translated
+    yet says so on its card rather than surprising the reader on the page. -#}
 <section id="helpHub" class="help-hub">
-  {%- if help.guides.length %}
+  {%- if edition.guides.length %}
   <ul class="card-grid">
-    {%- for g in help.guides %}
+    {%- for g in edition.guides %}
     <li class="card">
-      <a href="/help/{{ g.slug }}/">
+      <a href="{{ edition.prefix }}/help/{{ g.slug }}/">
         <span class="card-emoji" aria-hidden="true">{{ g.emoji }}</span>
-        <span class="card-topic">{{ g.topic }}</span>
-        <h2 class="card-title">{{ g.title }}</h2>
-        <p class="card-dek">{{ g.dek }}</p>
-        <span class="card-cta">Read the guide <span aria-hidden="true">→</span></span>
+        <span class="card-topic">{{ g.topic | t }}{% if g.language != edition.code %} · <span lang="{{ g.language }}">{{ 'not yet in {language}' | t({ language: edition.own }) }}</span>{% endif %}</span>
+        <h2 class="card-title"{% if g.language != edition.code %} lang="{{ g.language }}"{% endif %}>{{ g.title }}</h2>
+        <p class="card-dek"{% if g.language != edition.code %} lang="{{ g.language }}"{% endif %}>{{ g.dek }}</p>
+        <span class="card-cta">{% t %}Read the guide{% endt %} <span aria-hidden="true">→</span></span>
       </a>
     </li>
     {%- endfor %}
@@ -65,7 +78,7 @@ faqs:
   {%- else %}
   {#- The corpus could not be reached at build time. The page still ships and
       help.js fills this in from the live studio — see src/_data/help.js. -#}
-  <p class="help-dim" id="helpHubEmpty">Loading the guides…</p>
+  <p class="help-dim" id="helpHubEmpty">{% t %}Loading the guides…{% endt %}</p>
   {%- endif %}
 </section>
 
@@ -87,20 +100,25 @@ faqs:
 
     `data-pages` is how the browser tells the two apart: the slugs that got a
     page in this build. `data-corpus-hash` is #136's no-double-render stamp,
-    unchanged. -#}
+    unchanged. `data-lang` and `data-prefix` are this edition's (#535): help.js
+    asks the studio for the corpus in that language and writes every link it
+    hands out under that prefix. -#}
 <section id="helpGuides" class="help-guides"
-         data-corpus-hash="{{ help.hash }}"
-         data-corpus-source="{{ help.source }}"
-         data-pages="{{ help.slugs | join(' ') }}"></section>
+         data-corpus-hash="{{ edition.hash }}"
+         data-corpus-source="{{ edition.source }}"
+         data-pages="{{ edition.slugs | join(' ') }}"
+         data-lang="{{ edition.code }}"
+         data-lang-name="{{ edition.own }}"
+         data-prefix="{{ edition.prefix }}"></section>
 
 <section class="help-faq">
   <div class="help-faq-inner">
-    <h2 class="help-faq-h2">Frequently asked questions</h2>
+    <h2 class="help-faq-h2">{% t %}Frequently asked questions{% endt %}</h2>
     <dl class="help-faq-list">
       {%- for item in faqs %}
       <div class="help-faq-item">
-        <dt>{{ item.q }}</dt>
-        <dd>{{ item.a }}{% if item.link %} <a href="{{ item.link }}">{{ item.linkLabel }} →</a>{% endif %}</dd>
+        <dt>{{ item.q | t }}</dt>
+        <dd>{{ item.a | t }}{% if item.link %} <a href="{{ item.link | localize }}">{{ item.linkLabel | t }} →</a>{% endif %}</dd>
       </div>
       {%- endfor %}
     </dl>
@@ -109,11 +127,11 @@ faqs:
 
 <section class="help-support">
   <div class="help-support-inner">
-    <span class="tag">still stuck</span>
-    <h2>Ask a person.</h2>
-    <p>The <strong>Support</strong> pill inside the studio answers in seconds and already knows which workspace you are in. If you would rather write, we read every mail.</p>
+    <span class="tag">{% t %}still stuck{% endt %}</span>
+    <h2>{% t %}Ask a person.{% endt %}</h2>
+    <p>{% t %}The <strong>Support</strong> pill inside the studio answers in seconds and already knows which workspace you are in. If you would rather write, we read every mail.{% endt %}</p>
     <a class="btn-cta" href="mailto:{{ site.email }}">{{ site.email }}</a>
-    <p class="help-support-alt"><a href="https://studio.prospektor.ai" target="_blank" rel="noopener">Open the studio ↗</a></p>
+    <p class="help-support-alt"><a href="https://studio.prospektor.ai" target="_blank" rel="noopener">{% t %}Open the studio ↗{% endt %}</a></p>
   </div>
 </section>
 
@@ -127,8 +145,8 @@ faqs:
     {%- for item in faqs %}
     {
       "@type": "Question",
-      "name": {{ item.q | dump | safe }},
-      "acceptedAnswer": { "@type": "Answer", "text": {{ item.a | dump | safe }} }
+      "name": {{ (item.q | t) | dump | safe }},
+      "acceptedAnswer": { "@type": "Answer", "text": {{ (item.a | t) | dump | safe }} }
     }{% if not loop.last %},{% endif %}
     {%- endfor %}
   ]
@@ -138,7 +156,7 @@ faqs:
 {#- The corpus the build rendered from, verbatim, for help.js: it is what the
     search index is built from before any network call, and what the live
     corpus is compared against so the page is not re-rendered for nothing. -#}
-<script type="application/json" id="helpCorpus">{{ help.corpusJson | safe }}</script>
+<script type="application/json" id="helpCorpus">{{ edition.corpusJson | safe }}</script>
 
 {#- defer (#170, the remainder of #137's pass). These two are what that
     pass deliberately left out, and here is why: #136 stamps a corpus hash on

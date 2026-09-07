@@ -1,17 +1,22 @@
 ---
 layout: base.njk
 pagination:
-  data: help.guides
+  data: help.pages
   size: 1
-  alias: guide
-permalink: "/help/{{ guide.slug }}/"
-eleventyExcludeFromCollections: true
+  alias: entry
+  addAllPagesToCollections: true
+permalink: "{{ entry.edition.prefix }}/help/{{ entry.guide.slug }}/"
+# In the collections since #535: the layout's hreflang links and the footer
+# switcher derive a page's twins from the build's own page list, and a guide
+# page now has one. Nothing else reads the guides from a collection.
 eleventyComputed:
-  title: "{{ guide.title }}"
-  description: "{{ guide.description }}"
+  title: "{{ entry.guide.title }}"
+  seoTitle: "{{ entry.guide.seoTitle }}"
+  description: "{{ entry.guide.description }}"
 ---
 {#
-  One help guide, on its own URL (#166).
+  One help guide, on its own URL (#166) — in every language the studio holds
+  it in (#535).
 
   ── why this page exists ──
   #136 put all eleven guides into the served HTML, which fixed the real bug: a
@@ -35,7 +40,19 @@ eleventyComputed:
   deploys — it just has no URL of its own until the next build. And this page
   carries help-guide.js, which re-renders THIS guide from the live corpus when
   the studio's copy has moved on, so an EDITED guide is never stale either.
+
+  ── editions (#535) ──
+  `entry` is one (edition, guide) pair from src/_data/help.js. A Spanish page
+  is written from the studio's `?lang=es` answer, which falls back PER FILE to
+  English where the translation has not caught up; such a page is still
+  written (a reader following the Spanish hub must never 404), says so above
+  the guide, carries `lang="en"` on the body, and is `noindex` and out of the
+  sitemap — the English twin is the page to rank. `hreflang` between the twins
+  comes from the layout, derived from the build's URL list like every other.
 #}
+{%- set edition = entry.edition -%}
+{%- set guide = entry.guide -%}
+{%- set fallback = guide.language != edition.code -%}
 
 <script type="application/ld+json">
 {
@@ -46,10 +63,10 @@ eleventyComputed:
   "author": { "@id": "{{ site.url }}/#organization" },
   "publisher": { "@id": "{{ site.url }}/#organization" },
   "mainEntityOfPage": { "@type": "WebPage", "@id": "{{ site.url }}{{ page.url }}" },
-  "isPartOf": { "@type": "WebPage", "@id": "{{ site.url }}/help/" },
+  "isPartOf": { "@type": "WebPage", "@id": "{{ site.url }}{{ edition.prefix }}/help/" },
   "isAccessibleForFree": true,
-  "articleSection": {{ guide.topic | dump | safe }},
-  "inLanguage": "en"
+  "articleSection": {{ (guide.topic | t) | dump | safe }},
+  "inLanguage": "{{ guide.language }}"
 }
 </script>
 
@@ -61,8 +78,8 @@ eleventyComputed:
   "@context": "https://schema.org",
   "@type": "BreadcrumbList",
   "itemListElement": [
-    { "@type": "ListItem", "position": 1, "name": "{{ site.name }}", "item": "{{ site.url }}/" },
-    { "@type": "ListItem", "position": 2, "name": "Help", "item": "{{ site.url }}/help/" },
+    { "@type": "ListItem", "position": 1, "name": "{{ site.name }}", "item": "{{ site.url }}{{ '/' | localize }}" },
+    { "@type": "ListItem", "position": 2, "name": {{ ('Help' | t) | dump | safe }}, "item": "{{ site.url }}{{ edition.prefix }}/help/" },
     { "@type": "ListItem", "position": 3, "name": {{ guide.title | dump | safe }} }
   ]
 }
@@ -70,60 +87,69 @@ eleventyComputed:
 
 <header class="help-guide-hero">
   <div class="help-guide-hero-inner">
-    <a class="res-back" href="/help/">
+    <a class="res-back" href="{{ edition.prefix }}/help/">
       <svg viewBox="0 0 16 16" fill="none" aria-hidden="true"><path d="M9.5 3.5L5 8l4.5 4.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      All guides
+      {% t %}All guides{% endt %}
     </a>
-    <span class="tag">{{ guide.emoji }} {{ guide.topic }}</span>
+    <span class="tag">{{ guide.emoji }} {{ guide.topic | t }}</span>
     {#- No dek here. The card's dek is the guide's own opening sentence cut to
         116 characters, so printing it above the guide restates the first
         paragraph a reader is about to read, ellipsis and all. It earns its
         place on a card, where it is choosing between eleven guides, and on
         the <meta name="description">, where it is the search snippet. -#}
-    <h1 class="help-guide-h1">{{ guide.title }}</h1>
+    <h1 class="help-guide-h1"{% if fallback %} lang="{{ guide.language }}"{% endif %}>{{ guide.title }}</h1>
   </div>
 </header>
 
 {#- `data-guide-hash` is this ONE guide's fingerprint, not the corpus's: the
     hub compares whole corpora because it lists all of them, but a guide page
     only cares whether its own markdown moved. Same "no double render" rule as
-    #136 — if the live text hashes the same, nothing is touched. -#}
+    #136 — if the live text hashes the same, nothing is touched.
+
+    The note above the guide is an edition's alone (#535): written on every
+    page of a translated edition, hidden where the studio served the file in
+    the page's language, and shown — or hidden — again by help-guide.js when
+    the live answer says otherwise. The English edition writes none. -#}
 <section class="help-guides help-guides-single">
+  {%- if edition.code != 'en' %}
+  <p class="help-guide-note" id="guideLangNote"{% if not fallback %} hidden{% endif %}>{{ 'This guide is not in {language} yet, so it is shown in English until it is.' | t({ language: edition.own }) }}</p>
+  {%- endif %}
   <article class="help-guide" id="guide-{{ guide.slug }}"
            data-slug="{{ guide.slug }}"
            data-guide-hash="{{ guide.hash }}"
-           data-guide-source="{{ help.source }}">
+           data-guide-source="{{ edition.source }}"{% if fallback %}
+           lang="{{ guide.language }}"{% endif %}>
     {{ guide.body | safe }}
   </article>
 </section>
 
-{% set others = help.guides | ring(guide.slug, 3) %}
+{% set others = edition.guides | ring(guide.slug, 3) %}
 {% if others.length %}
 <section class="help-more">
   <div class="help-more-inner">
-    <h2 class="res-more-h">More guides</h2>
+    <h2 class="res-more-h">{% t %}More guides{% endt %}</h2>
     <ul class="res-more-list">
       {%- for other in others %}
       <li>
-        <a href="/help/{{ other.slug }}/">
+        <a href="{{ edition.prefix }}/help/{{ other.slug }}/"{% if other.language != edition.code %} lang="{{ other.language }}"{% endif %}>
           <span class="res-more-title">{{ other.emoji }} {{ other.title }}</span>
           <span class="res-more-dek">{{ other.dek }}</span>
         </a>
       </li>
       {%- endfor %}
     </ul>
-    <p class="help-dim help-more-all"><a href="/help/">Search every guide →</a></p>
+    <p class="help-dim help-more-all"><a href="{{ edition.prefix }}/help/">{% t %}Search every guide →{% endt %}</a></p>
   </div>
 </section>
 {% endif %}
 
 <section class="help-support">
   <div class="help-support-inner">
-    <span class="tag">still stuck</span>
-    <h2>Ask a person.</h2>
-    <p>The <strong>Support</strong> pill inside the studio answers in seconds and already knows which workspace you are in. If you would rather write, we read every mail.</p>
+    <span class="tag">{% t %}still stuck{% endt %}</span>
+    <h2>{% t %}Ask a person.{% endt %}</h2>
+    <p>{% t %}The <strong>Support</strong> pill inside the studio answers in seconds and already knows which workspace you are in. If you would rather write, we read every mail.{% endt %}</p>
     <a class="btn-cta" href="mailto:{{ site.email }}">{{ site.email }}</a>
-    <p class="help-support-alt"><a href="https://studio.prospektor.ai" target="_blank" rel="noopener">Open the studio ↗</a></p>
+    <p class="help-support-alt"><a href="https://studio.prospektor.ai" target="_blank" rel="noopener">{% t %}Open the studio ↗{% endt %}</a></p>
   </div>
 </section>
 

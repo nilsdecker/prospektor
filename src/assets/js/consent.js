@@ -88,6 +88,18 @@
 (function () {
   'use strict';
 
+  /* The page's language (#535). `i18n.js` defines `window.t` and is the
+     first deferred script on every page of this site, so by the time this
+     file runs the sentences below can be said in the language of the page —
+     the English sentence is the key, and a page with no translations, or a
+     copy of this file on a site without i18n.js, says the English. The
+     INVENTORY and CATEGORIES below are read at load, which is after i18n.js
+     has run: deferred scripts execute in document order. */
+  function t(key, vars) {
+    if (typeof window.t === 'function') return window.t(key, vars);
+    return vars ? String(key).replace(/\{(\w+)\}/g, function (m, k) { return k in vars ? String(vars[k]) : m; }) : key;
+  }
+
   /* ──────────────────────────── the inventory ────────────────────────────
      Everything this origin puts on, or reads from, a visitor's device.
      `necessary` entries are disclosed, never gated. Anything else is opt-in
@@ -101,34 +113,34 @@
     {
       id: 'pps-consent',
       name: 'pps-consent',
-      kind: 'Local storage',
+      kind: t('Local storage'),
       category: 'necessary',
-      purpose: 'Your answer to this notice, with the date you gave it. It exists so we can show that you were asked — and so we stop asking.',
-      retention: '12 months, then we ask again',
+      purpose: t('Your answer to this notice, with the date you gave it. It exists so we can show that you were asked — and so we stop asking.'),
+      retention: t('12 months, then we ask again'),
     },
     {
       id: 'prospektor.scan',
       name: 'prospektor.scan',
-      kind: 'Session storage',
+      kind: t('Session storage'),
       category: 'necessary',
-      purpose: 'The scan you asked for — the domain you typed and what we found about it — held just long enough to carry it from the front page into the checkout form so you do not fill the same thing in twice. It stays in this tab; nothing reads it but this site.',
-      retention: 'Until you close the tab, and cleared the moment checkout finishes',
+      purpose: t('The scan you asked for — the domain you typed and what we found about it — held just long enough to carry it from the front page into the checkout form so you do not fill the same thing in twice. It stays in this tab; nothing reads it but this site.'),
+      retention: t('Until you close the tab, and cleared the moment checkout finishes'),
     },
     {
       id: 'prospektor.goal',
       name: 'prospektor.goal',
-      kind: 'Session storage',
+      kind: t('Session storage'),
       category: 'necessary',
-      purpose: 'The sentence you typed about what you want the studio to find, kept while you are still on the checkout page so a reload does not lose it.',
-      retention: 'Until you close the tab, and cleared the moment checkout finishes',
+      purpose: t('The sentence you typed about what you want the studio to find, kept while you are still on the checkout page so a reload does not lose it.'),
+      retention: t('Until you close the tab, and cleared the moment checkout finishes'),
     },
     {
       id: 'prospektor.lang',
       name: 'prospektor.lang',
-      kind: 'Local storage',
+      kind: t('Local storage'),
       category: 'necessary',
-      purpose: 'Your answer to the one-line offer to read this site in the language your browser prefers — the language you chose to stay with, or to switch to — so you are offered it once and not on every page.',
-      retention: 'Until you clear your browser data',
+      purpose: t('Your answer to the one-line offer to read this site in the language your browser prefers — the language you chose to stay with, or to switch to — so you are offered it once and not on every page.'),
+      retention: t('Until you clear your browser data'),
     },
     {
       /* Injected by Netlify into the served HTML, not written by our
@@ -137,11 +149,11 @@
          of this file. */
       id: 'netlify-rum',
       name: 'Netlify Real User Metrics',
-      kind: 'Script',
+      kind: t('Script'),
       category: 'analytics',
       provider: 'Netlify',
-      purpose: 'How quickly the pages actually load for real people, so we can fix the slow ones. It puts nothing on this device — no cookie, no storage of any kind — but as you leave a page it posts that page’s timings, with your IP address, to Netlify, who host this site. Off unless you turn it on.',
-      retention: 'Nothing is kept on this device; Netlify keeps the metrics',
+      purpose: t('How quickly the pages actually load for real people, so we can fix the slow ones. It puts nothing on this device — no cookie, no storage of any kind — but as you leave a page it posts that page’s timings, with your IP address, to Netlify, who host this site. Off unless you turn it on.'),
+      retention: t('Nothing is kept on this device; Netlify keeps the metrics'),
     },
     /* No advertising. No session recording. No third party other than the one
        named above, and nothing at all before consent. When that changes it
@@ -154,13 +166,13 @@
   var CATEGORIES = [
     {
       id: 'analytics',
-      label: 'Analytics',
-      blurb: 'Lets us see which screens people actually use, so we fix the confusing ones. Off unless you turn it on.',
+      label: t('Analytics'),
+      blurb: t('Lets us see which screens people actually use, so we fix the confusing ones. Off unless you turn it on.'),
     },
     {
       id: 'marketing',
-      label: 'Marketing',
-      blurb: 'Measuring which adverts brought someone here. Off unless you turn it on.',
+      label: t('Marketing'),
+      blurb: t('Measuring which adverts brought someone here. Off unless you turn it on.'),
     },
   ];
 
@@ -460,36 +472,34 @@
     var text = hasChoice
       ? el('p', {
         class: 'ppsc-bar-text',
-        html: '<strong>Your choice about how you are measured.</strong> This site sets no cookies. It keeps a couple of things in your own browser so the scan you asked for survives the trip to checkout — those always run. '
-          + 'Anything that measures your visit is off until you turn it on.',
+        html: t('<strong>Your choice about how you are measured.</strong> This site sets no cookies. It keeps a couple of things in your own browser so the scan you asked for survives the trip to checkout — those always run. Anything that measures your visit is off until you turn it on.'),
       })
       : el('p', {
         class: 'ppsc-bar-text',
-        html: '<strong>A short note about cookies.</strong> This site sets none at all. It keeps a couple of things in your own browser so the scan you asked for survives the trip to checkout, and nothing else. '
-          + '<em>No analytics, no advertising, no session recording, no third parties</em> — so there is nothing here to opt into.',
+        html: t('<strong>A short note about cookies.</strong> This site sets none at all. It keeps a couple of things in your own browser so the scan you asked for survives the trip to checkout, and nothing else. <em>No analytics, no advertising, no session recording, no third parties</em> — so there is nothing here to opt into.'),
       });
 
     var actions = hasChoice
       ? el('div', { class: 'ppsc-actions' }, [
         el('button', {
           type: 'button', class: 'ppsc-btn ppsc-btn-equal',
-          text: 'Reject', onclick: function () { decide([], 'reject-all'); closeBar(); },
+          text: t('Reject'), onclick: function () { decide([], 'reject-all'); closeBar(); },
         }),
         el('button', {
           type: 'button', class: 'ppsc-btn ppsc-btn-primary',
-          text: 'Accept', onclick: function () {
+          text: t('Accept'), onclick: function () {
             decide(liveCategories.map(function (c) { return c.id; }), 'accept-all');
             closeBar();
           },
         }),
-        el('button', { type: 'button', class: 'ppsc-link', text: 'Choose', onclick: function () { openPanel(); } }),
+        el('button', { type: 'button', class: 'ppsc-link', text: t('Choose'), onclick: function () { openPanel(); } }),
       ])
       : el('div', { class: 'ppsc-actions' }, [
         el('button', {
           type: 'button', class: 'ppsc-btn ppsc-btn-primary',
-          text: 'Got it', onclick: function () { decide([], 'acknowledged'); closeBar(); },
+          text: t('Got it'), onclick: function () { decide([], 'acknowledged'); closeBar(); },
         }),
-        el('button', { type: 'button', class: 'ppsc-link', text: 'What’s stored', onclick: function () { openPanel(); } }),
+        el('button', { type: 'button', class: 'ppsc-link', text: t('What’s stored'), onclick: function () { openPanel(); } }),
       ]);
 
     barEl = el('div', {
@@ -498,7 +508,7 @@
          `complementary` with a label is what a screen reader wants for a
          persistent notice that the reader can leave and come back to. */
       role: 'complementary',
-      'aria-label': 'Cookie notice',
+      'aria-label': t('Cookie notice'),
     }, [text, actions]);
     document.body.appendChild(barEl);
     publishInset();
@@ -524,10 +534,10 @@
 
   function inventoryTable(items) {
     var head = el('tr', {}, [
-      el('th', { text: 'Name' }),
-      el('th', { text: 'Kind' }),
-      el('th', { text: 'What it is for' }),
-      el('th', { text: 'Kept' }),
+      el('th', { text: t('Name') }),
+      el('th', { text: t('Kind') }),
+      el('th', { text: t('What it is for') }),
+      el('th', { text: t('Kept') }),
     ]);
     var rows = items.map(function (item) {
       return el('tr', {}, [
@@ -597,15 +607,15 @@
       el('p', {
         class: 'ppsc-lede',
         text: hasChoice
-          ? 'Everything Prospektor stores on this device, and what you can turn off. Nothing in an optional group runs before you allow it.'
-          : 'Everything Prospektor stores on this device. There is nothing optional to turn off right now — this is the whole list, and it is the same list the code works from.',
+          ? t('Everything Prospektor stores on this device, and what you can turn off. Nothing in an optional group runs before you allow it.')
+          : t('Everything Prospektor stores on this device. There is nothing optional to turn off right now — this is the whole list, and it is the same list the code works from.'),
       }),
     ]);
 
     if (gpc()) {
       body.appendChild(el('p', {
         class: 'ppsc-gpc',
-        text: 'Your browser is sending a Global Privacy Control signal. We read that as "no" to everything optional, and we have recorded it that way. You can still turn something on here if you want to.',
+        text: t('Your browser is sending a Global Privacy Control signal. We read that as "no" to everything optional, and we have recorded it that way. You can still turn something on here if you want to.'),
       }));
     }
 
@@ -613,16 +623,16 @@
        claim, and a claim you will not itemise is one nobody can check. */
     body.appendChild(el('div', { class: 'ppsc-cat' }, [
       el('div', { class: 'ppsc-cat-copy' }, [
-        el('span', { class: 'ppsc-cat-name', text: 'Strictly necessary' }),
+        el('span', { class: 'ppsc-cat-name', text: t('Strictly necessary') }),
         el('span', {
           class: 'ppsc-cat-blurb',
-          text: 'Remembering the answer you give here, and carrying the scan you asked for from the front page into the checkout form. This site sets no cookies at all — these are keys in your own browser, they are never sent anywhere on their own, and there is no account behind them. Nothing here works without them, so they need no permission — but here they are, every one of them.',
+          text: t('Remembering the answer you give here, and carrying the scan you asked for from the front page into the checkout form. This site sets no cookies at all — these are keys in your own browser, they are never sent anywhere on their own, and there is no account behind them. Nothing here works without them, so they need no permission — but here they are, every one of them.'),
         }),
       ]),
-      el('span', { class: 'ppsc-locked', text: 'Always on' }),
+      el('span', { class: 'ppsc-locked', text: t('Always on') }),
     ]));
     body.appendChild(el('details', { class: 'ppsc-disclose' }, [
-      el('summary', { text: 'What’s in it — ' + necessary.length + ' items' }),
+      el('summary', { text: t('What’s in it — {n} items', { n: necessary.length }) }),
       inventoryTable(necessary),
     ]));
 
@@ -633,7 +643,7 @@
       var items = optional.filter(function (i) { return i.category === cat.id; });
       if (items.length) {
         body.appendChild(el('details', { class: 'ppsc-disclose' }, [
-          el('summary', { text: 'What’s in it — ' + items.length + ' items' }),
+          el('summary', { text: t('What’s in it — {n} items', { n: items.length }) }),
           inventoryTable(items),
         ]));
       }
@@ -642,31 +652,33 @@
     if (!hasChoice) {
       body.appendChild(el('div', { class: 'ppsc-cat' }, [
         el('div', { class: 'ppsc-cat-copy' }, [
-          el('span', { class: 'ppsc-cat-name', text: 'Analytics, advertising, session recording' }),
+          el('span', { class: 'ppsc-cat-name', text: t('Analytics, advertising, session recording') }),
           el('span', {
             class: 'ppsc-cat-blurb',
-            text: 'None. Not off-by-default — absent. The pages make no third-party request at all, and no third party receives anything about your visit. If that ever changes, this notice changes with it and asks you first.',
+            text: t('None. Not off-by-default — absent. The pages make no third-party request at all, and no third party receives anything about your visit. If that ever changes, this notice changes with it and asks you first.'),
           }),
         ]),
-        el('span', { class: 'ppsc-locked', text: 'None' }),
+        el('span', { class: 'ppsc-locked', text: t('None') }),
       ]));
     }
 
     var foot = el('div', { class: 'ppsc-panel-foot' }, [
-      el('p', { class: 'ppsc-foot-note' }, [
-        document.createTextNode('The full detail is in the '),
-        el('a', { href: POLICY_URL, target: '_blank', rel: 'noopener', text: 'privacy policy' }),
-        document.createTextNode('. You can change this any time from the Cookies link in the footer.'),
-      ]),
+      /* One sentence, one key: a translator reorders it whole, and the link
+         rides in as a placeholder. POLICY_URL is this file's own constant,
+         never a visitor's input, so writing it into markup is safe. */
+      el('p', {
+        class: 'ppsc-foot-note',
+        html: t('The full detail is in the <a href="{url}" target="_blank" rel="noopener">privacy policy</a>. You can change this any time from the Cookies link in the footer.', { url: POLICY_URL }),
+      }),
     ]);
 
     if (hasChoice) {
       foot.appendChild(el('button', {
-        type: 'button', class: 'ppsc-btn ppsc-btn-equal', text: 'Reject all',
+        type: 'button', class: 'ppsc-btn ppsc-btn-equal', text: t('Reject all'),
         onclick: function () { decide([], 'reject-all'); closePanel(); },
       }));
       foot.appendChild(el('button', {
-        type: 'button', class: 'ppsc-btn ppsc-btn-primary', text: 'Save choices',
+        type: 'button', class: 'ppsc-btn ppsc-btn-primary', text: t('Save choices'),
         onclick: function () {
           var next = liveCategories
             .filter(function (c) { return switches[c.id] && switches[c.id].checked; })
@@ -677,7 +689,7 @@
       }));
     } else {
       foot.appendChild(el('button', {
-        type: 'button', class: 'ppsc-btn ppsc-btn-primary', text: 'Close',
+        type: 'button', class: 'ppsc-btn ppsc-btn-primary', text: t('Close'),
         onclick: function () { decide([], 'acknowledged'); closePanel(); },
       }));
     }
@@ -689,9 +701,9 @@
       'aria-labelledby': 'ppsc-title',
     }, [
       el('div', { class: 'ppsc-panel-head' }, [
-        el('h2', { id: 'ppsc-title', text: hasChoice ? 'Cookies and your choices' : 'What Prospektor stores on this device' }),
+        el('h2', { id: 'ppsc-title', text: hasChoice ? t('Cookies and your choices') : t('What Prospektor stores on this device') }),
         el('button', {
-          type: 'button', class: 'ppsc-close', 'aria-label': 'Close', html: '&times;',
+          type: 'button', class: 'ppsc-close', 'aria-label': t('Close'), html: '&times;',
           onclick: function () { closePanel(); },
         }),
       ]),

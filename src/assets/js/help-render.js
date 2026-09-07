@@ -339,6 +339,11 @@
         dek: dekFor(file.text),
         emoji: card.emoji,
         topic: card.topic,
+        // The language the studio served this file in (#535): its own, or
+        // English where the translation has not caught up — per document,
+        // so a page never goes missing. An older corpus says nothing, and
+        // says it in English.
+        language: file.language || 'en',
         html: rendered.html,
         headings: rendered.headings,
         plain: plain.text,
@@ -612,6 +617,8 @@
     dekFor: dekFor,
     bodyOf: bodyOf,
     cardFor: cardFor,
+    CARDS: CARDS,
+    DEFAULT_CARD: DEFAULT_CARD,
     buildIndex: buildIndex,
     corpusHash: corpusHash,
     search: search,

@@ -437,11 +437,179 @@ describe('a studio outage must never break the build', () => {
       assert.match(html, /data-pages=""/);
       assert.deepEqual(fs.readdirSync(path.join(out, 'help')), ['index.html'],
         'guide pages were built from a corpus the build never had');
+      // Every guide URL the sitemap asks for is one the build wrote — in any
+      // edition: a Spanish snapshot is a corpus in its own right (#535), and
+      // its pages may exist while the English ones do not.
       const sm = fs.readFileSync(path.join(out, 'sitemap.xml'), 'utf8');
-      assert.equal(/help\/[a-z-]+\//.test(sm), false,
-        'the sitemap asks for guide URLs the build did not write');
+      for (const m of sm.matchAll(/<loc>https:\/\/prospektor\.ai(\/(?:[a-z]{2}\/)?help\/[a-z-]+\/)<\/loc>/g))
+        assert.ok(fs.existsSync(path.join(out, m[1], 'index.html')),
+          `the sitemap asks for ${m[1]}, which the build did not write`);
     } finally {
       fs.writeFileSync(snapshot, kept);
+    }
+  });
+});
+
+/* #535 — the help section in another language.
+
+   The studio serves the corpus per language since #113 Slice D:
+   `/api/help?lang=es` answers the same files with `language: "es"` where a
+   translation exists and `"en"` where it does not. What these hold, in the
+   order they would break:
+
+   - an EDITION exists exactly when its snapshot does (offline) or when the
+     studio holds at least one guide in the language (live) — derived from
+     `lib/i18n.js`'s language list and the studio's answer, never from a list
+     of languages kept here. Nothing counts editions, guides or languages;
+   - the Spanish hub and guide pages are Spanish: `<html lang="es">`, links
+     under `/es/help/`, `?lang=es` asked of the studio by the scripts, and
+     `hreflang` between each page and its English twin — the joint the #114
+     spec named, closed from this side;
+   - a guide the studio served in English on the Spanish edition is still
+     written (a reader following the hub must never 404), says so, is
+     `noindex`, and stays out of the sitemap — its English twin ranks;
+   - a language the studio holds NO guide in gets no edition and no URL: a
+     hub of English text under `/de/` is duplicate content wearing a flag. */
+/* A corpus server in a process of its own, answering `?lang=<code>` from a
+   JSON file of `{ <code>: <body> }` — English for a language the file lacks,
+   the way the studio does. Resolves once it has printed its port. */
+function fixtureServer(answersFile) {
+  const { spawn } = require('node:child_process');
+  const script = `
+    const http = require('node:http'), fs = require('node:fs');
+    const answers = JSON.parse(fs.readFileSync(process.argv[1], 'utf8'));
+    const server = http.createServer((req, res) => {
+      const lang = new URL(req.url, 'http://x').searchParams.get('lang') || 'en';
+      res.writeHead(200, { 'content-type': 'application/json' });
+      res.end(JSON.stringify(answers[lang] || answers.en));
+    });
+    server.listen(0, () => process.stdout.write(String(server.address().port) + '\\n'));
+  `;
+  return new Promise((resolve, reject) => {
+    const child = spawn(process.execPath, ['-e', script, answersFile], { stdio: ['ignore', 'pipe', 'inherit'] });
+    let out = '';
+    child.stdout.on('data', d => {
+      out += d;
+      const m = out.match(/^(\d+)\n/);
+      if (m) resolve({ port: Number(m[1]), kill: () => child.kill() });
+    });
+    child.on('exit', code => reject(new Error(`fixture server exited ${code}`)));
+  });
+}
+
+describe('the help section in another language (#535)', () => {
+  const i18n = require('../lib/i18n.js');
+  const snapshotFor = code => path.join(ROOT, 'data', `help-corpus.${code}.json`);
+  let out, hub;
+  before(() => { out = offlineSite().dir; });
+
+  test('an edition exists exactly when the studio holds a guide in the language', () => {
+    for (const l of i18n.built().filter(l => l.code !== 'en')) {
+      const page = path.join(out, l.code, 'help', 'index.html');
+      assert.strictEqual(fs.existsSync(page), fs.existsSync(snapshotFor(l.code)),
+        `${l.code}: /${l.code}/help/ and data/help-corpus.${l.code}.json disagree`);
+    }
+  });
+
+  test('the translated hub is the hub, in its language, over its own guide pages', () => {
+    for (const l of i18n.built().filter(l => l.code !== 'en' && fs.existsSync(snapshotFor(l.code)))) {
+      const corpus = JSON.parse(fs.readFileSync(snapshotFor(l.code), 'utf8'));
+      hub = fs.readFileSync(path.join(out, l.code, 'help', 'index.html'), 'utf8');
+      assert.match(hub, new RegExp(`<html lang="${l.code}">`));
+      assert.match(hub, new RegExp(`data-lang="${l.code}"`), 'help.js is not told which language to ask for');
+      assert.match(hub, new RegExp(`data-prefix="${l.prefix}"`), 'help.js is not told where the pages live');
+      assert.match(hub, new RegExp(`<link rel="alternate" hreflang="en" href="https://prospektor\\.ai/help/">`), 'no hreflang to the English hub');
+      for (const f of corpus.files) {
+        const slug = H.slugOf(f.name);
+        assert.ok(hub.includes(`href="${l.prefix}/help/${slug}/"`), `the ${l.code} hub does not link ${l.prefix}/help/${slug}/`);
+        const page = path.join(out, l.code, 'help', slug, 'index.html');
+        assert.ok(fs.existsSync(page), `${l.prefix}/help/${slug}/ was not built`);
+        const html = fs.readFileSync(page, 'utf8');
+        assert.match(html, new RegExp(`<html lang="${l.code}">`), `${slug}: lang`);
+        assert.ok(html.includes(`<link rel="alternate" hreflang="en" href="https://prospektor.ai/help/${slug}/">`), `${slug}: no hreflang to its English twin`);
+        assert.ok(html.includes(`<link rel="alternate" hreflang="${l.code}" href="https://prospektor.ai${l.prefix}/help/${slug}/">`), `${slug}: does not name itself`);
+        // Its own title, in its own language, said once — the studio's, not a
+        // catalogue's, so no translation is looked up for it.
+        const title = H.titleOf(f.text);
+        assert.ok(html.includes(`<h1 class="help-guide-h1">${H.esc(title)}</h1>`) || html.includes(`<h1 class="help-guide-h1" lang="en">${H.esc(title)}</h1>`), `${slug}: the h1 is not the guide's own title`);
+        // The guide's hash is over the edition's text, so a translation that
+        // arrives re-renders and one that did not move does not.
+        assert.ok(html.includes(`data-guide-hash="${H.corpusHash([{ name: f.name, text: f.text }])}"`), `${slug}: stamps the wrong hash`);
+        if ((f.language || 'en') === l.code) {
+          assert.doesNotMatch(html, /name="robots" content="noindex/, `${slug}: a translated guide must be indexable`);
+          assert.match(html, /id="guideLangNote" hidden>/, `${slug}: the not-yet-translated note is showing on a translated guide`);
+        }
+      }
+      // And the English pages name the twins back — hreflang is symmetric or it is nothing.
+      const en = fs.readFileSync(path.join(out, 'help', 'index.html'), 'utf8');
+      assert.ok(en.includes(`<link rel="alternate" hreflang="${l.code}" href="https://prospektor.ai${l.prefix}/help/">`), `/help/ does not name ${l.prefix}/help/`);
+    }
+  });
+
+  test("the English hub and guides are what they were: no ?lang=, no note", () => {
+    const en = fs.readFileSync(path.join(out, 'help', 'index.html'), 'utf8');
+    assert.match(en, /data-lang="en"/);
+    assert.match(en, /data-prefix=""/);
+    assert.doesNotMatch(en, /guideLangNote/);
+    assert.doesNotMatch(fs.readFileSync(path.join(out, 'help', 'workspace', 'index.html'), 'utf8'), /guideLangNote/,
+      'the English edition writes the not-yet-translated note');
+    for (const f of ['help.js', 'help-guide.js']) {
+      const src = fs.readFileSync(path.join(ROOT, 'src', 'assets', 'js', f), 'utf8');
+      assert.match(src, /LANG === 'en' \? '' : '\?lang='/, `${f}: the English fetch must be byte for byte what it was`);
+    }
+  });
+
+  test('a guide the studio has not translated is written, marked, noindex and out of the sitemap', async () => {
+    // A studio whose Spanish edition falls back to English on one file.
+    const es = JSON.parse(fs.readFileSync(snapshotFor('es'), 'utf8'));
+    const en = JSON.parse(fs.readFileSync(path.join(ROOT, 'data', 'help-corpus.json'), 'utf8'));
+    const englishOne = en.files.find(f => f.name.includes('sharing'));
+    const files = es.files.map(f => f.name === englishOne.name ? { name: f.name, text: englishOne.text, language: 'en' } : f);
+    // The fixture is a CHILD process, not a server on this event loop: the
+    // build below is synchronous (`execFileSync`), so a server in this process
+    // could never answer it and the build would fall back to the snapshot —
+    // which is what a "fallback works" test does not notice and what a
+    // "the live answer was honoured" test must.
+    const answers = path.join(tmp(), 'answers.json');
+    fs.writeFileSync(answers, JSON.stringify({
+      es: { language: 'es', languages: ['en', 'es'], files },
+      en: { language: 'en', languages: ['en', 'es'], files: en.files.map(f => ({ ...f, language: 'en' })) },
+    }));
+    const server = await fixtureServer(answers);
+    try {
+      const dir = tmp();
+      build(dir, { HELP_CORPUS_OFFLINE: '', HELP_API: `http://127.0.0.1:${server.port}/api/help` });
+      const page = path.join(dir, 'es', 'help', 'sharing', 'index.html');
+      assert.ok(fs.existsSync(page), 'the untranslated guide lost its Spanish URL — a reader following the hub would 404');
+      const html = fs.readFileSync(page, 'utf8');
+      assert.match(html, /id="guideLangNote">/, 'the note is not shown');
+      assert.doesNotMatch(html, /id="guideLangNote" hidden/, 'the note is hidden');
+      assert.match(html, /<article class="help-guide"[^>]*lang="en"/, 'the English body is not marked as English');
+      assert.match(html, /name="robots" content="noindex/, 'an English body on a Spanish URL is offered to search');
+      assert.match(html, /hreflang="en" href="https:\/\/prospektor\.ai\/help\/sharing\/"/, 'still names its English twin');
+      const sm = fs.readFileSync(path.join(dir, 'sitemap.xml'), 'utf8');
+      assert.equal(sm.includes('/es/help/sharing/'), false, 'the sitemap asks for a page that declines to be indexed');
+      assert.ok(sm.includes('<loc>https://prospektor.ai/es/help/workspace/</loc>'), 'the translated guides left the sitemap');
+      // And the hub says so on the card, before the reader clicks.
+      const hub = fs.readFileSync(path.join(dir, 'es', 'help', 'index.html'), 'utf8');
+      const card = hub.match(/<li class="card">\s*<a href="\/es\/help\/sharing\/">[\s\S]*?<\/li>/)[0];
+      assert.match(card, /<span lang="en">/, 'the card does not mark the guide as English');
+      // Untranslated is reported, never red: German answered all English and got no edition.
+      assert.equal(fs.existsSync(path.join(dir, 'de', 'help')), false, 'a language with no translated guide got a hub of English text');
+    } finally {
+      server.kill();
+    }
+  });
+
+  test('the sitemap lists every translated guide page and no other guide URL', () => {
+    const sm = fs.readFileSync(path.join(out, 'sitemap.xml'), 'utf8');
+    for (const l of i18n.built().filter(l => l.code !== 'en' && fs.existsSync(snapshotFor(l.code)))) {
+      const corpus = JSON.parse(fs.readFileSync(snapshotFor(l.code), 'utf8'));
+      for (const f of corpus.files) {
+        const loc = `<loc>https://prospektor.ai${l.prefix}/help/${H.slugOf(f.name)}/</loc>`;
+        assert.strictEqual(sm.includes(loc), (f.language || 'en') === l.code, `sitemap and edition disagree about ${loc}`);
+      }
+      assert.ok(sm.includes(`<loc>https://prospektor.ai${l.prefix}/help/</loc>`), `${l.prefix}/help/ left the sitemap`);
     }
   });
 });

@@ -1105,6 +1105,8 @@ footer {
 }
 .help-results mark { background: var(--accent-bg); color: var(--accent-dim); font-weight: 700; padding: 0 0.1em; border-radius: 3px; }
 .help-dim { font-size: 0.85rem; color: var(--ink-faint); line-height: 1.7; }
+/* A guide the studio has not translated yet, on a page in another language (#535). */
+.help-guide-note { font-size: 0.85rem; color: var(--ink-faint); line-height: 1.7; margin: 0 0 1.25rem; padding: 0.6rem 0.9rem; border-left: 3px solid var(--line, #e5e5e0); }
 .help-retry {
   font-family: var(--font); font-size: 0.82rem; font-weight: 700;
   color: white; background: var(--ink); border: none; cursor: pointer;

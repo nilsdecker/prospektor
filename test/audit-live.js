@@ -561,15 +561,28 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
   // then the articles (#159). Both are checked by SHAPE rather than by count,
   // because both lists are supposed to grow without this file being edited.
   const derivedLocs = liveLocs.slice(STATIC_WITH_TWINS.length);
-  const guideLocs = derivedLocs.filter(l => l.startsWith('https://prospektor.ai/help/'));
-  const articleLocs = derivedLocs.filter(l => !l.startsWith('https://prospektor.ai/help/'));
+  // A guide URL lives under /help/ in any built language's prefix (#535).
+  const isGuide = l => i18n.built().some(x => l.startsWith('https://prospektor.ai' + x.prefix + '/help/'));
+  const guideLocs = derivedLocs.filter(isGuide);
+  const articleLocs = derivedLocs.filter(l => !isGuide(l));
   check('sitemap.xml serves exactly the static pages we want ranked, each with its live twins (#114)',
     mapRes.status === 200 && JSON.stringify(liveLocs.slice(0, STATIC_WITH_TWINS.length)) === JSON.stringify(STATIC_WITH_TWINS),
     liveLocs.slice(0, STATIC_WITH_TWINS.length).join(' '));
-  // The Spanish funnel (#114): served, in Spanish, self-canonical, naming
-  // its English twin — and the English page naming it back.
+  // The Spanish funnel (#114) and, since #535, the rest of the site: served,
+  // in the language, self-canonical, naming its English twin — and the
+  // English page naming it back. /help/ is asked only where the twin
+  // answered 200 above: an edition exists exactly where the studio holds a
+  // guide in the language, so a 404 there is the correct answer for a
+  // language with none, and the English hub must then NOT name it.
   for (const l of i18n.built().filter(l => l.code !== 'en')) {
-    for (const p of ['/', '/pricing/', '/checkout/']) {
+    const helpTwin = 'https://prospektor.ai' + l.prefix + '/help/';
+    const hasHelp = STATIC_WITH_TWINS.includes(helpTwin);
+    if (!hasHelp) {
+      const en = await (await fetch(SITE + '/help/')).text();
+      check(`no ${l.prefix}/help/ (the studio holds no ${l.name} guide), and /help/ does not name one`,
+        !en.includes(`hreflang="${l.code}"`));
+    }
+    for (const p of ['/', '/pricing/', '/checkout/', '/who-to-pitch/', '/what-to-send/', '/contact/'].concat(hasHelp ? ['/help/'] : [])) {
       const twin = l.prefix + p;
       const res = await fetch(SITE + twin);
       const html = res.status === 200 ? await res.text() : '';
@@ -587,6 +600,36 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
     check(`${l.prefix}/ speaks ${l.name}: the h1 is not the English one`,
       !/Find Leads\./.test(home.match(/<h1>[\s\S]*?<\/h1>/)?.[0] || ''));
     check(`${l.prefix}/ links checkout in ${l.name}`, home.includes(`href="${l.prefix}/checkout/"`));
+    // #535: the two product pages and contact, in the language — the h1 is
+    // not the English one, and the nav's items land on the twins.
+    for (const [p, h1] of [['/who-to-pitch/', 'Who to pitch'], ['/what-to-send/', 'What to send'], ['/contact/', 'Ask us anything.']]) {
+      const html = await (await fetch(SITE + l.prefix + p)).text();
+      check(`${l.prefix}${p} speaks ${l.name}: the h1 is not the English one (#535)`,
+        !(html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/) || ['', ''])[1].includes(h1));
+    }
+    check(`${l.prefix}/contact/ posts to ${l.prefix}/contact/thanks/, which is served (#535)`,
+      (await (await fetch(SITE + l.prefix + '/contact/')).text()).includes(`action="${l.prefix}/contact/thanks/"`)
+      && (await fetch(SITE + l.prefix + '/contact/thanks/')).status === 200);
+    if (hasHelp) {
+      // The Spanish help section (#535): the hub links its own guide pages,
+      // and the first guide the studio serves in the language is served in it.
+      const hub = await (await fetch(SITE + l.prefix + '/help/')).text();
+      const cards = [...hub.matchAll(/<li class="card">\s*<a href="([^"]+)"/g)].map(m => m[1]);
+      check(`${l.prefix}/help/ links a guide page per card, each under ${l.prefix}/help/`,
+        cards.length >= 10 && cards.every(h => h.startsWith(l.prefix + '/help/')), `${cards.length} cards`);
+      let corpus = null;
+      try { corpus = await (await fetch(`https://studio.prospektor.ai/api/help?lang=${l.code}`)).json(); } catch (e) { RELAY_RETRIES.push('api/help?lang=' + l.code); }
+      const own = ((corpus && corpus.files) || []).filter(f => f.language === l.code);
+      const first = own[0] && own[0].name.replace(/^\d+-/, '').replace(/\.md$/, '');
+      const guide = first ? await (await fetch(SITE + l.prefix + '/help/' + first + '/')).text() : '';
+      check(`${l.prefix}/help/${first || '?'}/ is served in ${l.name}, naming its English twin`,
+        !!first && new RegExp(`<html lang="${l.code}">`).test(guide)
+        && guide.includes(`<link rel="alternate" hreflang="en" href="https://prospektor.ai/help/${first}/">`)
+        && guide.includes('id="guideLangNote" hidden'),
+        corpus ? `${own.length} of ${corpus.files.length} files in ${l.name}` : 'studio unreachable');
+      check(`and the sitemap carries the ${l.name} guide pages beside the English ones`,
+        own.length > 0 && own.every(f => liveLocs.includes('https://prospektor.ai' + l.prefix + '/help/' + f.name.replace(/^\d+-/, '').replace(/\.md$/, '') + '/')));
+    }
   }
   check('everything else in the sitemap is a help guide or a published article',
     derivedLocs.length > 0 && derivedLocs.every(l =>

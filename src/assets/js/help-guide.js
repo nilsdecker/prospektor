@@ -28,7 +28,12 @@
 
   var slug = $guide.getAttribute('data-slug');
   var builtHash = $guide.getAttribute('data-guide-hash') || '';
-  var API = (H.STUDIO || 'https://studio.prospektor.ai') + '/api/help';
+  /* This page's language is its URL's, stamped on <html> by the layout
+     (#535): the corpus is asked for in it, and nothing is added to the
+     English fetch. */
+  var LANG = document.documentElement.getAttribute('lang') || 'en';
+  var API = (H.STUDIO || 'https://studio.prospektor.ai') + '/api/help' + (LANG === 'en' ? '' : '?lang=' + encodeURIComponent(LANG));
+  var $note = document.getElementById('guideLangNote');
 
   function textOf(el, value) { if (el) el.textContent = value; }
 
@@ -42,12 +47,26 @@
     if (target) target.scrollIntoView({ block: 'start' });
   }
 
+  /* Whether the studio served this file in the page's language, or fell
+     back to English (#535). The note above the guide is shown or hidden to
+     match, and the text is marked as English for a screen reader. Nothing
+     to do on the English edition, which writes no note. */
+  function markLanguage(language) {
+    var served = language || 'en';
+    var fallback = served !== LANG;
+    if ($note) $note.hidden = !fallback;
+    var h1 = document.querySelector('.help-guide-h1');
+    if (fallback) { $guide.setAttribute('lang', served); if (h1) h1.setAttribute('lang', served); }
+    else { $guide.removeAttribute('lang'); if (h1) h1.removeAttribute('lang'); }
+  }
+
   function apply(guide) {
     // bodyOf, not html: the guide's own title is this page's <h1>, and #137
     // pinned one <h1> per page and no heading said twice.
     $guide.innerHTML = H.bodyOf(guide.html);
     textOf(document.querySelector('.help-guide-h1'), guide.title);
     $guide.setAttribute('data-guide-source', 'runtime');
+    markLanguage(guide.language);
     restore();
   }
 

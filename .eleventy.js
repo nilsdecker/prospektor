@@ -10,9 +10,21 @@ module.exports = function(eleventyConfig) {
   // renders it UNTOUCHED — the same bytes — on an English page. A sentence a
   // catalogue lacks renders in English and is logged once, never thrown:
   // untranslated is reported, not red, the way #113 and #131 both decided.
-  eleventyConfig.on("eleventy.before", () => { i18n.reload(); });
+  eleventyConfig.on("eleventy.before", () => { i18n.reload(); known = null; });
   const missed = new Set();
+  // The sentences the site itself says, read once per build. A miss is logged
+  // only for one of these: a value that arrives from somewhere else — a help
+  // guide's title, which the studio already serves in the page's language
+  // (#535) — is looked up like any other and falls back without a word,
+  // because "no translation" is not a defect of a catalogue that was never
+  // meant to hold it.
+  let known = null;
+  const knows = key => {
+    if (!known) known = new Set(i18n.inventory().map(e => e.key));
+    return known.has(i18n.normalizeKey(key));
+  };
   const say = (key, code) => {
+    if (!knows(key)) return;
     const id = code + '\0' + key;
     if (missed.has(id)) return;
     missed.add(id);
@@ -25,17 +37,27 @@ module.exports = function(eleventyConfig) {
     const code = langHere.call(this);
     if (code === i18n.DEFAULT) return content;
     const hit = i18n.translate(content, code);
-    if (hit === undefined) { say(content, code); return content; }
+    // A miss renders the English, with its links still localized: the page
+    // is Spanish whether or not this sentence is yet.
+    if (hit === undefined) { say(content, code); return localizeLinks.call(this, content); }
     // The block's own whitespace survives around the translation, so the
     // markup around it keeps its shape whichever language is rendering.
-    return content.match(/^\s*/)[0] + hit + content.match(/\s*$/)[0];
+    // A link inside a sentence is written English-side (`href="/pricing/"`)
+    // and localized here on the way out, exactly as `| localize` would —
+    // written as an expression inside the block it would render differently
+    // on every page and never match its key (#535).
+    return content.match(/^\s*/)[0] + localizeLinks.call(this, hit) + content.match(/\s*$/)[0];
   });
-  // The same for a value — a frontmatter title, a site.json label.
-  eleventyConfig.addFilter("t", function(value) {
+  // The same for a value — a frontmatter title, a site.json label. `vars`
+  // fills `{placeholder}`s in whichever sentence wins (#535: the help pages
+  // name the language a guide is not yet in); without them English is still
+  // returned untouched, before any lookup.
+  eleventyConfig.addFilter("t", function(value, vars) {
     const code = langHere.call(this);
-    if (code === i18n.DEFAULT || value == null) return value;
-    const hit = i18n.translate(String(value), code);
-    if (hit === undefined) { say(String(value), code); return value; }
+    if (value == null) return value;
+    if (code === i18n.DEFAULT) return vars ? i18n.fill(value, vars) : value;
+    const hit = i18n.translate(String(value), code, vars);
+    if (hit === undefined) { say(String(value), code); return vars ? i18n.fill(value, vars) : value; }
     // A plain string on purpose: it is autoescaped exactly as the English
     // value would have been, so `{{ description | t }}` inside an attribute
     // is safe in every language for the same reason it was in one.
@@ -54,13 +76,19 @@ module.exports = function(eleventyConfig) {
     const all = (this.ctx && this.ctx.collections && this.ctx.collections.all) || [];
     return new Set(all.map(p => p.url));
   };
-  eleventyConfig.addFilter("localize", function(href) {
+  const localize = function(href) {
     const code = langHere.call(this);
     if (code === i18n.DEFAULT) return href;
     const want = i18n.twin(href, code);
     const pathOnly = want.replace(/[#?].*$/, '');
     return urls.call(this).has(pathOnly) ? want : href;
-  });
+  };
+  eleventyConfig.addFilter("localize", localize);
+  // Every internal href in a fragment of markup, localized the same way.
+  const localizeLinks = function(html) {
+    return String(html).replace(/href="(\/[^"]*)"/g, (m, href) =>
+      href.startsWith('/assets/') ? m : `href="${localize.call(this, href)}"`);
+  };
 
   // Every language a page exists in — `[{ code, own, url, current }]` — for
   // the hreflang links, the footer switcher and the sitemap. A page with no

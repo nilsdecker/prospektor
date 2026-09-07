@@ -31,18 +31,32 @@
       one has no page yet, so it is rendered inline into #helpGuides and linked
       by anchor, exactly as everything was before #166. `data-pages` on that
       element is the build's list of slugs that do have a page, and it is the
-      whole of how the two cases are told apart. */
+      whole of how the two cases are told apart.
+
+   5. Since #535 this page exists once per language the studio holds the
+      corpus in — /help/ and /es/help/ — and two attributes beside `data-pages`
+      say which: `data-lang` is what the corpus is asked for (`?lang=es`;
+      nothing for English, so that fetch is byte for byte what it was) and
+      `data-prefix` is where every link this file hands out lives. Every
+      sentence this file says goes through `t()`, which i18n.js defines first
+      on every page. */
 (function () {
   'use strict';
 
   var H = window.HelpRender;
-  var API = (H && H.STUDIO ? H.STUDIO : 'https://studio.prospektor.ai') + '/api/help';
+  var t = typeof window.t === 'function' ? window.t : function (k) { return k; };
 
   var $search = document.getElementById('helpSearch');
   var $results = document.getElementById('helpResults');
   var $hub = document.getElementById('helpHub');
   var $guides = document.getElementById('helpGuides');
   if (!H || !$guides || !$results) return;
+
+  /* This edition's language and URL prefix (#535). */
+  var LANG = $guides.getAttribute('data-lang') || 'en';
+  var PREFIX = $guides.getAttribute('data-prefix') || '';
+  var LANG_NAME = $guides.getAttribute('data-lang-name') || '';
+  var API = (H.STUDIO || 'https://studio.prospektor.ai') + '/api/help' + (LANG === 'en' ? '' : '?lang=' + encodeURIComponent(LANG));
 
   var articles = [];
   var embeddedHash = $guides.getAttribute('data-corpus-hash') || '';
@@ -63,7 +77,7 @@
      an anchor into #helpGuides on this page. */
   function hrefFor(slug, anchor) {
     if (hasPage(slug)) {
-      return '/help/' + encodeURIComponent(slug) + '/' + (anchor ? '#' + encodeURIComponent(anchor) : '');
+      return PREFIX + '/help/' + encodeURIComponent(slug) + '/' + (anchor ? '#' + encodeURIComponent(anchor) : '');
     }
     return '#' + (anchor || ('guide-' + slug));
   }
@@ -95,22 +109,30 @@
      These two must keep producing what src/help.njk produces; they are the
      same shapes, and the drive checks both paths render the same page. */
 
+  /* A guide the studio served in English on a page in another language
+     (#535): the card says so, and the text is marked as English for a screen
+     reader, the same way src/help.njk writes it at build time. */
+  function fallback(a) { return (a.language || 'en') !== LANG; }
+  function langAttr(a) { return fallback(a) ? ' lang="' + H.esc(a.language || 'en') + '"' : ''; }
+
   function cardHtml(a) {
     return '<li class="card">' +
       '<a href="' + H.esc(hrefFor(a.slug, '')) + '">' +
       '<span class="card-emoji" aria-hidden="true">' + H.esc(a.emoji) + '</span>' +
-      '<span class="card-topic">' + H.esc(a.topic) + '</span>' +
-      '<h2 class="card-title">' + H.esc(a.title) + '</h2>' +
-      '<p class="card-dek">' + H.esc(a.dek) + '</p>' +
-      '<span class="card-cta">Read the guide <span aria-hidden="true">→</span></span>' +
+      '<span class="card-topic">' + H.esc(t(a.topic)) +
+        (fallback(a) ? ' · <span' + langAttr(a) + '>' + H.esc(t('not yet in {language}', { language: LANG_NAME })) + '</span>' : '') +
+      '</span>' +
+      '<h2 class="card-title"' + langAttr(a) + '>' + H.esc(a.title) + '</h2>' +
+      '<p class="card-dek"' + langAttr(a) + '>' + H.esc(a.dek) + '</p>' +
+      '<span class="card-cta">' + H.esc(t('Read the guide')) + ' <span aria-hidden="true">→</span></span>' +
       '</a></li>';
   }
 
   function guideHtml(a) {
-    return '<article class="help-guide" id="guide-' + a.slug + '" data-slug="' + a.slug + '">' +
-      '<span class="help-guide-topic">' + H.esc(a.emoji) + ' ' + H.esc(a.topic) + '</span>' +
+    return '<article class="help-guide" id="guide-' + a.slug + '" data-slug="' + a.slug + '"' + langAttr(a) + '>' +
+      '<span class="help-guide-topic">' + H.esc(a.emoji) + ' ' + H.esc(t(a.topic)) + '</span>' +
       a.html +
-      '<a class="help-guide-top" href="#helpHub">↑ All guides</a>' +
+      '<a class="help-guide-top" href="#helpHub">' + H.esc(t('↑ All guides')) + '</a>' +
       '</article>';
   }
 
@@ -149,12 +171,12 @@
     var hits = H.search(articles, q);
 
     if (!hits.length) {
-      $results.innerHTML = '<p class="help-dim">Nothing in the guides matches “' + H.esc(q) +
-        '”. The <strong>Support</strong> pill inside the studio can still answer it.</p>';
+      $results.innerHTML = '<p class="help-dim">' +
+        t('Nothing in the guides matches “{query}”. The <strong>Support</strong> pill inside the studio can still answer it.', { query: H.esc(q) }) + '</p>';
     } else {
       var head = '';
       if (hits[0].partial) {
-        head = '<p class="help-dim help-results-note">No guide covers all of that — these come closest.</p>';
+        head = '<p class="help-dim help-results-note">' + H.esc(t('No guide covers all of that — these come closest.')) + '</p>';
       }
       $results.innerHTML = head + hits.map(function (h) {
         return '<div class="help-hit">' +
@@ -259,9 +281,8 @@
     if ($hub) {
       $hub.innerHTML =
         '<p>' + message + '</p>' +
-        '<p><button type="button" class="help-retry" id="helpRetry">Try again</button></p>' +
-        '<p class="help-dim">If this keeps happening, write to ' +
-        '<a href="mailto:hello@prospektor.ai">hello@prospektor.ai</a>.</p>';
+        '<p><button type="button" class="help-retry" id="helpRetry">' + H.esc(t('Try again')) + '</button></p>' +
+        '<p class="help-dim">' + t('If this keeps happening, write to <a href="mailto:hello@prospektor.ai">hello@prospektor.ai</a>.') + '</p>';
       var btn = document.getElementById('helpRetry');
       if (btn) btn.addEventListener('click', boot);
     }
@@ -292,7 +313,7 @@
           return;
         }
         console.error('help corpus failed to load', error);
-        offerRetry('The guides could not be loaded right now — they are served live from the studio, and the studio did not answer in time.');
+        offerRetry(H.esc(t('The guides could not be loaded right now — they are served live from the studio, and the studio did not answer in time.')));
       });
   }
 

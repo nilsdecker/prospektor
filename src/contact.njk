@@ -1,8 +1,16 @@
 ---
 layout: base.njk
-permalink: /contact/
 title: Contact
 description: "A question about Prospektor, or something you need from us? Send it here and we reply by email. No sales call, and no demo to sit through."
+# One page per language (#535) — see src/index.njk for the reasoning. The
+# form's success page paginates the same way, so the action below always
+# names a page the build wrote (test/contact.test.js).
+pagination:
+  data: languages
+  size: 1
+  alias: language
+  addAllPagesToCollections: true
+permalink: "{{ language.prefix }}/contact/"
 ---
 
 {#- #456, 31 Aug 2026. Operator: *"spawn a contact form thread. that form will
@@ -34,8 +42,8 @@ description: "A question about Prospektor, or something you need from us? Send i
 {
   "@context": "https://schema.org",
   "@type": "ContactPage",
-  "name": "Contact Prospektor",
-  "url": "{{ site.url }}/contact/",
+  "name": {{ ('Contact Prospektor' | t) | dump | safe }},
+  "url": "{{ site.url }}{{ page.url }}",
   "description": {{ description | dump | safe }},
   "isPartOf": { "@id": "{{ site.url }}/#website" },
   "about": { "@id": "{{ site.url }}/#organization" },
@@ -43,20 +51,20 @@ description: "A question about Prospektor, or something you need from us? Send i
     "@type": "ContactPoint",
     "contactType": "customer support",
     "email": "{{ site.email }}",
-    "url": "{{ site.url }}/contact/",
-    "availableLanguage": "English"
+    "url": "{{ site.url }}{{ page.url }}",
+    "availableLanguage": "{{ language.name }}"
   }
 }
 </script>
 
 <header class="page-hero">
   <div class="page-hero-inner">
-    <span class="tag">contact</span>
-    <h1 class="page-h1">Ask us anything.</h1>
+    <span class="tag">{% t %}contact{% endt %}</span>
+    <h1 class="page-h1">{% t %}Ask us anything.{% endt %}</h1>
     <p class="page-lede">
-      This goes to our inbox and we reply by email. You don't need to talk to
+      {% t %}This goes to our inbox and we reply by email. You don't need to talk to
       anyone to buy — the price is on <a href="/pricing/">the pricing page</a>
-      and checkout is the next click.
+      and checkout is the next click.{% endt %}
     </p>
   </div>
 </header>
@@ -70,26 +78,26 @@ description: "A question about Prospektor, or something you need from us? Send i
         request afterwards — so a thanks page that did not build would 404 the
         person who just wrote to us. test/contact.test.js asserts the file
         exists rather than trusting it. -#}
-    <form class="contact-form" name="contact" method="POST" action="/contact/thanks/"
+    <form class="contact-form" name="contact" method="POST" action="{{ '/contact/thanks/' | localize }}"
           netlify netlify-honeypot="bot-field">
       {#- Netlify needs the form's name in the POST body itself; without this
           the submission is accepted and filed under nothing. -#}
       <input type="hidden" name="form-name" value="contact">
 
       <div class="contact-row">
-        <label class="contact-label" for="contactName">Your name</label>
+        <label class="contact-label" for="contactName">{% t %}Your name{% endt %}</label>
         <input class="contact-input" id="contactName" name="name" type="text"
                autocomplete="name" required>
       </div>
 
       <div class="contact-row">
-        <label class="contact-label" for="contactEmail">Your email</label>
+        <label class="contact-label" for="contactEmail">{% t %}Your email{% endt %}</label>
         <input class="contact-input" id="contactEmail" name="email" type="email"
                autocomplete="email" placeholder="you@yourcompany.com" required>
       </div>
 
       <div class="contact-row">
-        <label class="contact-label" for="contactMessage">Your message</label>
+        <label class="contact-label" for="contactMessage">{% t %}Your message{% endt %}</label>
         <textarea class="contact-input contact-textarea" id="contactMessage"
                   name="message" rows="6" required></textarea>
       </div>
@@ -100,15 +108,15 @@ description: "A question about Prospektor, or something you need from us? Send i
       <input type="text" name="bot-field" tabindex="-1" autocomplete="off"
              style="position:absolute;left:-9999px;" aria-hidden="true">
 
-      <button class="btn-cta contact-submit" type="submit">Send it</button>
+      <button class="btn-cta contact-submit" type="submit">{% t %}Send it{% endt %}</button>
     </form>
 
     <p class="contact-note">
-      Your name, address and message reach us through Netlify's form service and
+      {% t %}Your name, address and message reach us through Netlify's form service and
       are read to answer you — nothing else, and no mailing list, because we
       don't run one. <a href="/privacy/#applicants">What we do with it, in full</a>.
       You can also just write to
-      <a href="mailto:{{ site.email }}">{{ site.email }}</a>.
+      <a href="mailto:{{ site.email }}">{{ site.email }}</a>.{% endt %}
     </p>
 
   </div>

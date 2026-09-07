@@ -34,7 +34,10 @@ them without reading the studio's code.
    changes; the build prefers the live endpoint and never fails without it.
    **Since #166 the snapshot decides how many PAGES the build writes**, not just
    what one page says: every guide in the corpus gets `/help/<slug>/` and a
-   sitemap entry. A stale snapshot is therefore a stale set of URLs — the site
+   sitemap entry — and since #535 the snapshots decide which LANGUAGES the help
+   section exists in: `data/help-corpus.<code>.json` is written only for a
+   language the studio holds a guide in, and `/<code>/help/` exists offline
+   exactly when that file does. A stale snapshot is therefore a stale set of URLs — the site
    still shows a newly-added guide (the hub renders it inline at runtime, and an
    edited guide corrects itself on its own page), but it has no URL of its own
    until the next build. See *The help contract* below.
@@ -235,12 +238,15 @@ visitor's press.
   never state something false. Studio-side, `DATA-HANDLING.md` §2 and §5 carry
   the same correction.
 
-## The language contract — the English sentence is the key (#114)
+## The language contract — the English sentence is the key (#114, #535)
 
-The funnel — `/`, `/pricing/`, `/checkout/`, `/checkout/done/` — is served in
-Spanish, German and Dutch under `/es/`, `/de/`, `/nl/`; `/` stays English for a
-visitor who never chose. The convention is #113's, carried over from the studio
-where it transfers, and the reasons are the same.
+Every page a visitor reads — the funnel (`/`, `/pricing/`, `/checkout/`,
+`/checkout/done/`), the two product pages, `/contact/` and its thanks page, the
+cookie notice on all of them and, where the studio holds the corpus in the
+language, `/help/` — is served in Spanish, German and Dutch under `/es/`,
+`/de/`, `/nl/`; `/` stays English for a visitor who never chose. The convention
+is #113's, carried over from the studio where it transfers, and the reasons are
+the same.
 
 - **One catalogue file per language, and the English sentence is the key.**
   `src/_data/strings/<code>.json` is `{ "English sentence": "translation" }`.
@@ -267,8 +273,18 @@ where it transfers, and the reasons are the same.
   way. Nothing lists `/es/` anywhere. Delete `es.json` and every one of those
   leaves the same way.
 - **How copy is written.** `{% t %}…{% endt %}` around a sentence in a
-  template, markup inside allowed; `{{ value | t }}` for a value that arrives
-  in a variable (a frontmatter title, a site.json label); `t('…')` in a script
+  template, markup inside allowed — **a link inside a sentence stays written
+  English-side** (`href="/pricing/"`) and the shortcode localizes it on the way
+  out, translation or not; written as `{{ '/pricing/' | localize }}` inside the
+  block it would render differently on every page and never match its key, and
+  the extractor refuses it by name (#535). `{{ value | t }}` for a value that
+  arrives in a variable (a frontmatter title, a site.json label, a `faqs:`
+  entry — the inventory reads frontmatter through gray-matter, the parser
+  Eleventy uses, so a YAML list is a list); `{{ value | t({ n: 3 }) }}` fills a
+  placeholder. A miss is logged only for a sentence the inventory knows: a
+  value the studio already serves in the page's language (a help guide's
+  title) is looked up like any other and falls back without a word. `t('…')`
+  in a script
   under `src/assets/js/` (the page ships exactly the sentences its scripts ask
   for, inline, only where a twin exists — `i18n.js` defines `window.t` first
   on every page) and in a Netlify function (`netlify/lib/strings.js` carries
@@ -292,19 +308,48 @@ where it transfers, and the reasons are the same.
   English purchase is byte for byte the Stripe request and the email it always
   was — `test/checkout-session.test.js` and `test/stripe-webhook.test.js` pin
   both halves.
-- **What stays English, and why.** `/help/` renders the studio's corpus and
-  waits on #113 Slice D and a locale-aware `/api/help`; `/terms/` and
-  `/privacy/` are COMPLIANCE's and not a translation job; `/resources/` is
-  written, not translated; the two product pages and `/contact/` are queued
-  (their nav items fall back to the English page, by the rule above); the scan
-  card's guess and the free run answer in the language the studio chooses
-  (#113) — the page sends `language` with the scan for the day `/api/scan`
-  reads it, asked for in the handover on 7 Sep 2026. `consent.js`'s banner is
-  English too: it is the studio's copy (#131 → #143) and is not wrapped here.
-- **Nothing counts sentences, pages or languages.** Adding a language is one
-  JSON file plus its literal require; adding a page to the funnel is a
-  `pagination:` block and its sentences wrapped. Either can only turn the suite
-  red by being stale, unreadable or dead-linked — the #131 rule.
+- **`/help/` is an EDITION per language, and the studio decides which exist
+  (#535).** Since #113 Slice D `/api/help?lang=es` answers the same files with
+  `language: "es"` where a translation exists and `"en"` where it does not —
+  per document, so a page never goes missing. `src/_data/help.js` asks for
+  one edition per built language and writes `/<code>/help/` and its guide
+  pages **only when the studio holds at least one guide in that language**;
+  the offline build reads the same answer from `data/help-corpus.<code>.json`,
+  which `npm run help:snapshot` writes for exactly those languages and removes
+  for the rest. German and Dutch answer today with every file in English, so
+  they get no edition, no URLs, and their nav item falls back to `/help/` — a
+  hub of English text under `/de/` would be duplicate content wearing a flag.
+  Nothing lists `es` anywhere: the day the studio ships one German guide,
+  `/de/help/` exists at the next build. A guide the edition holds in English
+  is still written (a reader following the hub must never 404), says so above
+  the text and on its card, carries `lang="en"` on the body, is `noindex` and
+  is left out of the sitemap — its English twin is the page to rank. The
+  scripts ask for the corpus in the page's language (`data-lang` on
+  `#helpGuides`; `<html lang>` on a guide page) and the English fetch is byte
+  for byte what it was; the not-yet-translated note is shown or hidden at
+  runtime from the live answer, so #76's property holds in every language. A
+  guide's title and body are the studio's, in the language it served them —
+  no catalogue is asked for them, and a title past the ~60-character budget
+  gives search its head before the studio's own dash (`seoTitle`), never a
+  clipped one. `test/help.test.js` holds all of it; `test/drive.js` §7f
+  drives the runtime half; `npm run audit` asks production.
+- **What stays English, and why.** `/terms/`, `/privacy/` and `/dpa/` are
+  COMPLIANCE's and not a translation job — pinned by
+  `test/privacy-claims.test.js` in the studio repo, and two of them carry
+  wording still unmerged on the operator's desk (#529, #531); `/resources/` is
+  written, not translated (its nav item falls back to the English page, by
+  the rule above); the scan card's guess and the free run answer in the
+  language the studio chooses (#113, #534). The cookie notice is the studio's
+  copy (#131 → #143) and stays a copy: its sentences pass through a local
+  `t()` that defers to `window.t` where i18n.js has defined it and says the
+  English anywhere else, so the file still drops into a site that has never
+  heard of a catalogue.
+- **Nothing counts sentences, pages, languages or editions.** Adding a language
+  is one JSON file plus its literal require; adding a page to the funnel is a
+  `pagination:` block and its sentences wrapped; a help edition arrives from
+  the studio with nobody editing this repo. Any of them can only turn the suite
+  red by being stale, unreadable, dead-linked or past a search budget — the
+  #131 rule.
 
 ## The sign-off
 

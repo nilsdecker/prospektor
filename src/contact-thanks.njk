@@ -1,9 +1,16 @@
 ---
 layout: base.njk
-permalink: /contact/thanks/
 title: Message sent
 noindex: true
 description: "Your message reached the Prospektor inbox. We read it and reply by email, to the address you gave. Nothing else happens with it."
+# One page per language (#535): /contact/ posts to the twin in its own
+# language, so this has to exist wherever /contact/ does.
+pagination:
+  data: languages
+  size: 1
+  alias: language
+  addAllPagesToCollections: true
+permalink: "{{ language.prefix }}/contact/thanks/"
 ---
 
 {#- #456. Netlify Forms redirects here after a successful POST from /contact/,
@@ -18,11 +25,11 @@ description: "Your message reached the Prospektor inbox. We read it and reply by
 
 <header class="page-hero">
   <div class="page-hero-inner">
-    <span class="tag">contact</span>
-    <h1 class="page-h1">Message sent.</h1>
+    <span class="tag">{% t %}contact{% endt %}</span>
+    <h1 class="page-h1">{% t %}Message sent.{% endt %}</h1>
     <p class="page-lede">
-      It's in our inbox. We reply by email, to the address you gave.
+      {% t %}It's in our inbox. We reply by email, to the address you gave.{% endt %}
     </p>
-    <a class="btn-cta" href="/">Back to Prospektor</a>
+    <a class="btn-cta" href="{{ '/' | localize }}">{% t %}Back to Prospektor{% endt %}</a>
   </div>
 </header>

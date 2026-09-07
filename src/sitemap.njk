@@ -68,6 +68,14 @@ pages:
   own URL is a page worth ranking on that URL, for the same reason its English
   twin is — and `hreflang` on the page tells Google which is which.
 
+  **The guides in another language (#535) follow the same rule twice over.**
+  An edition exists only where the studio holds at least one guide in that
+  language (src/_data/help.js), and within it only a guide the studio served
+  IN that language is listed — one it fell back to English on is written, for
+  the reader who followed the hub, but is `noindex` and left out here: its
+  English twin is the page to rank, and a sitemap must not ask for a URL the
+  page itself declines.
+
   <lastmod>, added by #144 on exactly the terms #135 set. The static pages
   still carry none, because a build-time stamp would claim every page changed
   on every deploy and Google ignores a date it cannot trust. The articles carry
@@ -82,9 +90,9 @@ pages:
   <url><loc>{{ site.url }}{{ a.url }}</loc></url>
 {%- endfor %}
 {%- endfor %}
-{%- for g in help.guides %}
-  <url><loc>{{ site.url }}/help/{{ g.slug }}/</loc></url>
-{%- endfor %}
+{%- for e in help.editions %}{%- for g in e.guides %}{%- if g.language == e.code %}
+  <url><loc>{{ site.url }}{{ e.prefix }}/help/{{ g.slug }}/</loc></url>
+{%- endif %}{%- endfor %}{%- endfor %}
 {%- for a in collections.resources | related('', 99) %}
   <url><loc>{{ site.url }}{{ a.url }}</loc><lastmod>{{ (a.data.updated or a.data.date) | isoDate }}</lastmod></url>
 {%- endfor %}

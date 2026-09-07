@@ -106,10 +106,16 @@ describe('the contact form (#456)', () => {
     // so no derived check would have reached it.
     const inNav = site.nav.some(i => i.url === '/contact/');
     assert.ok(inNav, 'Contact has left site.nav — the header door is gone (#456)');
+    // In the page's own language since #535: /de/… links /de/contact/,
+    // derived from lib/i18n.js the way the footer derives it.
+    const i18n = require('../lib/i18n.js');
     for (const p of htmlPages(SITE)) {
       const html = fs.readFileSync(p, 'utf8');
       const footer = (html.match(/<footer[\s\S]*?<\/footer>/) || [''])[0];
-      assert.ok(footer.includes('href="/contact/"'),
+      const url = '/' + path.relative(SITE, p).replace(/index\.html$/, '').replace(/\\/g, '/');
+      const twin = i18n.twin('/contact/', i18n.localeOf(url));
+      const want = fs.existsSync(path.join(SITE, twin, 'index.html')) ? twin : '/contact/';
+      assert.ok(footer.includes(`href="${want}"`),
         `${path.relative(SITE, p)} has no Contact link in its footer — the operator asked `
         + 'for two doors and this is the second');
     }
