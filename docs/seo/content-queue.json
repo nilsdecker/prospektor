@@ -109,12 +109,13 @@
       "ledger": "NEW ROWS — learn-a-channel-fast and direct-mail-needs-the-acv, both §7.6, promoted out of Part 7. The second is Rob's qualifying question on direct mail (the ACV, cash upfront, annual billing), which the article uses as the step before step one: check the channel can pay for itself before you learn it.",
       "risk": "§7.6 names practitioners and a company blog. Naming a person as a source is fine; the register decision means no tool is recommended by name.",
       "depends_on": "founder-sales-stack",
-      "status": "writing",
+      "status": "published",
       "inbound_from": [
         "/resources/do-not-delegate-sales/",
         "/resources/fish-where-the-fish-are/"
       ],
-      "written": "7 Sep 2026 (#447). Names Steli Efti and TinySeed's mentors as sources; recommends no tool by name — the register decision held."
+      "written": "7 Sep 2026 (#447). Names Steli Efti and TinySeed's mentors as sources; recommends no tool by name — the register decision held.",
+      "published": "7 Sep 2026, website main 8c38661, live 13:42 UTC — title, h1, sitemap entry, hub card, OG card and every inbound sibling link fetched as served bytes."
     },
     {
       "slug": "sell-the-job-not-the-persona",
@@ -137,13 +138,14 @@
       "ledger": "NEW ROW — job-not-persona, §7.5, promoted out of Part 7.",
       "risk": "Closest call in the cluster. If it cannot be defended against niche-down on the day, it does not get written — the brief's rule, and #137 F2's duplicate-description finding is what that failure looks like in production.",
       "depends_on": "founder-sales-stack",
-      "status": "writing",
+      "status": "published",
       "inbound_from": [
         "/resources/do-not-delegate-sales/",
         "/resources/niche-down/",
         "/resources/who-to-approach/"
       ],
-      "distinct_from_checked": "7 Sep 2026 (#447), against the two named pages, read in full. niche-down's subject is HOW MUCH to narrow and why narrowing the message wins the customers outside it — a size argument — and its axis table recommends the orthogonal cut, one role across industries, which is a WHO. §7.5's finding is that the unit of segmentation is the job the buyer is hiring you for, a WHY, and that a role is a proxy for it. who-to-approach qualifies a named prospect on TIMING (is there a person whose quarter depends on it); the job is what makes a company a candidate before timing is asked. Defended on one condition, kept in the text: the article acknowledges niche-down's table, says why a job is not Cohen's horizontal cut, never re-argues size, and links there for it. No phrase is shared between the two descriptions. Verdict: written. Full reasoning in the studio's ROADMAP.md under #447, 7 Sep."
+      "distinct_from_checked": "7 Sep 2026 (#447), against the two named pages, read in full. niche-down's subject is HOW MUCH to narrow and why narrowing the message wins the customers outside it — a size argument — and its axis table recommends the orthogonal cut, one role across industries, which is a WHO. §7.5's finding is that the unit of segmentation is the job the buyer is hiring you for, a WHY, and that a role is a proxy for it. who-to-approach qualifies a named prospect on TIMING (is there a person whose quarter depends on it); the job is what makes a company a candidate before timing is asked. Defended on one condition, kept in the text: the article acknowledges niche-down's table, says why a job is not Cohen's horizontal cut, never re-argues size, and links there for it. No phrase is shared between the two descriptions. Verdict: written. Full reasoning in the studio's ROADMAP.md under #447, 7 Sep.",
+      "published": "7 Sep 2026, website main 8c38661, live 13:42 UTC — title, h1, sitemap entry, hub card, OG card and every inbound sibling link fetched as served bytes."
     }
   ],
   "maintenance": [
