@@ -274,9 +274,9 @@ updated: 31 August 2026
                1. Do not restore a whole-PRODUCT "no third-party request"
                   claim. It is true of loading a page and not true of the
                   studio's company-name autocomplete, which sends the typed
-                  name to Clearbit from our own server. Whether that earns a
-                  row in the table below is COMPLIANCE's call (#90) and is
-                  filed in HANDOVER-compliance.md — not this lane's to answer.
+                  name to Clearbit from our own server. Clearbit has had its
+                  own row in the table below since 7 Sep 2026 (#90) — an
+                  uncontracted recipient, named rather than left silent.
                2. The 22 Aug replacement text offered in the handover ends
                   "nothing about your visit reaches anyone but us", and that
                   is no longer true of this website either: Netlify Real User
@@ -305,6 +305,11 @@ updated: 31 August 2026
                 <td>Google</td>
                 <td>Sign-in through OAuth, and nothing else. (Google Fonts used to receive the IP address of anyone loading a studio page; since 18 August 2026 the studio serves its own fonts and Google receives nothing from a page load.)</td>
                 <td>Authentication, typography</td>
+              </tr>
+              <tr>
+                <td>Clearbit</td>
+                <td>The company name a member types into one of the studio's company fields, as they type it — and nothing else. No identifier, no session, no IP address: the request goes from our server, never from your browser. What comes back is a list of company names and web domains to pick from. Only a signed-in member or somebody mid-signup can reach it, so the scan field on this site never does. It is Clearbit, a HubSpot company, based in the United States — and it is the one provider on this list we have <strong>no contract with</strong>: the endpoint is public and free, so nothing but their own terms governs what they do with a typed name.</td>
+                <td>Company-name autocomplete in the studio</td>
               </tr>
               <tr>
                 <td>Clay</td>
@@ -341,7 +346,7 @@ updated: 31 August 2026
         </div>
         <p><strong>We do run marketing email.</strong> If you have an account, subscribed to our newsletter, or ticked the box when you asked for a free run, we send product news, new features and occasional offers alongside the transactional mail — your receipt, your welcome, your sign-in. That goes through our email provider above and through a newsletter platform, and we can see whether a message was opened and which links were clicked. <strong>Every marketing message carries a one-click unsubscribe</strong>, and unsubscribing never stops the transactional mail, because that is how having an account works.</p>
         <p>Not used, so you can rule them out: no CRM integration, no session recording, and no advertising vendor.</p>
-        <p>Anthropic, Netlify, Google, Clay, Tomba, treg, Stripe and Postmark all process data outside the European Economic Area, mainly in the United States; Findymail processes only inside it. That's an international transfer, and it needs a documented safeguard &mdash; standard contractual clauses, or each provider's own data-processing terms. We haven't completed that documentation. Ask us and we'll tell you where it stands.</p>
+        <p>Anthropic, Netlify, Google, Clearbit, Clay, Tomba, treg, Stripe and Postmark all process data outside the European Economic Area, mainly in the United States; Findymail processes only inside it. That's an international transfer, and it needs a documented safeguard &mdash; standard contractual clauses, or each provider's own data-processing terms. We haven't completed that documentation. Ask us and we'll tell you where it stands.</p>
       </div>
     </section>
 
