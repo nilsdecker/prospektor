@@ -25,7 +25,9 @@
       if (typeof d.amount_total === 'number') {
         let amount;
         try {
-          amount = new Intl.NumberFormat('en-US', {
+          // The page's own language decides how the number reads (#114):
+          // an English page formats as it always did.
+          amount = new Intl.NumberFormat(document.documentElement.lang === 'en' ? 'en-US' : document.documentElement.lang, {
             style: 'currency', currency: (d.currency || 'usd').toUpperCase(),
           }).format(d.amount_total / 100);
         } catch (e) {

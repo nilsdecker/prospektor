@@ -695,11 +695,23 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
                     // here fails as "one article too many, and it has no date",
                     // which names neither the page nor the cause.
                     'https://prospektor.ai/contact/'];
-    const derived = locs.filter(l => !STATIC.includes(l));
+    // #114: each static page is followed by its twins in every language the
+    // build wrote it in — derived from lib/i18n.js and the built tree, the
+    // same way sitemap.njk derives them, so a new language or a newly
+    // translated page changes nothing here. The list of ENGLISH statics stays
+    // exact, for #135's reason.
+    const i18n = require('../lib/i18n.js');
+    const staticWithTwins = STATIC.flatMap(loc => i18n.built().map(l =>
+      'https://prospektor.ai' + i18n.twin(loc.replace('https://prospektor.ai', ''), l.code))
+      .filter(u => fs.existsSync(path.join(ROOT, new URL(u).pathname, 'index.html'))));
+    const derived = locs.filter(l => !staticWithTwins.includes(l));
     const guideLocs = derived.filter(l => l.startsWith('https://prospektor.ai/help/'));
     const articleLocs = derived.filter(l => !l.startsWith('https://prospektor.ai/help/'));
-    check('sitemap lists exactly the static pages we want ranked',
-      JSON.stringify(locs.slice(0, STATIC.length)) === JSON.stringify(STATIC), locs);
+    check('sitemap lists exactly the static pages we want ranked, each with its built twins',
+      JSON.stringify(locs.slice(0, staticWithTwins.length)) === JSON.stringify(staticWithTwins), locs);
+    check('the Spanish funnel is in the sitemap beside its English pages (#114)',
+      staticWithTwins.includes('https://prospektor.ai/es/') && staticWithTwins.includes('https://prospektor.ai/es/pricing/')
+      && !staticWithTwins.includes('https://prospektor.ai/es/help/'), staticWithTwins);
 
     const slugs = fs.readdirSync(path.join(__dirname, '..', 'src', 'resources'))
       .filter(f => f.endsWith('.md')).map(f => f.replace(/\.md$/, ''));
@@ -724,7 +736,7 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     // stamp taken at build time would claim every guide changed on every deploy.
     check('every article carries a real lastmod, and no static or guide page does',
       [...xml.matchAll(/<loc>([^<]+)<\/loc>(<lastmod>[^<]+<\/lastmod>)?/g)]
-        .every(([, loc, mod]) => STATIC.includes(loc) || guideLocs.includes(loc)
+        .every(([, loc, mod]) => staticWithTwins.includes(loc) || guideLocs.includes(loc)
           ? mod === undefined
           : /<lastmod>\d{4}-\d{2}-\d{2}<\/lastmod>/.test(mod || '')), xml);
 
@@ -882,7 +894,12 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
       await page.waitForSelector('.ppsc-panel', { timeout: 5000 });
       check('the footer Cookies link opens the panel', await page.isVisible('.ppsc-panel'));
       const rows = await page.$$eval('.ppsc-table td:first-child', ns => ns.map(n => n.textContent));
-      check('the panel names every declared item', rows.length === 4, rows);
+      // Derived from consent.js's own INVENTORY rather than pinned to a
+      // number (#131): a storage key added to the inventory — #114's
+      // `prospektor.lang` was the first — must not turn this red by existing.
+      const declared = (fs.readFileSync(path.join(__dirname, '..', 'src', 'assets', 'js', 'consent.js'), 'utf8')
+        .match(/^\s+kind: '[^']+',$/gm) || []).length;
+      check('the panel names every declared item', declared > 0 && rows.length === declared, { rows, declared });
       check('and names the one third party by name', rows.includes('Netlify Real User Metrics'), rows);
       await page.close();
     }
@@ -1006,6 +1023,104 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     check('/pricing/ without keys keeps the /checkout/ link visible', await page.isVisible('#buyLink'));
     check('/pricing/ without keys shows no form', !(await page.isVisible('#buyForm')));
     await page.close();
+  }
+
+  // 14 — the funnel in Spanish (#114). The Spanish pages are the English ones
+  //      through a catalogue, so what is worth driving is the seams: the
+  //      scan's status line and error in Spanish, the pricing tile telling the
+  //      server which language the buyer read, the nav landing on the Spanish
+  //      twin where one exists and the English page where none does, the
+  //      switcher going back, and the one rule the spec states in capitals —
+  //      a Spanish browser on the English page is TOLD, never redirected.
+  {
+    const i18n = require('../lib/i18n.js');
+    const ctx = await browser.newContext({ locale: 'es-ES' });
+    const page = await ctx.newPage();
+    const posts = [];
+    await page.route('**/.netlify/functions/create-checkout-session', async route => {
+      if (route.request().method() === 'GET') return route.fulfill({ status: 200, body: JSON.stringify({ configured: true }) });
+      posts.push(JSON.parse(route.request().postData()));
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ url: 'https://checkout.stripe.com/c/pay/cs_es' }) });
+    });
+    await page.route('https://checkout.stripe.com/**', route =>
+      route.fulfill({ status: 200, contentType: 'text/html', body: '<h1>STRIPE CHECKOUT</h1>' }));
+    const scans = [];
+    await page.route('https://studio.prospektor.ai/api/scan', async route => {
+      if (route.request().method() === 'POST') {
+        scans.push(JSON.parse(route.request().postData()));
+        return route.fulfill({ status: 400, contentType: 'application/json', body: JSON.stringify({ error: 'nope' }) });
+      }
+      return route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+    });
+
+    // A Spanish browser on the ENGLISH page: offered, not moved.
+    await page.goto('http://localhost:8899/');
+    await page.waitForSelector('#langSuggest', { timeout: 5000 });
+    check('a Spanish browser on / is offered Spanish', await page.isVisible('#langSuggest'));
+    check('and is NOT redirected', new URL(page.url()).pathname === '/', page.url());
+    check('the offer is in Spanish', /Esta página también está en Español/.test(await page.textContent('#langSuggest')));
+    check('and links the Spanish twin', (await page.getAttribute('#langSuggest a', 'href')) === '/es/');
+    await page.click('#langSuggest button');
+    check('“Ahora no” removes the bar', !(await page.$('#langSuggest')));
+    await page.goto('http://localhost:8899/pricing/');
+    await page.waitForLoadState('domcontentloaded');
+    check('and it stays away on the next page', !(await page.$('#langSuggest')));
+    check('because the answer was remembered', (await page.evaluate(() => localStorage.getItem('prospektor.lang'))) === 'en');
+    await page.evaluate(() => localStorage.removeItem('prospektor.lang'));
+
+    // The Spanish page itself.
+    await page.goto('http://localhost:8899/es/');
+    await page.waitForLoadState('domcontentloaded');
+    check('/es/ is Spanish', (await page.getAttribute('html', 'lang')) === 'es');
+    check('no offer on the page already in the browser’s language', !(await page.$('#langSuggest')));
+    check('the h1 is Spanish', /Encuentra leads/.test(await page.textContent('h1')));
+    check('the scan hint is Spanish', /Gratis · sin registro/.test(await page.textContent('#scanHint')));
+    await page.fill('#scanInput', 'acme.com');
+    await page.click('#scanBtn');
+    await page.waitForSelector('#scanError:not([hidden])', { timeout: 5000 });
+    check('the scan’s 400 message is Spanish (scan.js says it through t)', /Eso no parece un dominio/.test(await page.textContent('#scanError')));
+    check('the scan carried the page’s language to the studio', scans.length === 1 && scans[0].language === 'es', scans);
+
+    // The nav: a twin where one was built, the English page where not.
+    const built = i18n.built().map(l => l.code);
+    check('Spanish is a built language', built.includes('es'), built);
+    await page.click('.nav-links a[href="/es/pricing/"]');
+    await page.waitForLoadState('domcontentloaded');
+    check('Precio lands on /es/pricing/', new URL(page.url()).pathname === '/es/pricing/', page.url());
+    check('the pricing h1 is Spanish', /Un precio/.test(await page.textContent('h1')));
+    await page.waitForSelector('#buyForm:not([hidden])', { timeout: 5000 });
+    await page.fill('#buyEmail', 'comprador@acme.es');
+    await page.click('#buyBtn');
+    await page.waitForURL(/checkout\.stripe\.com/, { timeout: 5000 });
+    check('the Spanish pricing tile reaches Stripe', page.url().startsWith('https://checkout.stripe.com/'));
+    check('and told the server the buyer read Spanish', posts.length === 1 && posts[0].locale === 'es' && posts[0].from === 'pricing', posts);
+    await page.goto('http://localhost:8899/es/');
+    await page.click('.nav-links a[href="/help/"]');
+    await page.waitForLoadState('domcontentloaded');
+    check('Ayuda lands on the English /help/ — there is no Spanish one, and no dead link', new URL(page.url()).pathname === '/help/', page.url());
+    check('and /help/ carries no switcher: it has no twin', !(await page.$('.footer-langs')));
+
+    // The switcher, both ways.
+    await page.goto('http://localhost:8899/es/pricing/');
+    await page.click('.footer-langs a[hreflang="en"]');
+    await page.waitForLoadState('domcontentloaded');
+    check('the footer switcher goes to the English twin of THIS page', new URL(page.url()).pathname === '/pricing/', page.url());
+    await page.click('.footer-langs a[hreflang="es"]');
+    await page.waitForLoadState('domcontentloaded');
+    check('and back to the Spanish one', new URL(page.url()).pathname === '/es/pricing/', page.url());
+
+    // English browser, English page: nothing at all.
+    const en = await browser.newContext({ locale: 'en-US' });
+    const p2 = await en.newPage();
+    await p2.goto('http://localhost:8899/');
+    await p2.waitForLoadState('domcontentloaded');
+    check('an English browser on / sees no offer', !(await p2.$('#langSuggest')));
+    check('and t() is defined on every page, so scripts can assume it', await p2.evaluate(() => typeof window.t === 'function'));
+    await p2.goto('http://localhost:8899/help/');
+    await p2.waitForLoadState('domcontentloaded');
+    check('t() exists on a page with no twin too', await p2.evaluate(() => typeof window.t === 'function' && window.t('x {a}', { a: 1 }) === 'x 1'));
+    await en.close();
+    await ctx.close();
   }
 
   // 13 — the /resources topic filter (#159). The section is one article per

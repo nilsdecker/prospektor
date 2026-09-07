@@ -1,6 +1,94 @@
 const assets = require("./lib/assets.js");
+const i18n = require("./lib/i18n.js");
 
 module.exports = function(eleventyConfig) {
+  // ── The funnel in more than one language (#114) ──────────────────────
+  // `lib/i18n.js` is the mechanism; this block is only its Nunjucks face.
+  // Every page knows its language from its URL (`/es/…` is Spanish, the rest
+  // is English), so nothing here takes a language argument: `{% t %}…{% endt %}`
+  // around a sentence renders it in the language of the page it is on, and
+  // renders it UNTOUCHED — the same bytes — on an English page. A sentence a
+  // catalogue lacks renders in English and is logged once, never thrown:
+  // untranslated is reported, not red, the way #113 and #131 both decided.
+  eleventyConfig.on("eleventy.before", () => { i18n.reload(); });
+  const missed = new Set();
+  const say = (key, code) => {
+    const id = code + '\0' + key;
+    if (missed.has(id)) return;
+    missed.add(id);
+    console.warn(`[i18n] ${code}: no translation for ${JSON.stringify(i18n.normalizeKey(key).slice(0, 80))}`);
+  };
+  // this.page is the page being rendered — inside a layout too — since 2.0.
+  const langHere = function() { return i18n.localeOf(this.page && this.page.url); };
+
+  eleventyConfig.addPairedShortcode("t", function(content) {
+    const code = langHere.call(this);
+    if (code === i18n.DEFAULT) return content;
+    const hit = i18n.translate(content, code);
+    if (hit === undefined) { say(content, code); return content; }
+    // The block's own whitespace survives around the translation, so the
+    // markup around it keeps its shape whichever language is rendering.
+    return content.match(/^\s*/)[0] + hit + content.match(/\s*$/)[0];
+  });
+  // The same for a value — a frontmatter title, a site.json label.
+  eleventyConfig.addFilter("t", function(value) {
+    const code = langHere.call(this);
+    if (code === i18n.DEFAULT || value == null) return value;
+    const hit = i18n.translate(String(value), code);
+    if (hit === undefined) { say(String(value), code); return value; }
+    // A plain string on purpose: it is autoescaped exactly as the English
+    // value would have been, so `{{ description | t }}` inside an attribute
+    // is safe in every language for the same reason it was in one.
+    return hit;
+  });
+
+  // The language of the page being rendered, as its LANGUAGES entry.
+  eleventyConfig.addFilter("localeOf", url => i18n.LANGUAGES.find(l => l.code === i18n.localeOf(url)));
+
+  // An internal href, in the language of the page it is on — when that page
+  // exists. `/pricing/` on a Spanish page is `/es/pricing/` if the build wrote
+  // one and `/pricing/` if it did not, which is what keeps a link from ever
+  // pointing at a URL the build did not produce. Derived from the build's own
+  // page list, never from a list of translated pages kept by hand.
+  const urls = function() {
+    const all = (this.ctx && this.ctx.collections && this.ctx.collections.all) || [];
+    return new Set(all.map(p => p.url));
+  };
+  eleventyConfig.addFilter("localize", function(href) {
+    const code = langHere.call(this);
+    if (code === i18n.DEFAULT) return href;
+    const want = i18n.twin(href, code);
+    const pathOnly = want.replace(/[#?].*$/, '');
+    return urls.call(this).has(pathOnly) ? want : href;
+  });
+
+  // Every language a page exists in — `[{ code, own, url, current }]` — for
+  // the hreflang links, the footer switcher and the sitemap. A page with no
+  // twin answers a list of one, and the layout then writes no hreflang at
+  // all: it is meaningless without a second language (SEO-AUDIT.md R5).
+  eleventyConfig.addFilter("alternates", function(url) {
+    const have = urls.call(this);
+    const here = i18n.localeOf(url);
+    return i18n.built()
+      .map(l => ({ code: l.code, own: l.own, og: l.og, url: i18n.twin(url, l.code), current: l.code === here }))
+      .filter(a => have.has(a.url));
+  });
+
+  // What the browser needs, as JSON for the page's <script type="application/json">:
+  // the page's own client strings (only the ones a script asks for, only when
+  // the catalogue has them) plus, for every built language, the one line the
+  // suggestion bar says to a visitor whose browser prefers it.
+  eleventyConfig.addFilter("i18nPayload", function(url) {
+    const code = i18n.localeOf(url);
+    return JSON.stringify({ lang: code, strings: i18n.clientStrings(code) || {}, suggest: i18n.suggestStrings() });
+  });
+
+  // The languages this build writes, for pagination: `src/_data/locales.js`
+  // reads the same list, and a template paginates over it to get one page per
+  // language. Also handy where a template wants to know whether there is more
+  // than one at all.
+  eleventyConfig.addGlobalData("languages", () => i18n.built());
+
   // ── Content-hashed assets (#169) ──────────────────────────────────────
   // Assets are NOT passthrough-copied any more: css, js and fonts are served
   // under a filename carrying a hash of their bytes, so `netlify.toml` can

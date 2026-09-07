@@ -1,20 +1,26 @@
 ---
 layout: base.njk
 title: Start your studio
-permalink: /checkout/
 description: "Start your Prospektor workspace: $999 a month, unlimited runs, your whole team in. Next stop is Stripe, and the research runs while you are still paying."
+# One page per language (#114) — see src/index.njk for the reasoning.
+pagination:
+  data: languages
+  size: 1
+  alias: language
+  addAllPagesToCollections: true
+permalink: "{{ language.prefix }}/checkout/"
 ---
 
 <section class="onboard">
   <div class="onboard-inner">
 
     <ol class="steps" id="steps">
-      <li class="step done"><span class="step-n-badge">✓</span>Scan</li>
-      <li class="step active" data-step="target"><span class="step-n-badge">2</span>Your target</li>
-      <li class="step" data-step="pay"><span class="step-n-badge">3</span>Payment</li>
+      <li class="step done"><span class="step-n-badge">✓</span>{% t %}Scan{% endt %}</li>
+      <li class="step active" data-step="target"><span class="step-n-badge">2</span>{% t %}Your target{% endt %}</li>
+      <li class="step" data-step="pay"><span class="step-n-badge">3</span>{% t %}Payment{% endt %}</li>
       {#- No data-step: step 4 happens on /checkout/done/, not on this page,
           so the step driver must never mark it active or done here. -#}
-      <li class="step"><span class="step-n-badge">4</span>Sign in</li>
+      <li class="step"><span class="step-n-badge">4</span>{% t %}Sign in{% endt %}</li>
     </ol>
 
     <!-- STEP 2: confirm the target -->
@@ -26,36 +32,36 @@ description: "Start your Prospektor workspace: $999 a month, unlimited runs, you
         look identical. -#}
       {#- #242: short enough to sit on one line at every width — the old
           "Here's what Prospektor will hunt for you." wrapped mid-phrase. -#}
-      <h1 class="onboard-h1">Your target.</h1>
-      <p class="onboard-sub">Sharpen it in your own words — it seeds your studio's brief.</p>
+      <h1 class="onboard-h1">{% t %}Your target.{% endt %}</h1>
+      <p class="onboard-sub">{% t %}Sharpen it in your own words — it seeds your studio's brief.{% endt %}</p>
       <!-- Direct path (no scan): the studio researches the buyer from their
            site, so the one thing we must have is their address. -->
       <div id="siteAsk" hidden>
-        <p class="onboard-sub">Came here directly? All we need is your website — your studio researches you from it. (Or <a href="/#scan">scan it first</a> to see what it finds, free.)</p>
+        <p class="onboard-sub">{% t %}Came here directly? All we need is your website — your studio researches you from it. (Or <a href="/#scan">scan it first</a> to see what it finds, free.){% endt %}</p>
         <input class="reserve-input" id="siteInput" type="text" inputmode="url" autocomplete="url"
-               placeholder="yourcompany.com" aria-label="Your website">
+               placeholder="yourcompany.com" aria-label="{% t %}Your website{% endt %}">
         <p class="reserve-msg is-error" id="siteMsg" hidden></p>
       </div>
-      <textarea class="goal-input" id="goalInput" rows="4" placeholder="What should Prospektor find for you? e.g. Mid-size property managers in the DACH region who still screen tenants manually."></textarea>
+      <textarea class="goal-input" id="goalInput" rows="4" placeholder="{% t %}What should Prospektor find for you? e.g. Mid-size property managers in the DACH region who still screen tenants manually.{% endt %}"></textarea>
       <div class="onboard-actions">
-        <button class="btn-cta" id="toPayBtn">Looks right — continue →</button>
-        <a class="onboard-back" href="/#scan">← rescan a different site</a>
+        <button class="btn-cta" id="toPayBtn">{% t %}Looks right — continue →{% endt %}</button>
+        <a class="onboard-back" href="{{ '/#scan' | localize }}">{% t %}← rescan a different site{% endt %}</a>
       </div>
     </div>
 
     <!-- STEP 3: payment -->
     <div class="onboard-panel" id="panelPay" hidden>
-      <h2 class="onboard-h1">Payment.</h2>
-      <p class="onboard-sub">The moment payment lands, your studio starts researching you.</p>
+      <h2 class="onboard-h1">{% t %}Payment.{% endt %}</h2>
+      <p class="onboard-sub">{% t %}The moment payment lands, your studio starts researching you.{% endt %}</p>
       <div class="order-card">
         <div class="order-row">
-          <span class="order-name">Prospektor Studio · one workspace</span>
+          <span class="order-name">{% t %}Prospektor Studio · one workspace{% endt %}</span>
           <span class="order-price">$999<span class="order-per">/mo</span></span>
         </div>
         <ul class="pricing-list">
-          <li>Unlimited pitch runs, under fair use</li>
-          <li>Deck, one-pager, cold emails and proposal — every run, in your voice</li>
-          <li>Your whole team in via your work-email domain</li>
+          <li>{% t %}Unlimited pitch runs, under fair use{% endt %}</li>
+          <li>{% t %}Deck, one-pager, cold emails and proposal — every run, in your voice{% endt %}</li>
+          <li>{% t %}Your whole team in via your work-email domain{% endt %}</li>
         </ul>
       </div>
       <!-- Live checkout, revealed by checkout.js only when the server says
@@ -67,11 +73,11 @@ description: "Start your Prospektor workspace: $999 a month, unlimited runs, you
              The Google door exists, but it is the studio's sign-in after
              payment, not an account here: one line says so instead of a
              second auth path this page does not need (less-is-more). -->
-        <label class="pay-label" for="payEmail">Your sign-in email</label>
+        <label class="pay-label" for="payEmail">{% t %}Your sign-in email{% endt %}</label>
         <form class="reserve-form" id="stripeForm" novalidate>
           <input class="reserve-input" id="payEmail" type="email" autocomplete="email"
-                 placeholder="you@yourcompany.com" aria-label="Your sign-in email">
-          <button class="btn-cta" type="submit" id="stripeBtn">Continue to secure checkout →</button>
+                 placeholder="you@yourcompany.com" aria-label="{% t %}Your sign-in email{% endt %}">
+          <button class="btn-cta" type="submit" id="stripeBtn">{% t %}Continue to secure checkout →{% endt %}</button>
           <!-- #204: the same unticked, optional box the studio's first-run card
                carries, asked here because the buyer is already filling in a
                form. It stays unticked and nothing depends on it — a tick rides
@@ -82,20 +88,20 @@ description: "Start your Prospektor workspace: $999 a month, unlimited runs, you
                question is with COMPLIANCE in HANDOVER-compliance.md. -->
           <label class="pay-opt" for="payMarketing">
             <input type="checkbox" id="payMarketing">
-            <span>Product news and tips, by email — optional, a few times a month at most</span>
+            <span>{% t %}Product news and tips, by email — optional, a few times a month at most{% endt %}</span>
           </label>
         </form>
-        <p class="onboard-sub">After payment you sign in with this address — with Google, or an emailed link. Work email means your whole team gets in.</p>
+        <p class="onboard-sub">{% t %}After payment you sign in with this address — with Google, or an emailed link. Work email means your whole team gets in.{% endt %}</p>
         <p class="reserve-msg is-error" id="stripeMsg" hidden></p>
       </div>
       <div class="onboard-note" id="payFallbackNote">
-        <p><strong>Checkout isn't open yet — days, not weeks.</strong> Leave your email and we'll hold a founding spot; you'll get one message when checkout opens, nothing else. Your target sentence rides along so your studio starts from it.</p>
+        <p>{% t %}<strong>Checkout isn't open yet — days, not weeks.</strong> Leave your email and we'll hold a founding spot; you'll get one message when checkout opens, nothing else. Your target sentence rides along so your studio starts from it.{% endt %}</p>
       </div>
       <form class="reserve-form" id="reserveForm" novalidate>
         <input class="reserve-input" id="reserveEmail" type="email" autocomplete="email"
-               placeholder="you@yourcompany.com" aria-label="Your work email">
+               placeholder="you@yourcompany.com" aria-label="{% t %}Your work email{% endt %}">
         <input type="text" name="hp" id="reserveHp" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px;" aria-hidden="true">
-        <button class="btn-cta" type="submit" id="reserveBtn">Hold my founding spot</button>
+        <button class="btn-cta" type="submit" id="reserveBtn">{% t %}Hold my founding spot{% endt %}</button>
       </form>
       <!-- Static twin of the capture form so Netlify registers it at deploy
            time; checkout.js posts to it when the email function fails. -->

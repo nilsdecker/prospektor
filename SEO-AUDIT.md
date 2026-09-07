@@ -439,14 +439,19 @@ sibling guides by the same ring this audit's F13 built for `/resources/`. The
 hub kept the search, the FAQ block and the embedded index. Old anchors
 (`/help/#guide-sharing`, `/help/#sharing`, `/help/#sharing--revoking`) forward.
 
-### R5 · `hreflang` — nothing to do yet · **blocked on #113/#114**
+### R5 · `hreflang` — built with #114 (7 Sep 2026)
 
-The site is single-language and correctly declares `lang="en"` everywhere. There
-is no `hreflang` and there should not be: it is meaningless without a second
-locale. The note for whoever builds #114 is that `hreflang` and the canonical
-have to be designed **together** — every locale's page must self-canonicalise
-and name every sibling including itself, and getting that pair wrong is the most
-common way a translated site loses the ranking the English one already had.
+Until #114 the site was single-language and correctly carried no `hreflang`: it
+is meaningless without a second locale. The note left here for whoever built it
+— `hreflang` and the canonical have to be designed **together**; every locale's
+page must self-canonicalise and name every sibling including itself, and
+getting that pair wrong is the most common way a translated site loses the
+ranking the English one already had — is what `src/_includes/base.njk` now
+does, and `test/i18n.test.js` pins: every page canonicalises to itself, a page
+with a twin names every twin, itself and `x-default` (the English page), and a
+page with no twin carries no `hreflang` at all. The sitemap lists the twins
+beside their English pages. `og:locale` is written off English only.
+`CLAUDE.md` → *The language contract* has the whole shape.
 
 ### R6 · Field Core Web Vitals · **operator · 5 minutes, then wait**
 

@@ -33,6 +33,7 @@ const os = require('node:os');
 const ROOT = path.join(__dirname, '..');
 const site = require('../src/_data/site.json');
 const { served } = require('../lib/assets.js');
+const i18n = require('../lib/i18n.js');
 const { siteBuild } = require('./helpers.js');
 
 // Built into a directory of this file's own — /resources/ and the consent gate
@@ -62,12 +63,26 @@ describe('the header, and the pages behind it', () => {
         `nav item "${item.label}" points at ${item.url}, which builds no page`);
   });
 
+  // In the page's own language since #114: on `/es/…` the label is the
+  // catalogue's and the href is the Spanish twin where the build wrote one
+  // (`/es/pricing/`) and the English page where it did not (`/help/`). The
+  // expectation is derived from lib/i18n.js and the built page list — the
+  // same two things the layout derives it from — so a nav item, a language or
+  // a translated page can be added without touching this.
   test('every nav item is rendered in the header of every built page', () => {
-    for (const p of htmlPages(SITE)) {
+    const pages = htmlPages(SITE);
+    const built = new Set(pages.map(p => '/' + path.relative(SITE, p).replace(/index\.html$/, '').replace(/\\/g, '/')));
+    for (const p of pages) {
       const html = fs.readFileSync(p, 'utf8');
-      for (const item of site.nav)
-        assert.ok(html.includes(`<li><a href="${item.url}">${item.label}</a></li>`),
-          `${path.relative(SITE, p)} is missing the "${item.label}" nav item`);
+      const url = '/' + path.relative(SITE, p).replace(/index\.html$/, '').replace(/\\/g, '/');
+      const lang = i18n.localeOf(url);
+      for (const item of site.nav) {
+        const twin = i18n.twin(item.url, lang);
+        const href = built.has(twin) ? twin : item.url;
+        const label = i18n.t(item.label, lang);
+        assert.ok(html.includes(`<li><a href="${href}">${label}</a></li>`),
+          `${path.relative(SITE, p)} is missing the "${label}" nav item (expected href ${href})`);
+      }
     }
   });
 

@@ -12,13 +12,15 @@ const buildLbl = document.getElementById('buildLbl');
 const statIds = ['bst1','bst2','bst3','bst4','bst5','bst6'];
 
 // The six stages of a real run: understand, research, score, draft, people, check.
+// Said through t() (#114): i18n.js defines it before this runs, and on an
+// English page it hands each label straight back.
 const stages = [
-  { lines: [0,1],        pct: 18,  stat: 0, label: 'Understanding the target...' },
-  { lines: [2],          pct: 34,  stat: 1, label: 'Researching...' },
-  { lines: [3,4],        pct: 46,  stat: 2, label: 'Scoring fit...' },
-  { lines: [5,6,7,8],    pct: 68,  stat: 3, label: 'Drafting in your voice...' },
-  { lines: [9,10,11,12], pct: 86,  stat: 4, label: 'Finding decision-makers...' },
-  { lines: [13,14,15],   pct: 100, stat: 5, label: 'Checking the draft...' },
+  { lines: [0,1],        pct: 18,  stat: 0, label: t('Understanding the target...') },
+  { lines: [2],          pct: 34,  stat: 1, label: t('Researching...') },
+  { lines: [3,4],        pct: 46,  stat: 2, label: t('Scoring fit...') },
+  { lines: [5,6,7,8],    pct: 68,  stat: 3, label: t('Drafting in your voice...') },
+  { lines: [9,10,11,12], pct: 86,  stat: 4, label: t('Finding decision-makers...') },
+  { lines: [13,14,15],   pct: 100, stat: 5, label: t('Checking the draft...') },
 ];
 
 let stageIdx = 0;
@@ -33,14 +35,14 @@ function resetBuild() {
   });
   bFill.style.width = '0%';
   buildPct.textContent = '0%';
-  buildLbl.textContent = 'Running...';
+  buildLbl.textContent = t('Running...');
   stageIdx = 0; lineIdx = 0;
 }
 
 function runStage() {
   if (stageIdx >= stages.length) {
     // mark last stat done, then restart
-    buildLbl.textContent = 'Pitch ready ✓';
+    buildLbl.textContent = t('Pitch ready ✓');
     statIds.forEach(id => {
       const el = document.getElementById(id);
       el.className = 'bstat done';

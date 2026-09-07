@@ -1,6 +1,16 @@
 ---
 layout: base.njk
 description: "Teach it what you're after in three minutes. It finds the companies — customers, partners, resellers, investors — and writes what you send them."
+# One page per language the build knows (#114): `/` in English, `/es/` and so
+# on for every catalogue under src/_data/strings/. Every sentence below sits
+# in a {% t %} block and renders untouched on the English page; the pagination
+# is what makes the other languages exist at all. Nothing here lists them.
+pagination:
+  data: languages
+  size: 1
+  alias: language
+  addAllPagesToCollections: true
+permalink: "{{ language.prefix }}/"
 ---
 
 <!-- HERO -->
@@ -28,7 +38,7 @@ description: "Teach it what you're after in three minutes. It finds the companie
       out of the h1 and this is where they still belong: the frame the nav, both
       product pages and the halves section are built on (#153) is worth keeping
       in the hero, and is not worth the largest type on the site. -#}
-  <div class="hero-ai-tag">Who to pitch. What to send.</div>
+  <div class="hero-ai-tag">{% t %}Who to pitch. What to send.{% endt %}</div>
 
   <!-- The headline sits inside .hero-rest so a scan's focus mode still
        collapses it: from the moment a scan starts, the scan is the page. -->
@@ -60,8 +70,8 @@ description: "Teach it what you're after in three minutes. It finds the companie
         still be in the hero (scoped to the hero on purpose — the header
         carries the same two strings on every page, so a page-wide match would
         assert nothing), and the h1 must still carry what the title shows. -#}
-    <h1>Find Leads.<br><span class="accent">That fit you.</span></h1>
-    <p class="hero-sub">Three minutes to teach it what you're all about. Then it finds the companies — customers, partners, resellers, investors — and writes what you send them.</p>
+    <h1>{% t %}Find Leads.<br><span class="accent">That fit you.</span>{% endt %}</h1>
+    <p class="hero-sub">{% t %}Three minutes to teach it what you're all about. Then it finds the companies — customers, partners, resellers, investors — and writes what you send them.{% endt %}</p>
   </div>
 
   <!-- The scan field: POST /api/scan, poll, render the proposal. scan.js drives it. -->
@@ -69,10 +79,10 @@ description: "Teach it what you're after in three minutes. It finds the companie
     <form class="scan-form" id="scanForm" novalidate>
       <span class="scan-form-label">$&nbsp;scan</span>
       <input class="scan-input" id="scanInput" type="text" inputmode="url" autocomplete="url"
-             spellcheck="false" placeholder="yourcompany.com" aria-label="Your company website">
-      <button class="scan-btn" type="submit" id="scanBtn">Scan</button>
+             spellcheck="false" placeholder="yourcompany.com" aria-label="{% t %}Your company website{% endt %}">
+      <button class="scan-btn" type="submit" id="scanBtn">{% t %}Scan{% endt %}</button>
     </form>
-    <p class="scan-hint" id="scanHint">Free · no sign-up · it reads your site and shows you who it would go after, in ~30 seconds</p>
+    <p class="scan-hint" id="scanHint">{% t %}Free · no sign-up · it reads your site and shows you who it would go after, in ~30 seconds{% endt %}</p>
     <p class="scan-error" id="scanError" hidden></p>
 
     <div aria-live="polite">
@@ -93,7 +103,7 @@ description: "Teach it what you're after in three minutes. It finds the companie
             <span class="scan-card-domain" id="scanDomain"></span>
           </div>
           <div class="scan-chips" id="scanFacts" hidden></div>
-          <p class="scan-lead">Here's what Prospektor will find for you:</p>
+          <p class="scan-lead">{% t %}Here's what Prospektor will find for you:{% endt %}</p>
           {#- Not a heading (#137). This is the scan's answer, written by scan.js after
            the fetch returns; as an <h3> it was an EMPTY heading sitting between the
            <h1> and the first <h2>, so every crawler read the homepage outline as
@@ -114,15 +124,15 @@ description: "Teach it what you're after in three minutes. It finds the companie
            gone because the run answers it better: correcting the goal is step
            two of the run itself, before anybody pays. -#}
           <div class="scan-cta-row">
-            <a class="btn-cta" id="scanRunCta" href="https://studio.prospektor.ai/r">Show me the companies →</a>
-            <p class="scan-cta-note">Free, no sign-up. <a id="scanCta" href="/checkout/">Start my studio →</a></p>
+            <a class="btn-cta" id="scanRunCta" href="https://studio.prospektor.ai/r">{% t %}Show me the companies →{% endt %}</a>
+            <p class="scan-cta-note">{% t %}Free, no sign-up.{% endt %} <a id="scanCta" href="{{ '/checkout/' | localize }}">{% t %}Start my studio →{% endt %}</a></p>
           </div>
         </div>
       </div>
 
       <div class="scan-fallback" id="scanFallback" hidden>
         <p class="scan-fallback-msg" id="scanFallbackMsg" hidden></p>
-        <a class="btn-cta" id="scanFallbackCta" href="/checkout/">Start my studio →</a>
+        <a class="btn-cta" id="scanFallbackCta" href="{{ '/checkout/' | localize }}">{% t %}Start my studio →{% endt %}</a>
       </div>
     </div>
   </div>
@@ -159,34 +169,34 @@ description: "Teach it what you're after in three minutes. It finds the companie
     batch takes 100 with the tab closed. "It keeps going" is that and stops
     exactly there — ROADMAP.md #450 in the studio repo has the long form. -#}
 <section class="section-big plain">
-  <h2 class="sec-big reveal">What it actually does.</h2>
-  <p class="sec-sub reveal">The whole thing, in three steps, with no words you'd have to look up.</p>
+  <h2 class="sec-big reveal">{% t %}What it actually does.{% endt %}</h2>
+  <p class="sec-sub reveal">{% t %}The whole thing, in three steps, with no words you'd have to look up.{% endt %}</p>
 
   <ol class="plain-steps reveal d1">
     <li class="plain-step">
       <span class="plain-n">01</span>
       <div class="plain-body">
-        <h3>You teach it what you're all about.</h3>
-        <p>It reads your website, drafts your brief for you, and asks a handful of questions you can answer off the top of your head. About three minutes, once — after that you never explain yourself again.</p>
+        <h3>{% t %}You teach it what you're all about.{% endt %}</h3>
+        <p>{% t %}It reads your website, drafts your brief for you, and asks a handful of questions you can answer off the top of your head. About three minutes, once — after that you never explain yourself again.{% endt %}</p>
       </div>
     </li>
     <li class="plain-step">
       <span class="plain-n">02</span>
       <div class="plain-body">
-        <h3>It goes and finds the companies.</h3>
-        <p>Whoever you actually need: customers, distribution partners, resellers, people to invest in, companies to buy. It reads each one's own site, argues both sides of whether they fit, and names the person who'd make the decision — with a source behind the name.</p>
+        <h3>{% t %}It goes and finds the companies.{% endt %}</h3>
+        <p>{% t %}Whoever you actually need: customers, distribution partners, resellers, people to invest in, companies to buy. It reads each one's own site, argues both sides of whether they fit, and names the person who'd make the decision — with a source behind the name.{% endt %}</p>
       </div>
     </li>
     <li class="plain-step">
       <span class="plain-n">03</span>
       <div class="plain-body">
-        <h3>You get the pitch, written and ready to edit.</h3>
-        <p>A slide deck, a one-pager, the emails, a written proposal, and a sheet of what they'll push back on and what to say. In your words, about their business, with nothing invented.</p>
+        <h3>{% t %}You get the pitch, written and ready to edit.{% endt %}</h3>
+        <p>{% t %}A slide deck, a one-pager, the emails, a written proposal, and a sheet of what they'll push back on and what to say. In your words, about their business, with nothing invented.{% endt %}</p>
       </div>
     </li>
   </ol>
 
-  <p class="sec-sub plain-foot reveal d2">And it keeps going: three companies you never asked for on day one, more like them at the end of every run, and up to a hundred at a time while the tab is closed.</p>
+  <p class="sec-sub plain-foot reveal d2">{% t %}And it keeps going: three companies you never asked for on day one, more like them at the end of every run, and up to a hundred at a time while the tab is closed.{% endt %}</p>
 </section>
 
 <!-- THE TWO HALVES — the reframe (#153) -->
@@ -196,51 +206,51 @@ description: "Teach it what you're after in three minutes. It finds the companie
      product exists to answer, which is the frame the whole company is run on
      (CLAUDE.md, The product thesis). Keeps id="what" so old deep links land. -->
 <section class="section-big halves" id="what">
-  <h2 class="sec-big reveal">Two questions. Both answered.</h2>
-  <p class="sec-sub reveal">Anyone can sell you a list of companies. The hard half is writing the thing you actually send them.</p>
+  <h2 class="sec-big reveal">{% t %}Two questions. Both answered.{% endt %}</h2>
+  <p class="sec-sub reveal">{% t %}Anyone can sell you a list of companies. The hard half is writing the thing you actually send them.{% endt %}</p>
 
   <div class="halves-grid reveal d1">
 
     <article class="half">
       <div class="half-head">
         <span class="half-n">01</span>
-        <span class="half-kicker">Who to pitch</span>
+        <span class="half-kicker">{% t %}Who to pitch{% endt %}</span>
       </div>
-      <h3 class="half-h">The companies worth your week.</h3>
-      <p class="half-lede">It reads a company's own site before it says a word about them, then scores them against your brief — whether you're hunting customers, partners or something to invest in — with the case for, the case against, and the same-named companies it ruled out.</p>
+      <h3 class="half-h">{% t %}The companies worth your week.{% endt %}</h3>
+      <p class="half-lede">{% t %}It reads a company's own site before it says a word about them, then scores them against your brief — whether you're hunting customers, partners or something to invest in — with the case for, the case against, and the same-named companies it ruled out.{% endt %}</p>
       <ul class="half-verbs">
         <li>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="M21 21l-4.3-4.3"></path></svg>
-          <span><strong>Find</strong> — more companies like the ones that already work for you.</span>
+          <span>{% t %}<strong>Find</strong> — more companies like the ones that already work for you.{% endt %}</span>
         </li>
         <li>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-          <span><strong>Reach</strong> — the person who decides, with a source. No source, no name.</span>
+          <span>{% t %}<strong>Reach</strong> — the person who decides, with a source. No source, no name.{% endt %}</span>
         </li>
       </ul>
-      <a class="half-link" href="/who-to-pitch/">How it picks them →</a>
-      <p class="half-foot">Free. Start here.</p>
+      <a class="half-link" href="{{ '/who-to-pitch/' | localize }}">{% t %}How it picks them →{% endt %}</a>
+      <p class="half-foot">{% t %}Free. Start here.{% endt %}</p>
     </article>
 
     <article class="half is-dark">
       <div class="half-head">
         <span class="half-n">02</span>
-        <span class="half-kicker">What to send</span>
+        <span class="half-kicker">{% t %}What to send{% endt %}</span>
       </div>
-      <h3 class="half-h">The thing you actually have to write.</h3>
-      <p class="half-lede">The deck, the emails, the proposal and the call sheet — in your voice, about their business, grounded in what has already worked for you. No invented numbers.</p>
+      <h3 class="half-h">{% t %}The thing you actually have to write.{% endt %}</h3>
+      <p class="half-lede">{% t %}The deck, the emails, the proposal and the call sheet — in your voice, about their business, grounded in what has already worked for you. No invented numbers.{% endt %}</p>
       <ul class="half-verbs">
         <li>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
-          <span><strong>Draft</strong> — deck, one-pager, emails, proposal — your voice.</span>
+          <span>{% t %}<strong>Draft</strong> — deck, one-pager, emails, proposal — your voice.{% endt %}</span>
         </li>
         <li>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z"></path></svg>
-          <span><strong>Prep</strong> — the call sheet: the objection, and the answer.</span>
+          <span>{% t %}<strong>Prep</strong> — the call sheet: the objection, and the answer.{% endt %}</span>
         </li>
       </ul>
-      <a class="half-link" href="/what-to-send/">What comes out →</a>
-      <p class="half-foot">This is the half that's hard.</p>
+      <a class="half-link" href="{{ '/what-to-send/' | localize }}">{% t %}What comes out →{% endt %}</a>
+      <p class="half-foot">{% t %}This is the half that's hard.{% endt %}</p>
     </article>
 
   </div>
@@ -263,45 +273,45 @@ description: "Teach it what you're after in three minutes. It finds the companie
      order and this section's order differ. This is the funnel's order, which is
      the one a reader has. -#}
 <section class="section-big crew" id="crew">
-  <h2 class="sec-big reveal">Five agents.<br>One run.</h2>
-  <p class="sec-sub reveal">The work a whole sales department would do on one company, done on every company you name — and each one shows what it did.</p>
+  <h2 class="sec-big reveal">{% t %}Five agents.<br>One run.{% endt %}</h2>
+  <p class="sec-sub reveal">{% t %}The work a whole sales department would do on one company, done on every company you name — and each one shows what it did.{% endt %}</p>
 
   <div class="crew-grid reveal d1">
 
     <article class="crew-card">
-      <span class="crew-kicker">BDR agent <em>the researcher</em></span>
-      <h3 class="crew-h">Brings you companies worth pitching.</h3>
-      <p class="crew-lede">Reads a target's own site before it says a word about them, scores fit against your brief, and names the same-named companies it ruled out.</p>
+      <span class="crew-kicker">{% t %}BDR agent <em>the researcher</em>{% endt %}</span>
+      <h3 class="crew-h">{% t %}Brings you companies worth pitching.{% endt %}</h3>
+      <p class="crew-lede">{% t %}Reads a target's own site before it says a word about them, scores fit against your brief, and names the same-named companies it ruled out.{% endt %}</p>
     </article>
 
     <article class="crew-card">
-      <span class="crew-kicker">SDR agent <em>the door-opener</em></span>
-      <h3 class="crew-h">Finds you the way in.</h3>
-      <p class="crew-lede">Decision-makers with a source behind every name and a confidence rating on each — then who in your network can introduce you, and the request they'd forward.</p>
+      <span class="crew-kicker">{% t %}SDR agent <em>the door-opener</em>{% endt %}</span>
+      <h3 class="crew-h">{% t %}Finds you the way in.{% endt %}</h3>
+      <p class="crew-lede">{% t %}Decision-makers with a source behind every name and a confidence rating on each — then who in your network can introduce you, and the request they'd forward.{% endt %}</p>
     </article>
 
     <article class="crew-card">
-      <span class="crew-kicker">AE agent <em>the writer</em></span>
-      <h3 class="crew-h">Writes what you send.</h3>
-      <p class="crew-lede">The deck, the one-pager, the proposal and the emails — in your voice, grounded in what has already worked for you. Plus the sheet for the call it books.</p>
+      <span class="crew-kicker">{% t %}AE agent <em>the writer</em>{% endt %}</span>
+      <h3 class="crew-h">{% t %}Writes what you send.{% endt %}</h3>
+      <p class="crew-lede">{% t %}The deck, the one-pager, the proposal and the emails — in your voice, grounded in what has already worked for you. Plus the sheet for the call it books.{% endt %}</p>
     </article>
 
     <article class="crew-card">
-      <span class="crew-kicker">Sales Ops agent <em>the fact-checker</em></span>
+      <span class="crew-kicker">{% t %}Sales Ops agent <em>the fact-checker</em>{% endt %}</span>
       {#- #221: this heading is a pinned sentence, not copy. The five one-line
            promises are asserted verbatim by test/agents.test.js in the studio
            repo ("the studio and the website introduce the team in the same
            words") — rewriting one here without lib/agents.js in the same push
            makes that test a lie. This card shipped as "Checks it before you
            see it."; #221 restored the pinned wording. -#}
-      <h3 class="crew-h">Checks the work before you see it.</h3>
-      <p class="crew-lede">Reads the finished draft back and flags an invented number, a fabricated person, or a company the research already ruled out. It never rewrites your copy.</p>
+      <h3 class="crew-h">{% t %}Checks the work before you see it.{% endt %}</h3>
+      <p class="crew-lede">{% t %}Reads the finished draft back and flags an invented number, a fabricated person, or a company the research already ruled out. It never rewrites your copy.{% endt %}</p>
     </article>
 
     <article class="crew-card is-dark">
-      <span class="crew-kicker">RevOps agent <em>the memory</em></span>
-      <h3 class="crew-h">Remembers what worked.</h3>
-      <p class="crew-lede">Every outcome you record and every edit you save goes into the next run. Run 100 isn't run 1 — and this is the one a competitor can't copy, because it's built out of your work.</p>
+      <span class="crew-kicker">{% t %}RevOps agent <em>the memory</em>{% endt %}</span>
+      <h3 class="crew-h">{% t %}Remembers what worked.{% endt %}</h3>
+      <p class="crew-lede">{% t %}Every outcome you record and every edit you save goes into the next run. Run 100 isn't run 1 — and this is the one a competitor can't copy, because it's built out of your work.{% endt %}</p>
     </article>
 
   </div>
@@ -311,12 +321,12 @@ description: "Teach it what you're after in three minutes. It finds the companie
        "You" on the send step (lib/agents.js UNSTAFFED) — so this is a
        description of the build, not a promise. It is the answer to the AI-SDR
        replacement tier, and since #218 it is checkable by watching a run. -#}
-  <p class="sec-sub crew-foot reveal d2">Our agents research, draft and check — <strong>you send</strong>. Nothing signs your name but you. And it's not a metaphor: in the studio, every step of a run names the agent working it.</p>
+  <p class="sec-sub crew-foot reveal d2">{% t %}Our agents research, draft and check — <strong>you send</strong>. Nothing signs your name but you. And it's not a metaphor: in the studio, every step of a run names the agent working it.{% endt %}</p>
 </section>
 
 <section class="section-big termsec" id="how">
-  <h2 class="sec-big reveal">Name a company.<br>That's the job.</h2>
-  <p class="sec-sub reveal">One company in. Six stages, a few minutes, and you can watch every one of them.</p>
+  <h2 class="sec-big reveal">{% t %}Name a company.<br>That's the job.{% endt %}</h2>
+  <p class="sec-sub reveal">{% t %}One company in. Six stages, a few minutes, and you can watch every one of them.{% endt %}</p>
   <div class="termwrap reveal d1">
     <div class="build-card">
       <div class="build-titlebar">
@@ -327,37 +337,37 @@ description: "Teach it what you're after in three minutes. It finds the companie
       </div>
       <div class="build-body">
         <div class="code-lines" id="codeLines">
-          <div class="cl" id="cll1"><span class="ln">1</span><span class="cm">// understand: who is northwind.io, actually?</span></div>
-          <div class="cl" id="cll2"><span class="ln">2</span><span class="ac">✓</span> <span class="tx">read 6 pages · ruled out 2 same-named companies</span></div>
-          <div class="cl" id="cll3"><span class="ln">3</span><span class="cm">// research + score against your brief</span></div>
-          <div class="cl" id="cll4"><span class="ln">4</span><span class="ac">✓</span> <span class="tx">fit thesis drafted — signals for and against</span></div>
+          <div class="cl" id="cll1"><span class="ln">1</span><span class="cm">{% t %}// understand: who is northwind.io, actually?{% endt %}</span></div>
+          <div class="cl" id="cll2"><span class="ln">2</span><span class="ac">✓</span> <span class="tx">{% t %}read 6 pages · ruled out 2 same-named companies{% endt %}</span></div>
+          <div class="cl" id="cll3"><span class="ln">3</span><span class="cm">{% t %}// research + score against your brief{% endt %}</span></div>
+          <div class="cl" id="cll4"><span class="ln">4</span><span class="ac">✓</span> <span class="tx">{% t %}fit thesis drafted — signals for and against{% endt %}</span></div>
           <div class="cl" id="cll5"><span class="ln">5</span>&nbsp;</div>
-          <div class="cl" id="cll6"><span class="ln">6</span><span class="cm">// drafting deliverables in your voice</span></div>
-          <div class="cl" id="cll7"><span class="ln">7</span><span class="ac">✓</span> <span class="tx">deck · one-pager · cold emails · proposal</span></div>
-          <div class="cl" id="cll8"><span class="ln">8</span><span class="ac">✓</span> <span class="tx">no invented numbers — 1 placeholder flagged</span></div>
+          <div class="cl" id="cll6"><span class="ln">6</span><span class="cm">{% t %}// drafting deliverables in your voice{% endt %}</span></div>
+          <div class="cl" id="cll7"><span class="ln">7</span><span class="ac">✓</span> <span class="tx">{% t %}deck · one-pager · cold emails · proposal{% endt %}</span></div>
+          <div class="cl" id="cll8"><span class="ln">8</span><span class="ac">✓</span> <span class="tx">{% t %}no invented numbers — 1 placeholder flagged{% endt %}</span></div>
           <div class="cl" id="cll9"><span class="ln">9</span>&nbsp;</div>
-          <div class="cl" id="cll10"><span class="ln">10</span><span class="cm">// decision-makers — no fabricated people</span></div>
-          <div class="cl" id="cll11"><span class="ln">11</span><span class="ac">✓</span> <span class="tx">2 named with sources · 1 role left blank, not guessed</span></div>
-          <div class="cl" id="cll12"><span class="ln">12</span><span class="ac">✓</span> <span class="tx">4 lookalikes queued — "Run 3 pitches"</span></div>
+          <div class="cl" id="cll10"><span class="ln">10</span><span class="cm">{% t %}// decision-makers — no fabricated people{% endt %}</span></div>
+          <div class="cl" id="cll11"><span class="ln">11</span><span class="ac">✓</span> <span class="tx">{% t %}2 named with sources · 1 role left blank, not guessed{% endt %}</span></div>
+          <div class="cl" id="cll12"><span class="ln">12</span><span class="ac">✓</span> <span class="tx">{% t %}4 lookalikes queued — "Run 3 pitches"{% endt %}</span></div>
           <div class="cl" id="cll13"><span class="ln">13</span>&nbsp;</div>
-          <div class="cl" id="cll14"><span class="ln">14</span><span class="cm">// compliance read-back</span></div>
-          <div class="cl" id="cll15"><span class="ln">15</span><span class="ac">✓</span> <span class="tx">0 banned terms · every claim sourced</span></div>
-          <div class="cl" id="cll16"><span class="ln">16</span><span class="ac">✓</span> <span class="tx">pitch ready to edit — minutes, not weeks</span></div>
+          <div class="cl" id="cll14"><span class="ln">14</span><span class="cm">{% t %}// compliance read-back{% endt %}</span></div>
+          <div class="cl" id="cll15"><span class="ln">15</span><span class="ac">✓</span> <span class="tx">{% t %}0 banned terms · every claim sourced{% endt %}</span></div>
+          <div class="cl" id="cll16"><span class="ln">16</span><span class="ac">✓</span> <span class="tx">{% t %}pitch ready to edit — minutes, not weeks{% endt %}</span></div>
         </div>
       </div>
       <div class="build-footer">
         <div class="build-progress-label">
-          <span id="buildLbl">Running...</span>
+          <span id="buildLbl">{% t %}Running...{% endt %}</span>
           <span id="buildPct">0%</span>
         </div>
         <div class="build-bar"><div class="build-fill" id="bFill"></div></div>
         <div class="build-status-row">
-          <div class="bstat" id="bst1"><span class="bstat-dot"></span> understand</div>
-          <div class="bstat" id="bst2"><span class="bstat-dot"></span> research</div>
-          <div class="bstat" id="bst3"><span class="bstat-dot"></span> score</div>
-          <div class="bstat" id="bst4"><span class="bstat-dot"></span> draft</div>
-          <div class="bstat" id="bst5"><span class="bstat-dot"></span> people</div>
-          <div class="bstat" id="bst6"><span class="bstat-dot"></span> check</div>
+          <div class="bstat" id="bst1"><span class="bstat-dot"></span> {% t %}understand{% endt %}</div>
+          <div class="bstat" id="bst2"><span class="bstat-dot"></span> {% t %}research{% endt %}</div>
+          <div class="bstat" id="bst3"><span class="bstat-dot"></span> {% t %}score{% endt %}</div>
+          <div class="bstat" id="bst4"><span class="bstat-dot"></span> {% t %}draft{% endt %}</div>
+          <div class="bstat" id="bst5"><span class="bstat-dot"></span> {% t %}people{% endt %}</div>
+          <div class="bstat" id="bst6"><span class="bstat-dot"></span> {% t %}check{% endt %}</div>
         </div>
       </div>
     </div>
@@ -366,57 +376,57 @@ description: "Teach it what you're after in three minutes. It finds the companie
 
 <!-- ONE LIST IN -->
 <section class="section-big batch">
-  <h2 class="sec-big reveal">One list in.<br>A pitch library out.</h2>
+  <h2 class="sec-big reveal">{% t %}One list in.<br>A pitch library out.{% endt %}</h2>
   <div class="batch-flow reveal d1">
     <div class="batch-card">
       <span class="batch-label">targets.csv</span>
-      <span class="batch-num">47 <em>companies</em></span>
+      <span class="batch-num">{% t %}47 <em>companies</em>{% endt %}</span>
     </div>
     <svg class="batch-arrow" width="44" height="24" viewBox="0 0 44 24" fill="none" stroke="#00B37E" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h38"></path><path d="M32 4l8 8-8 8"></path></svg>
     <div class="batch-card is-out">
-      <span class="batch-label">library</span>
-      <span class="batch-num">47 <em>pitches, drafted</em></span>
+      <span class="batch-label">{% t %}library{% endt %}</span>
+      <span class="batch-num">{% t %}47 <em>pitches, drafted</em>{% endt %}</span>
     </div>
   </div>
-  <p class="sec-sub reveal d2">Paste a list of companies and close the tab. Each one comes back with its own deck, emails and proposal. Up to 100 at a time.</p>
+  <p class="sec-sub reveal d2">{% t %}Paste a list of companies and close the tab. Each one comes back with its own deck, emails and proposal. Up to 100 at a time.{% endt %}</p>
 </section>
 
 <!-- WARM PATHS -->
 <section class="section-big">
-  <h2 class="sec-big reveal">Warm intros from people<br>you already know.</h2>
+  <h2 class="sec-big reveal">{% t %}Warm intros from people<br>you already know.{% endt %}</h2>
   <div class="warm-flow reveal d1">
-    <span class="warm-chip">You</span>
+    <span class="warm-chip">{% t %}You{% endt %}</span>
     <svg class="warm-arrow" width="36" height="20" viewBox="0 0 36 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 10h28"></path><path d="M24 3l7 7-7 7"></path></svg>
-    <span class="warm-chip is-connector">M. Keller<em>your seed investor</em></span>
+    <span class="warm-chip is-connector">M. Keller<em>{% t %}your seed investor{% endt %}</em></span>
     <svg class="warm-arrow" width="36" height="20" viewBox="0 0 36 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 10h28"></path><path d="M24 3l7 7-7 7"></path></svg>
     <span class="warm-chip is-target">northwind.io</span>
   </div>
-  <p class="sec-sub reveal d2">Every company checked against the people you already know — and the message asking for the introduction, already written.</p>
+  <p class="sec-sub reveal d2">{% t %}Every company checked against the people you already know — and the message asking for the introduction, already written.{% endt %}</p>
 </section>
 
 <!-- PRICING -->
 <section class="pricing section-big" id="pricing">
-  <h2 class="sec-big reveal">One price. The whole box.</h2>
+  <h2 class="sec-big reveal">{% t %}One price. The whole box.{% endt %}</h2>
   <div class="pricing-card reveal d1">
     <div class="price-row">
       <span class="price-num">$999</span>
-      <span class="price-per">/ month · per workspace</span>
+      <span class="price-per">{% t %}/ month · per workspace{% endt %}</span>
     </div>
-    <p class="price-line">Unlimited runs · your whole team in · money back if it doesn't earn its keep</p>
+    <p class="price-line">{% t %}Unlimited runs · your whole team in · money back if it doesn't earn its keep{% endt %}</p>
     <!-- The price buys the thing: this submits straight into a Stripe
          Checkout Session, no onboarding page in between. The one field is
          the address that becomes the studio's sign-in — collected here
          rather than at Stripe so the ownership guard has somewhere to run
          before $999 moves (server enforces it either way). -->
     <div class="buy" id="buy">
-      <a href="/checkout/" class="btn-cta" id="buyLink">Start my studio →</a>
+      <a href="{{ '/checkout/' | localize }}" class="btn-cta" id="buyLink">{% t %}Start my studio →{% endt %}</a>
       <form class="reserve-form buy-form" id="buyForm" hidden novalidate>
         <input class="reserve-input" id="buyEmail" type="email" autocomplete="email"
-               placeholder="you@yourcompany.com" aria-label="Your work email">
-        <button class="btn-cta" type="submit" id="buyBtn">Pay &amp; start &mdash; $999/mo →</button>
+               placeholder="you@yourcompany.com" aria-label="{% t %}Your work email{% endt %}">
+        <button class="btn-cta" type="submit" id="buyBtn">{% t %}Pay &amp; start &mdash; $999/mo →{% endt %}</button>
       </form>
       <input class="reserve-input buy-site" id="buySite" type="text" inputmode="url" autocomplete="url"
-             placeholder="yourcompany.com" aria-label="Your company website" hidden>
+             placeholder="yourcompany.com" aria-label="{% t %}Your company website{% endt %}" hidden>
       <p class="reserve-msg is-error" id="buyMsg" hidden></p>
       <p class="buy-note">
         {#- #423. This line used to end "Pay first … — no trial theater", and
@@ -430,9 +440,9 @@ description: "Teach it what you're after in three minutes. It finds the companie
             full pitch is not a countdown. So the promise is kept and the
             absolute is dropped, and the sentence now needs no edit in either
             state. test/pages.test.js fails on the absolutes coming back. -#}
-        <span id="buyLive" hidden>Next stop is Stripe. This address becomes your studio's sign-in — a work email brings your whole team in with you. </span>Money back if it doesn't earn its keep — no fourteen days of hoping you remember to cancel.
+        <span id="buyLive" hidden>{% t %}Next stop is Stripe. This address becomes your studio's sign-in — a work email brings your whole team in with you.{% endt %} </span>{% t %}Money back if it doesn't earn its keep — no fourteen days of hoping you remember to cancel.{% endt %}
       </p>
-      <p class="buy-note"><a href="/pricing/">What a workspace is, what's included, what happens if you stop →</a></p>
+      <p class="buy-note"><a href="{{ '/pricing/' | localize }}">{% t %}What a workspace is, what's included, what happens if you stop →{% endt %}</a></p>
     </div>
   </div>
 </section>
@@ -445,7 +455,7 @@ description: "Teach it what you're after in three minutes. It finds the companie
 
 <!-- FAQ -->
 <section class="section-big faq">
-  <h2 class="sec-mid reveal">The fine print, on request.</h2>
+  <h2 class="sec-mid reveal">{% t %}The fine print, on request.{% endt %}</h2>
   <div class="faq-list reveal d1">
     {#- #450. First, because it is the question two non-sales readers had after
         the whole page and could not answer. The others are fine print; this one
@@ -453,38 +463,38 @@ description: "Teach it what you're after in three minutes. It finds the companie
         product is for them should not have to scroll past four answers about
         sourcing to find out. -#}
     <details>
-      <summary>Do I need a sales team to use this?<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></summary>
-      <p>No — it is built for the person doing the selling themselves. Founders, consultants, agency owners, small teams with nobody whose job title starts with "sales". You describe what you're after in your own words and it does the research and the writing; the judgement, and the sending, stay with you.</p>
+      <summary>{% t %}Do I need a sales team to use this?{% endt %}<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></summary>
+      <p>{% t %}No — it is built for the person doing the selling themselves. Founders, consultants, agency owners, small teams with nobody whose job title starts with "sales". You describe what you're after in your own words and it does the research and the writing; the judgement, and the sending, stay with you.{% endt %}</p>
     </details>
     <details>
-      <summary>Does it only find customers?<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></summary>
-      <p>No. It finds whoever your brief describes — distribution partners, resellers who could sell what you make, companies worth investing in or acquiring, or plain new customers. The question it asks you at setup is "what should the studio find for you?", and everything downstream is scored against your answer to it.</p>
+      <summary>{% t %}Does it only find customers?{% endt %}<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></summary>
+      <p>{% t %}No. It finds whoever your brief describes — distribution partners, resellers who could sell what you make, companies worth investing in or acquiring, or plain new customers. The question it asks you at setup is "what should the studio find for you?", and everything downstream is scored against your answer to it.{% endt %}</p>
     </details>
     <details>
-      <summary>Where do the names come from?<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></summary>
-      <p>A decision-maker is named only when a credible public source backs the name, and the pitch links what was read. Every name is rated — confirmed, likely or unverified. No source, no name: the role is returned blank instead.</p>
+      <summary>{% t %}Where do the names come from?{% endt %}<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></summary>
+      <p>{% t %}A decision-maker is named only when a credible public source backs the name, and the pitch links what was read. Every name is rated — confirmed, likely or unverified. No source, no name: the role is returned blank instead.{% endt %}</p>
     </details>
     <details>
-      <summary>Will it invent facts?<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></summary>
-      <p>No. Numbers come from your brief or a cited source; anything else becomes a bracketed placeholder, listed for you to fill. Every draft is read back against your banned terms before you see it.</p>
+      <summary>{% t %}Will it invent facts?{% endt %}<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></summary>
+      <p>{% t %}No. Numbers come from your brief or a cited source; anything else becomes a bracketed placeholder, listed for you to fill. Every draft is read back against your banned terms before you see it.{% endt %}</p>
     </details>
     <details>
-      <summary>How does my team get in?<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></summary>
-      <p>Pay with your work email and every colleague on your domain signs straight in — no seats to count. Sign-in is Google or an emailed single-use link; there are no passwords.</p>
+      <summary>{% t %}How does my team get in?{% endt %}<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></summary>
+      <p>{% t %}Pay with your work email and every colleague on your domain signs straight in — no seats to count. Sign-in is Google or an emailed single-use link; there are no passwords.{% endt %}</p>
     </details>
     <details>
-      <summary>What happens to my data?<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></summary>
-      <p>Workspaces are strictly separated — your research, pitches and network are visible to your team only. Email addresses in a LinkedIn export are deleted at import, and your network never travels on a shared pitch. The <a href="/privacy/">privacy page</a> says the rest, plainly.</p>
+      <summary>{% t %}What happens to my data?{% endt %}<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></summary>
+      <p>{% t %}Workspaces are strictly separated — your research, pitches and network are visible to your team only. Email addresses in a LinkedIn export are deleted at import, and your network never travels on a shared pitch. The <a href="/privacy/">privacy page</a> says the rest, plainly.{% endt %}</p>
     </details>
     <details>
-      <summary>What if it's not for us?<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></summary>
-      <p>Money back if it doesn't earn its keep — no fourteen days of hoping you remember to cancel. And if you want ten thousand scraped emails, this isn't it: the studio goes deep on a shortlist worth pitching.</p>
+      <summary>{% t %}What if it's not for us?{% endt %}<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg></summary>
+      <p>{% t %}Money back if it doesn't earn its keep — no fourteen days of hoping you remember to cancel. And if you want ten thousand scraped emails, this isn't it: the studio goes deep on a shortlist worth pitching.{% endt %}</p>
     </details>
   </div>
 </section>
 
 <!-- CTA -->
 <section class="cta" id="try">
-  <h2 class="reveal">See what it'd <span class="accent">hunt</span> for you.</h2>
-  <a href="#scan" class="btn-cta reveal">Scan your site — free</a>
+  <h2 class="reveal">{% t %}See what it'd <span class="accent">hunt</span> for you.{% endt %}</h2>
+  <a href="#scan" class="btn-cta reveal">{% t %}Scan your site — free{% endt %}</a>
 </section>

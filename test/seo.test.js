@@ -28,6 +28,7 @@ const ROOT = path.join(__dirname, '..');
 const site = require('../src/_data/site.json');
 const { siteBuild } = require('./helpers.js');
 const { parse, tagAttr } = require('../tools/seo-audit.js');
+const i18n = require('../lib/i18n.js');
 
 // What a search result actually shows. Both are soft limits measured in pixels
 // rather than characters, so they are rounded generously — the point is to
@@ -255,7 +256,8 @@ describe('SEO — the #137 findings, pinned', () => {
     for (const p of pages()) {
       const canonical = (p.html.match(/<link[^>]+rel="canonical"[^>]+href="([^"]*)"/i) || [])[1];
       assert.strictEqual(canonical, site.url + p.url, `${p.url}: canonical is ${canonical}`);
-      assert.match(p.html, /<html[^>]+lang="en"/, `${p.url}: no lang`);
+      // The language is the URL's (#114): `/es/…` says es, the rest says en.
+      assert.match(p.html, new RegExp(`<html[^>]+lang="${i18n.localeOf(p.url)}"`), `${p.url}: wrong or no lang`);
       assert.match(p.html, /<meta[^>]+name="viewport"/, `${p.url}: no viewport`);
     }
   });

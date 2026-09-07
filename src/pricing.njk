@@ -1,8 +1,14 @@
 ---
 layout: base.njk
-permalink: /pricing/
 title: Pricing
 description: "$999 a month, per workspace. Unlimited runs, your whole team in, no seats to count, money back if it doesn't earn its keep. What's in it, and what isn't."
+# One page per language (#114) — see src/index.njk for the reasoning.
+pagination:
+  data: languages
+  size: 1
+  alias: language
+  addAllPagesToCollections: true
+permalink: "{{ language.prefix }}/pricing/"
 ---
 
 {#- #153, 24 Aug 2026. /#pricing was a nav item pointing at an anchor on the
@@ -33,13 +39,13 @@ description: "$999 a month, per workspace. Unlimited runs, your whole team in, n
   "@context": "https://schema.org",
   "@type": "Product",
   "name": "Prospektor Studio",
-  "description": "A Prospektor Studio workspace: unlimited pitch runs, research, decision-makers with sources, warm-intro mapping and every deliverable drafted in your voice.",
+  "description": {{ ("A Prospektor Studio workspace: unlimited pitch runs, research, decision-makers with sources, warm-intro mapping and every deliverable drafted in your voice." | t) | dump | safe }},
   "brand": { "@id": "{{ site.url }}/#organization" },
-  "url": "{{ site.url }}/pricing/",
+  "url": "{{ site.url }}{{ page.url }}",
   "image": "{{ site.url }}{{ '/assets/img/og.png' | asset }}",
   "offers": {
     "@type": "Offer",
-    "url": "{{ site.url }}/pricing/",
+    "url": "{{ site.url }}{{ page.url }}",
     "price": "999.00",
     "priceCurrency": "USD",
     "availability": "https://schema.org/InStock",
@@ -59,12 +65,12 @@ description: "$999 a month, per workspace. Unlimited runs, your whole team in, n
 
 <header class="page-hero">
   <div class="page-hero-inner">
-    <span class="tag">pricing</span>
-    <h1 class="page-h1">One price. The whole box.</h1>
-    <p class="page-lede">
+    <span class="tag">{% t %}pricing{% endt %}</span>
+    <h1 class="page-h1">{% t %}One price. The whole box.{% endt %}</h1>
+    <p class="page-lede">{% t %}
       No seat maths, no credit meter, no sales call to find out the number.
       One workspace, one price, everything in it.
-    </p>
+    {% endt %}</p>
   </div>
 </header>
 
@@ -72,34 +78,34 @@ description: "$999 a month, per workspace. Unlimited runs, your whole team in, n
   <div class="pricing-card">
     <div class="price-row">
       <span class="price-num">$999</span>
-      <span class="price-per">/ month · per workspace</span>
+      <span class="price-per">{% t %}/ month · per workspace{% endt %}</span>
     </div>
-    <p class="price-line">Unlimited runs · your whole team in · money back if it doesn't earn its keep</p>
+    <p class="price-line">{% t %}Unlimited runs · your whole team in · money back if it doesn't earn its keep{% endt %}</p>
 
     <ul class="pricing-list">
-      <li>Unlimited pitch runs — research, scoring and every deliverable</li>
-      <li>Up to 100 companies in one batch, drafted while the tab is closed</li>
-      <li>Decision-makers with sources, and the confidence rating on each name</li>
-      <li>Your network mapped to warm paths, with the intro request drafted</li>
-      <li>Call prep, inbound evaluation and the outcome log that teaches the next run</li>
-      <li>Every colleague on your work-email domain, at no extra cost</li>
-      <li>Share links, print and PDF export of any deliverable</li>
+      <li>{% t %}Unlimited pitch runs — research, scoring and every deliverable{% endt %}</li>
+      <li>{% t %}Up to 100 companies in one batch, drafted while the tab is closed{% endt %}</li>
+      <li>{% t %}Decision-makers with sources, and the confidence rating on each name{% endt %}</li>
+      <li>{% t %}Your network mapped to warm paths, with the intro request drafted{% endt %}</li>
+      <li>{% t %}Call prep, inbound evaluation and the outcome log that teaches the next run{% endt %}</li>
+      <li>{% t %}Every colleague on your work-email domain, at no extra cost{% endt %}</li>
+      <li>{% t %}Share links, print and PDF export of any deliverable{% endt %}</li>
     </ul>
 
     <div class="buy" id="buy">
-      <a href="/checkout/" class="btn-cta" id="buyLink">Start my studio →</a>
+      <a href="{{ '/checkout/' | localize }}" class="btn-cta" id="buyLink">{% t %}Start my studio →{% endt %}</a>
       <form class="reserve-form buy-form" id="buyForm" hidden novalidate>
         <input class="reserve-input" id="buyEmail" type="email" autocomplete="email"
-               placeholder="you@yourcompany.com" aria-label="Your work email">
-        <button class="btn-cta" type="submit" id="buyBtn">Pay &amp; start &mdash; $999/mo →</button>
+               placeholder="you@yourcompany.com" aria-label="{% t %}Your work email{% endt %}">
+        <button class="btn-cta" type="submit" id="buyBtn">{% t %}Pay &amp; start &mdash; $999/mo →{% endt %}</button>
       </form>
       <input class="reserve-input buy-site" id="buySite" type="text" inputmode="url" autocomplete="url"
-             placeholder="yourcompany.com" aria-label="Your company website" hidden>
+             placeholder="yourcompany.com" aria-label="{% t %}Your company website{% endt %}" hidden>
       <p class="reserve-msg is-error" id="buyMsg" hidden></p>
       <p class="buy-note">
         {#- #423 — the homepage tile's twin, and it changes with it. The
             reasoning is in src/index.njk beside the same line. -#}
-        <span id="buyLive" hidden>Next stop is Stripe. This address becomes your studio's sign-in — a work email brings your whole team in with you. </span>Money back if it doesn't earn its keep — no fourteen days of hoping you remember to cancel.
+        <span id="buyLive" hidden>{% t %}Next stop is Stripe. This address becomes your studio's sign-in — a work email brings your whole team in with you.{% endt %} </span>{% t %}Money back if it doesn't earn its keep — no fourteen days of hoping you remember to cancel.{% endt %}
       </p>
     </div>
   </div>
@@ -113,28 +119,28 @@ description: "$999 a month, per workspace. Unlimited runs, your whole team in, n
 
 <section class="pricing-faq">
   <div class="pricing-faq-inner">
-    <h2 class="sec-mid">The money questions.</h2>
+    <h2 class="sec-mid">{% t %}The money questions.{% endt %}</h2>
     <dl class="pricing-faq-list">
       <div class="pricing-faq-item">
-        <dt>What counts as a workspace?</dt>
-        <dd>One company you are selling <em>for</em> — its brief, its voice, its
+        <dt>{% t %}What counts as a workspace?{% endt %}</dt>
+        <dd>{% t %}One company you are selling <em>for</em> — its brief, its voice, its
           proof points, its pitches, its network. Selling for yourself means one
           workspace. An agency selling on behalf of five clients keeps five, so
-          nobody's research, voice or network leaks into anybody else's.</dd>
+          nobody's research, voice or network leaks into anybody else's.{% endt %}</dd>
       </div>
       <div class="pricing-faq-item">
-        <dt>How many seats do I get?</dt>
-        <dd>All of them. Pay with your work email and every colleague on that
+        <dt>{% t %}How many seats do I get?{% endt %}</dt>
+        <dd>{% t %}All of them. Pay with your work email and every colleague on that
           domain signs straight in — there is nothing to count and nothing to
           upgrade. Sign-in is Google or an emailed single-use link; there are no
-          passwords.</dd>
+          passwords.{% endt %}</dd>
       </div>
       <div class="pricing-faq-item">
-        <dt>Is there a run limit or a credit meter?</dt>
-        <dd>No. Runs are unlimited, and a batch takes up to a hundred companies
+        <dt>{% t %}Is there a run limit or a credit meter?{% endt %}</dt>
+        <dd>{% t %}No. Runs are unlimited, and a batch takes up to a hundred companies
           at a time. We would rather you used it hard — a workspace that runs a
           lot and records what happened is a workspace that gets visibly better
-          results, which is the point.</dd>
+          results, which is the point.{% endt %}</dd>
       </div>
       <div class="pricing-faq-item">
         {#- #423. The old answer said "no trial theater" and named the scan as
@@ -144,41 +150,41 @@ description: "$999 a month, per workspace. Unlimited runs, your whole team in, n
             answer is written to survive that flip — it denies the fourteen-day
             clock, which stays true, rather than denying that anything is free,
             which does not. -#}
-        <dt>Is there a free trial?</dt>
-        <dd>No clock, no. The scan on the homepage reads your own site and shows
+        <dt>{% t %}Is there a free trial?{% endt %}</dt>
+        <dd>{% t %}No clock, no. The scan on the homepage reads your own site and shows
           who it would hunt for you, and the
           <a href="https://studio.prospektor.ai/r">free run</a> names companies
           worth approaching — neither asks for an account or a card. The
           subscription you pay for up front and take the money back if it
           doesn't earn its keep, with no fourteen days of hoping you remember to
-          cancel.</dd>
+          cancel.{% endt %}</dd>
       </div>
       <div class="pricing-faq-item">
-        <dt>What does "money back if it doesn't earn its keep" mean?</dt>
-        <dd>Exactly what it says. Write to
+        <dt>{% t %}What does "money back if it doesn't earn its keep" mean?{% endt %}</dt>
+        <dd>{% t %}Exactly what it says. Write to
           <a href="mailto:{{ site.email }}">{{ site.email }}</a> and we refund
-          you. We would rather hear why than keep a month you regret.</dd>
+          you. We would rather hear why than keep a month you regret.{% endt %}</dd>
       </div>
       <div class="pricing-faq-item">
-        <dt>What happens if I stop?</dt>
-        <dd>Nothing is held hostage. Export what you have, share the links you
+        <dt>{% t %}What happens if I stop?{% endt %}</dt>
+        <dd>{% t %}Nothing is held hostage. Export what you have, share the links you
           have shared, print what you need — and the workspace and everything in
           it is deleted when you ask. What we sell is next month's work, not
-          custody of last month's.</dd>
+          custody of last month's.{% endt %}</dd>
       </div>
       <div class="pricing-faq-item">
-        <dt>What happens to my data?</dt>
-        <dd>Workspaces are strictly separated — your research, pitches and
+        <dt>{% t %}What happens to my data?{% endt %}</dt>
+        <dd>{% t %}Workspaces are strictly separated — your research, pitches and
           network are visible to your team only. Email addresses in a LinkedIn
           export are deleted at import, and your network never travels on a
           shared pitch. The <a href="/privacy/">privacy page</a> says the rest,
-          plainly.</dd>
+          plainly.{% endt %}</dd>
       </div>
     </dl>
   </div>
 </section>
 
 <section class="cta">
-  <h2 class="reveal">Not sure yet? See what it'd <span class="accent">hunt</span> for you.</h2>
-  <a href="/#scan" class="btn-cta reveal">Scan your site — free</a>
+  <h2 class="reveal">{% t %}Not sure yet? See what it'd <span class="accent">hunt</span> for you.{% endt %}</h2>
+  <a href="{{ '/#scan' | localize }}" class="btn-cta reveal">{% t %}Scan your site — free{% endt %}</a>
 </section>

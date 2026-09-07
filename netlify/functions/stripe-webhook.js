@@ -22,6 +22,13 @@
 // token) live in this site's server env only, never in browser-delivered code.
 
 const crypto = require('node:crypto');
+const i18n = require('../../lib/i18n');
+// The catalogues, as literal requires the bundler can see (#114).
+i18n.load(require('../lib/strings'));
+const { languageOf, languageName } = i18n;
+// Every sentence a buyer reads is said through this: English is the key and
+// comes back untouched, so an English email is the email it always was.
+const t = (key, lang, vars) => i18n.t(key, lang, vars);
 
 const PROVISION_URL = 'https://studio.prospektor.ai/api/provision';
 const SIGNATURE_TOLERANCE_SECONDS = 300;
@@ -123,16 +130,21 @@ async function customerEmail(customerId) {
   }
 }
 
-async function callProvision({ email, company, website, goal, marketing, secret }) {
+async function callProvision({ email, company, website, goal, marketing, language, secret }) {
   // `plan: 'paid'` because this caller is the one door money actually came
   // through — the studio defaults everything else to 'comped', and without
   // this line every checkout-provisioned workspace was landing as comped
   // while the board said otherwise (caught 18 Aug 2026).
   // `marketing: true` only when the buyer ticked the optional box (#204) —
   // omitted otherwise, so an older studio sees nothing new.
+  // `language` (#114) is the language the buyer read the funnel in — sent so
+  // the studio can pre-set the workspace's language from it once it accepts
+  // the field (asked for in HANDOVER-website-funnel.md, 7 Sep 2026); an older
+  // studio ignores it. English sends nothing, as everywhere else.
   const body = JSON.stringify({
     email, company, website, goal: goal || undefined, plan: 'paid',
     marketing: marketing || undefined,
+    language: language || undefined,
   });
   for (let attempt = 0; ; attempt++) {
     try {
@@ -224,7 +236,7 @@ async function sendMail({ to, subject, textBody, htmlBody, replyTo }) {
 // and asks the buyer to confirm it on first sign-in. Treating that as a
 // failure would fire a warning on every direct purchase, which is the fastest
 // way to teach someone to ignore the warning.
-async function sendOperatorNotice({ email, company, website, goal, clientId, existing, resumed, goalRecorded }) {
+async function sendOperatorNotice({ email, company, website, goal, language, clientId, existing, resumed, goalRecorded }) {
   const operator = process.env.OPERATOR_EMAIL || 'hello@prospektor.ai';
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   // Sent a sentence and the studio did not record it — the one case worth
@@ -252,6 +264,9 @@ async function sendOperatorNotice({ email, company, website, goal, clientId, exi
     ['Company', company],
     ['Domain', website],
     ['Their target', targetLine],
+    // #114: which language they bought in, so the operator knows before
+    // writing back. Absent for English, which is the case with nothing to say.
+    ['Language', language ? languageName(language) : ''],
     ['Workspace', clientId ? `${clientId} (${resumed ? 'RESUMED — was suspended, this payment unlocked it' : existing ? 'EXISTING — no new workspace was created' : 'newly created'})` : ''],
   ];
   const textBody = [
@@ -281,45 +296,50 @@ async function sendOperatorNotice({ email, company, website, goal, clientId, exi
 // — silent until the token is set. Sent only when a workspace was actually
 // created: on existing:true the promise "your studio is ready" would be
 // false, and a webhook double-fire would mail the same buyer twice.
-async function sendWelcomeEmail(email) {
+// In the language the buyer bought in (#114): `language` is the code that
+// rode through checkout metadata, and every sentence goes through `t`, so an
+// English buyer's email is byte for byte the one this sent before.
+async function sendWelcomeEmail(email, language) {
   if (!process.env.POSTMARK_SERVER_TOKEN) return;
+  const L = language || '';
+  const signin = 'https://studio.prospektor.ai/?signin=' + encodeURIComponent(email);
 
   const textBody = [
-    'Your Prospektor Studio is ready.',
+    t('Your Prospektor Studio is ready.', L),
     '',
-    'Sign in here: https://studio.prospektor.ai/?signin=' + encodeURIComponent(email),
-    'Sign in with Google, using this address — the one you paid with — or have the studio email you a sign-in link from that page. Either way, that is the whole setup.',
+    t('Sign in here: {url}', L, { url: signin }),
+    t('Sign in with Google, using this address — the one you paid with — or have the studio email you a sign-in link from that page. Either way, that is the whole setup.', L),
     '',
-    'While you were paying, your studio read your site and drafted your brief.',
-    'First thing you’ll do is confirm your target sentence — one line, your words.',
-    'Then three researched prospects are waiting to run your first pitches.',
+    t('While you were paying, your studio read your site and drafted your brief.', L),
+    t('First thing you’ll do is confirm your target sentence — one line, your words.', L),
+    t('Then three researched prospects are waiting to run your first pitches.', L),
     '',
-    'Paid with your work email? Every colleague on your domain can sign in the same way.',
+    t('Paid with your work email? Every colleague on your domain can sign in the same way.', L),
     '',
     '— Prospektor',
   ].join('\n');
+  const link = `<a href="${signin}" style="color:${BRAND.ink};border-bottom:1px solid ${BRAND.accent};text-decoration:none;">studio.prospektor.ai</a>`;
   const htmlBody = emailShell(`
-    <p style="font-size:22px;font-weight:800;letter-spacing:-0.02em;color:${BRAND.ink};line-height:1.25;margin:0 0 14px;">Your studio is ready.</p>
+    <p style="font-size:22px;font-weight:800;letter-spacing:-0.02em;color:${BRAND.ink};line-height:1.25;margin:0 0 14px;">${t('Your studio is ready.', L)}</p>
     <p style="font-size:14px;color:${BRAND.ink};line-height:1.7;margin:0 0 22px;">
-      Sign in at <a href="https://studio.prospektor.ai/?signin=${encodeURIComponent(email)}" style="color:${BRAND.ink};border-bottom:1px solid ${BRAND.accent};text-decoration:none;">studio.prospektor.ai</a> —
-      <strong>with Google, using this address</strong> (the one you paid with), <strong>or have the studio email you a sign-in link</strong> from that same page. That&#39;s the whole setup: no token, no wizard.
+      ${t('Sign in at {link} — <strong>with Google, using this address</strong> (the one you paid with), <strong>or have the studio email you a sign-in link</strong> from that same page. That&#39;s the whole setup: no token, no wizard.', L, { link })}
     </p>
     <table role="presentation" cellpadding="0" cellspacing="0" style="margin:0 0 26px;"><tr><td style="border-radius:100px;background:${BRAND.coral};">
-      <a href="https://studio.prospektor.ai/?signin=${encodeURIComponent(email)}" style="display:inline-block;padding:13px 28px;font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:100px;">Sign in to your studio &rarr;</a>
+      <a href="${signin}" style="display:inline-block;padding:13px 28px;font-size:14px;font-weight:700;color:#ffffff;text-decoration:none;border-radius:100px;">${t('Sign in to your studio &rarr;', L)}</a>
     </td></tr></table>
     <table role="presentation" cellpadding="0" cellspacing="0" style="width:100%;">
       ${[
-        'While you were paying, your studio read your site and drafted your brief.',
-        'First thing you&#39;ll do is confirm your target sentence — one line, your words.',
-        'Three researched prospects are waiting to run your first pitches.',
+        t('While you were paying, your studio read your site and drafted your brief.', L),
+        t('First thing you&#39;ll do is confirm your target sentence — one line, your words.', L),
+        t('Three researched prospects are waiting to run your first pitches.', L),
       ].map(li => `<tr><td style="width:16px;vertical-align:top;padding:5px 0;"><span style="display:inline-block;width:5px;height:5px;border-radius:50%;background:${BRAND.accent};margin-bottom:2px;"></span></td><td style="font-size:14px;color:${BRAND.ink};line-height:1.6;padding:3px 0;">${li}</td></tr>`).join('')}
     </table>
     <p style="font-size:13px;color:${BRAND.inkFaint};line-height:1.65;margin:20px 0 0;">
-      Paid with your work email? Every colleague on your domain can sign in the same way.
+      ${t('Paid with your work email? Every colleague on your domain can sign in the same way.', L)}
     </p>`,
-    'You&#39;re getting this one email because you started a Prospektor Studio. Questions? Just reply — it reaches a human at hello@prospektor.ai.');
+    t('You&#39;re getting this one email because you started a Prospektor Studio. Questions? Just reply — it reaches a human at hello@prospektor.ai.', L));
 
-  await sendMail({ to: email, subject: 'Your studio is ready — sign in', textBody, htmlBody });
+  await sendMail({ to: email, subject: t('Your studio is ready — sign in', L), textBody, htmlBody });
 }
 
 exports.handler = async function(event) {
@@ -446,6 +466,9 @@ exports.handler = async function(event) {
   // Exactly the value create-checkout-session writes for a ticked box (#204);
   // anything else means the box was not ticked and no consent exists.
   const marketing = metadata.marketing === 'yes';
+  // #114: the language the buyer read the funnel in — a code from the closed
+  // set or nothing; English was never written, so it reads as nothing too.
+  const language = (l => (l && l !== 'en' ? l : ''))(languageOf(metadata.language));
 
   const provisionSecret = process.env.STUDIO_PROVISION_SECRET;
   if (!provisionSecret) {
@@ -461,7 +484,7 @@ exports.handler = async function(event) {
 
   let provision;
   try {
-    provision = await callProvision({ email, company, website, goal, marketing, secret: provisionSecret });
+    provision = await callProvision({ email, company, website, goal, marketing, language, secret: provisionSecret });
   } catch (e) {
     console.error('Studio unreachable after retries:', e.message);
     return { statusCode: 502, body: JSON.stringify({ error: 'Studio unreachable' }) };
@@ -492,8 +515,8 @@ exports.handler = async function(event) {
   if (marketing && provision.data && provision.data.marketing === false) {
     console.error('Marketing tick for', email, 'was sent but the studio did not record it.');
   }
-  await sendOperatorNotice({ email, company, website, goal, clientId, existing, resumed, goalRecorded });
-  if (!existing) await sendWelcomeEmail(email);
+  await sendOperatorNotice({ email, company, website, goal, language, clientId, existing, resumed, goalRecorded });
+  if (!existing) await sendWelcomeEmail(email, language);
 
   return { statusCode: 200, body: JSON.stringify({ received: true }) };
 };

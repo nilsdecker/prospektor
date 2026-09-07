@@ -58,6 +58,16 @@ pages:
   is the site's own best page on that question, and none of them is thin — the
   reason /checkout/ is still out is that it answers nothing.
 
+  **The other languages (#114) are derived the same way the guides are.** Each
+  page listed above is asked which languages the build wrote it in — the
+  `alternates` filter, the same one the layout's hreflang links come from — and
+  every twin is listed beside it. So `/es/pricing/` is in the sitemap because
+  `src/_data/strings/es.json` exists and pricing.njk paginates over the
+  languages, and nobody lists it here; a language retired by deleting its
+  catalogue leaves the sitemap the same way. A page that is translated on its
+  own URL is a page worth ranking on that URL, for the same reason its English
+  twin is — and `hreflang` on the page tells Google which is which.
+
   <lastmod>, added by #144 on exactly the terms #135 set. The static pages
   still carry none, because a build-time stamp would claim every page changed
   on every deploy and Google ignores a date it cannot trust. The articles carry
@@ -68,7 +78,9 @@ pages:
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 {%- for p in pages %}
-  <url><loc>{{ site.url }}{{ p }}</loc></url>
+{%- for a in p | alternates %}
+  <url><loc>{{ site.url }}{{ a.url }}</loc></url>
+{%- endfor %}
 {%- endfor %}
 {%- for g in help.guides %}
   <url><loc>{{ site.url }}/help/{{ g.slug }}/</loc></url>

@@ -53,6 +53,41 @@ describe('create-checkout-session', () => {
     assert.equal(new URLSearchParams(stripeCalls(calls)[0].body).get('metadata[domain]'), 'acme.com');
   });
 
+  // #114: the language the buyer read the funnel in. Three things follow from
+  // a code in the closed set, and nothing at all from English or from junk —
+  // so an English purchase is the Stripe request it always was, and the
+  // field can never steer a return URL anywhere but a page this site built.
+  test('a Spanish buyer gets Stripe in Spanish, Spanish return pages, and a language in the metadata', async () => {
+    const calls = stubFetch([STRIPE_OK, FREE]);
+    assert.equal((await post(fn, { email: 'b@acme.com', from: 'pricing', locale: 'es' })).statusCode, 200);
+    const p = new URLSearchParams(stripeCalls(calls)[0].body);
+    assert.equal(p.get('locale'), 'es', 'Stripe hosts a translated checkout page for one parameter');
+    assert.equal(p.get('cancel_url'), 'https://prospektor.ai/es/#pricing');
+    assert.equal(p.get('success_url'), 'https://prospektor.ai/es/checkout/done/?session_id={CHECKOUT_SESSION_ID}');
+    assert.equal(p.get('metadata[language]'), 'es', 'the webhook reads the language from here');
+    assert.equal(p.get('subscription_data[metadata][language]'), 'es');
+  });
+
+  test('from /checkout/ the cancel URL is the Spanish checkout page', async () => {
+    const calls = stubFetch([STRIPE_OK, FREE]);
+    await post(fn, { email: 'b@acme.com', locale: 'es-MX' });
+    const p = new URLSearchParams(stripeCalls(calls)[0].body);
+    assert.equal(p.get('cancel_url'), 'https://prospektor.ai/es/checkout/', 'es-MX is Spanish');
+    assert.equal(p.get('locale'), 'es');
+  });
+
+  test('English, an unknown language and no language all send Stripe the request it always got', async () => {
+    for (const locale of [undefined, 'en', 'en-GB', 'xx', 'fr', '../evil', 42]) {
+      const calls = stubFetch([STRIPE_OK, FREE]);
+      await post(fn, { email: 'b@acme.com', from: 'pricing', locale });
+      const p = new URLSearchParams(stripeCalls(calls)[0].body);
+      assert.equal(p.get('locale'), null, `locale=${JSON.stringify(locale)} must not reach Stripe`);
+      assert.equal(p.get('metadata[language]'), null, `locale=${JSON.stringify(locale)} must write no language`);
+      assert.equal(p.get('cancel_url'), 'https://prospektor.ai/#pricing');
+      assert.equal(p.get('success_url'), 'https://prospektor.ai/checkout/done/?session_id={CHECKOUT_SESSION_ID}');
+    }
+  });
+
   test('refuses an address that already owns a studio, and mints nothing', async () => {
     const calls = stubFetch([STRIPE_OK, ['provision-check', { status: 200, body: { taken: true, name: 'Acme GmbH', reason: 'email' } }]]);
     const r = await post(fn, { email: 'b@acme.com', from: 'pricing' });

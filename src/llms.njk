@@ -12,6 +12,9 @@ eleventyExcludeFromCollections: true
 > client's voice, grounded in the work that client has already won.
 
 This domain is the marketing site: what the product is, and what it costs. The
+funnel — the front page, the pricing page and checkout — is also served in
+{% for l in languages %}{% if l.code != 'en' %}{{ l.own }} under `{{ l.prefix }}/`{% if not loop.last %}, {% endif %}{% endif %}{% endfor %};
+every translated page names its siblings with `hreflang`, and `/` is English. The
 application is `studio.prospektor.ai`, and it has its own file for machines —
 [studio.prospektor.ai/llms.txt](https://studio.prospektor.ai/llms.txt) lists the
 calls that need no account. Nothing on this domain is an API.

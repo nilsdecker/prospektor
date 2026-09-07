@@ -13,6 +13,10 @@
   const RUN = 'https://studio.prospektor.ai/r';
   const POLL_MS = 2000;
   const DEADLINE_MS = 90000;
+  // #114: the page's language rides to the scan, so the studio can answer in
+  // it once it learns to (HANDOVER-website-funnel.md, 7 Sep 2026). English
+  // sends nothing, so an English scan is the request it always was.
+  const LANG = document.documentElement.lang || 'en';
 
   const form = document.getElementById('scanForm');
   if (!form) return;
@@ -35,6 +39,9 @@
   const fallbackEl = document.getElementById('scanFallback');
   const fallbackMsg = document.getElementById('scanFallbackMsg');
   const fallbackCta = document.getElementById('scanFallbackCta');
+  // Where checkout is on THIS page's language — the template wrote the
+  // localized href (#114), so the script reads it rather than assuming /checkout/.
+  const CHECKOUT = (ctaEl && ctaEl.getAttribute('href')) || '/checkout/';
 
   // ── Arriving at #scan means "I want to scan" ──
   // #207: the fragment jump moves the viewport and nothing else — keyboard
@@ -75,7 +82,7 @@
     if (domain) p.set('domain', domain);
     if (company) p.set('company', company);
     const q = p.toString();
-    return '/checkout/' + (q ? '?' + q : '');
+    return CHECKOUT + (q ? '?' + q : '');
   }
 
   // The domain the scan resolved, not the raw string typed: /r normalises the
@@ -109,12 +116,12 @@
   // the message advances so the wait reads as work, not a hang.
   function showStatus(domain, gen) {
     const stages = [
-      [0,  'opening ' + domain + '…'],
-      [6,  'reading what you sell…'],
-      [20, 'checking who you sell to…'],
-      [38, 'looking one search beyond your site…'],
-      [55, 'drafting your proposal…'],
-      [75, 'almost there — tightening the wording…'],
+      [0,  t('opening {domain}…', { domain: domain })],
+      [6,  t('reading what you sell…')],
+      [20, t('checking who you sell to…')],
+      [38, t('looking one search beyond your site…')],
+      [55, t('drafting your proposal…')],
+      [75, t('almost there — tightening the wording…')],
     ];
     const t0 = Date.now();
     statusEl.hidden = false;
@@ -246,7 +253,7 @@
       res = await fetch(API, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ website: raw }),
+        body: JSON.stringify(LANG === 'en' ? { website: raw } : { website: raw, language: LANG }),
       });
       data = await res.json().catch(() => null);
     } catch (err) {
@@ -256,9 +263,9 @@
     if (gen !== generation) return;
 
     if (res.status === 400) {
-      showError('That doesn’t look like a domain — try something like acme.com.');
+      showError(t('That doesn’t look like a domain — try something like acme.com.'));
     } else if (res.status === 429) {
-      showFallback(roughDomain, (data && data.error) || 'At capacity today — scans are back tomorrow.');
+      showFallback(roughDomain, (data && data.error) || t('At capacity today — scans are back tomorrow.'));
     } else if (res.status === 200 && data && data.status === 'done' && data.result) {
       renderResult(data.domain || roughDomain, data.result);
     } else if (res.status === 202 && data && data.domain) {
