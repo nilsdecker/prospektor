@@ -1059,20 +1059,41 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
       return route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
     });
 
-    // A Spanish browser on the ENGLISH page: offered, not moved.
+    // A Spanish browser on the ENGLISH page: offered, not moved — one line
+    // that is the link, one × to close it, nothing else, once (#544).
     await page.goto('http://localhost:8899/');
     await page.waitForSelector('#langSuggest', { timeout: 5000 });
     check('a Spanish browser on / is offered Spanish', await page.isVisible('#langSuggest'));
     check('and is NOT redirected', new URL(page.url()).pathname === '/', page.url());
-    check('the offer is in Spanish', /Esta página también está en Español/.test(await page.textContent('#langSuggest')));
-    check('and links the Spanish twin', (await page.getAttribute('#langSuggest a', 'href')) === '/es/');
-    await page.click('#langSuggest button');
-    check('“Ahora no” removes the bar', !(await page.$('#langSuggest')));
+    check('the offer is one line, in Spanish, and the line is the link', (await page.textContent('#langSuggest a')).trim() === 'Esta página también está en Español →');
+    check('which links the Spanish twin', (await page.getAttribute('#langSuggest a', 'href')) === '/es/');
+    check('one link and one close, nothing to explain', (await page.$$('#langSuggest > *')).length === 2 && (await page.$$('#langSuggest button')).length === 1);
+    check('the close is named for a screen reader, in Spanish', (await page.getAttribute('#langSuggest button', 'aria-label')) === 'Ahora no');
+    // Neither taken nor closed — the visitor just moves on. One time only.
     await page.goto('http://localhost:8899/pricing/');
     await page.waitForLoadState('domcontentloaded');
-    check('and it stays away on the next page', !(await page.$('#langSuggest')));
-    check('because the answer was remembered', (await page.evaluate(() => localStorage.getItem('prospektor.lang'))) === 'en');
+    check('ignored, it stays away on the next page — one time only (#544)', !(await page.$('#langSuggest')));
+    check('because being shown is what is remembered', (await page.evaluate(() => localStorage.getItem('prospektor.lang'))) === 'en');
+    // Closed: gone.
     await page.evaluate(() => localStorage.removeItem('prospektor.lang'));
+    await page.goto('http://localhost:8899/');
+    await page.waitForSelector('#langSuggest', { timeout: 5000 });
+    await page.click('#langSuggest button');
+    check('× removes the nudge', !(await page.$('#langSuggest')));
+    // Taken: the language they went on in is what stays remembered.
+    await page.evaluate(() => localStorage.removeItem('prospektor.lang'));
+    await page.goto('http://localhost:8899/');
+    await page.waitForSelector('#langSuggest', { timeout: 5000 });
+    await page.click('#langSuggest a');
+    await page.waitForLoadState('domcontentloaded');
+    check('taking it lands on /es/', new URL(page.url()).pathname === '/es/', page.url());
+    check('and remembers Spanish', (await page.evaluate(() => localStorage.getItem('prospektor.lang'))) === 'es');
+    // English pages only: a Spanish browser on the German page chose it.
+    await page.evaluate(() => localStorage.removeItem('prospektor.lang'));
+    await page.goto('http://localhost:8899/de/');
+    await page.waitForLoadState('domcontentloaded');
+    check('no nudge on /de/ — the English pages only (#544)', !(await page.$('#langSuggest')));
+    check('and nothing was remembered there', (await page.evaluate(() => localStorage.getItem('prospektor.lang'))) === null);
 
     // The Spanish page itself.
     await page.goto('http://localhost:8899/es/');

@@ -127,7 +127,7 @@
       name: 'prospektor.lang',
       kind: 'Local storage',
       category: 'necessary',
-      purpose: 'Your answer to the one-line offer to read this site in the language your browser prefers — the language you chose to stay with, or to switch to — so you are offered it once and not on every page.',
+      purpose: 'That you have seen the one-line offer to read this site in the language your browser prefers, and which language you went on in — so it is shown once on this browser, whether you took it or not, and never on every page.',
       retention: 'Until you clear your browser data',
     },
     {
