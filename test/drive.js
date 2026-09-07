@@ -450,9 +450,14 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
 
     check('the guide is served whole, before any fetch',
       /New client workspace/.test(await page.textContent('#guide-workspace')));
+    // The title is the corpus's, not this file's — the studio retitles guides
+    // and a literal here pinned its content (the #131 rule; it bit at the 7 Sep
+    // snapshot refresh, when this said "Workspace settings, members, billing").
+    const workspaceTitle = SNAPSHOT.files.find(f => f.name === '08-workspace.md')
+      .text.split('\n')[0].replace(/^#\s*/, '').trim();
     check('its title is the page\'s h1, said once',
       (await page.$$eval('h1', hs => hs.map(h => h.textContent.trim())))
-        .join('|') === 'Workspace settings, members, billing');
+        .join('|') === workspaceTitle);
     check('studio-relative links point at the studio',
       (await page.getAttribute('.help-guide a[target="_blank"]', 'href') || '').startsWith('https://studio.prospektor.ai/'));
     check('there is a way back to the hub', await page.isVisible('.res-back'));
@@ -572,8 +577,9 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     await page.goto('http://localhost:8899/help/workspace/');
     check('a dead studio leaves the prerendered guide on screen',
       /New client workspace/.test(await page.textContent('#guide-workspace')));
-    check('and shows no error over it',
-      !/could not be loaded/.test(await page.textContent('body')));
+    // The error is its own element, not a phrase: the corpus itself may say
+    // "could not be loaded" (the troubleshooting guide does since 7 Sep).
+    check('and shows no error over it', !(await page.$('#helpRetry')));
 
     await page.goto('http://localhost:8899/help/');
     await page.waitForSelector('.card', { timeout: 5000 });
@@ -614,7 +620,7 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
       check('and the fetch gives up rather than staying open',
         said.some(t => /could not be read/.test(t)), said);
       check('with no error shown over a page full of answers',
-        !/could not be loaded/.test(await page.textContent('body')));
+        !(await page.$('#helpRetry')));
       await page.close();
     }
 
