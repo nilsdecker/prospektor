@@ -70,10 +70,11 @@
 
 {#- The browser's half of the language work (#114), on every page that has a
     twin: the sentences the scripts on this page say, in this page's language,
-    and the one line the suggestion bar can say in each language the site is
-    built in. Deferred and FIRST, so `t()` exists before any other deferred
-    script runs — on EVERY page, so `t()` is one global every script may
-    assume; the bar it draws only ever suggests, it never redirects. -#}
+    and — on the English page only — the one line the language nudge can say
+    in each other language the site is built in (#544). Deferred and FIRST, so
+    `t()` exists before any other deferred script runs — on EVERY page, so
+    `t()` is one global every script may assume; the nudge it draws only ever
+    offers, once, and never redirects. -#}
 {%- if alts.length > 1 %}
 <script type="application/json" id="i18n">{{ page.url | i18nPayload | safe }}</script>
 {%- endif %}
@@ -204,8 +205,8 @@
       right one is findable by somebody who reads none of the others, linking
       to THIS page's twin. In the footer rather than the header on purpose —
       the header is at capacity (site.json, `//nav`), and the visitor whose
-      browser already prefers another language is met by the suggestion bar
-      instead. Only on a page that has a twin: a list of one is a decoration. -#}
+      browser already prefers another language is met by the one-time nudge
+      instead (#544). Only on a page that has a twin: a list of one is a decoration. -#}
   {%- if alts.length > 1 %}
   <ul class="footer-langs">
     {%- for a in alts %}
