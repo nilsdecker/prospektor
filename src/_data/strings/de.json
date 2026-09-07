@@ -1,6 +1,5 @@
 {
- "This page is also in {language}.": "Diese Seite gibt es auch auf {language}.",
- "Read it in {language}": "Auf {language} lesen",
+ "This page is also in {language} →": "Diese Seite gibt es auf {language} →",
  "Not now": "Jetzt nicht",
  "Leads that fit you": "Leads, die zu dir passen",
  "Teach Prospektor what you're after — customers, partners, resellers, investors — and it finds the companies, names who to contact, and writes what you send.": "Sag Prospektor, wen du suchst — Kunden, Partner, Händler, Investoren — und es findet die Unternehmen, nennt die Ansprechpartner und schreibt, was du schickst.",
@@ -201,11 +200,6 @@
  "Checking the draft...": "Entwurf prüfen...",
  "Pitch ready ✓": "Pitch fertig ✓",
  "opening {domain}…": "{domain} wird geöffnet…",
- "reading what you sell…": "lesen, was du verkaufst…",
- "checking who you sell to…": "prüfen, an wen du verkaufst…",
- "looking one search beyond your site…": "eine Suche über deine Website hinaus…",
- "drafting your proposal…": "dein Vorschlag wird entworfen…",
- "almost there — tightening the wording…": "fast fertig — Formulierung wird geschärft…",
  "That doesn’t look like a domain — try something like acme.com.": "Das sieht nicht nach einer Domain aus — versuch etwas wie acme.com.",
  "At capacity today — scans are back tomorrow.": "Für heute ausgelastet — morgen gibt es wieder Scans.",
  "Your Prospektor workspace is ready.": "Dein Prospektor-Workspace ist bereit.",
@@ -360,7 +354,6 @@
  "The scan you asked for — the domain you typed and what we found about it — held just long enough to carry it from the front page into the checkout form so you do not fill the same thing in twice. It stays in this tab; nothing reads it but this site.": "Der Scan, den du angefordert hast — die Domain, die du eingegeben hast, und was wir darüber gefunden haben — gerade lange genug gehalten, um ihn von der Startseite ins Zahlungsformular zu tragen, damit du nicht dasselbe zweimal ausfüllst. Er bleibt in diesem Tab; nichts außer dieser Website liest ihn.",
  "Until you close the tab, and cleared the moment checkout finishes": "Bis du den Tab schließt, und gelöscht, sobald die Zahlung abgeschlossen ist",
  "The sentence you typed about what you want the studio to find, kept while you are still on the checkout page so a reload does not lose it.": "Der Satz, den du darüber eingegeben hast, was das Studio finden soll, gehalten, solange du noch auf der Zahlungsseite bist, damit ein Neuladen ihn nicht verliert.",
- "Your answer to the one-line offer to read this site in the language your browser prefers — the language you chose to stay with, or to switch to — so you are offered it once and not on every page.": "Deine Antwort auf das einzeilige Angebot, diese Website in der Sprache deines Browsers zu lesen — die Sprache, bei der du bleiben oder zu der du wechseln wolltest — damit es dir einmal angeboten wird und nicht auf jeder Seite.",
  "Until you clear your browser data": "Bis du deine Browserdaten löschst",
  "Script": "Skript",
  "How quickly the pages actually load for real people, so we can fix the slow ones. It puts nothing on this device — no cookie, no storage of any kind — but as you leave a page it posts that page’s timings, with your IP address, to Netlify, who host this site. Off unless you turn it on.": "Wie schnell die Seiten bei echten Menschen tatsächlich laden, damit wir die langsamen reparieren können. Es legt nichts auf diesem Gerät ab — kein Cookie, keinerlei Speicher — aber wenn du eine Seite verlässt, sendet es die Ladezeiten dieser Seite, mit deiner IP-Adresse, an Netlify, die diese Website hosten. Aus, bis du es einschaltest.",
@@ -402,5 +395,11 @@
  "Try again": "Noch einmal versuchen",
  "If this keeps happening, write to <a href=\"mailto:hello@prospektor.ai\">hello@prospektor.ai</a>.": "Wenn das öfter passiert, schreib an <a href=\"mailto:hello@prospektor.ai\">hello@prospektor.ai</a>.",
  "The guides could not be loaded right now — they are served live from the studio, and the studio did not answer in time.": "Die Anleitungen konnten gerade nicht geladen werden — sie kommen live aus dem Studio, und das Studio hat nicht rechtzeitig geantwortet.",
- "The full detail is in the <a href=\"{url}\" target=\"_blank\" rel=\"noopener\">privacy policy</a>. You can change this any time from the Cookies link in the footer.": "Alle Einzelheiten stehen in der <a href=\"{url}\" target=\"_blank\" rel=\"noopener\">Datenschutzerklärung</a> (auf Englisch). Du kannst das jederzeit über den Cookies-Link im Footer ändern."
+ "The full detail is in the <a href=\"{url}\" target=\"_blank\" rel=\"noopener\">privacy policy</a>. You can change this any time from the Cookies link in the footer.": "Alle Einzelheiten stehen in der <a href=\"{url}\" target=\"_blank\" rel=\"noopener\">Datenschutzerklärung</a> (auf Englisch). Du kannst das jederzeit über den Cookies-Link im Footer ändern.",
+ "reading {domain}…": "{domain} wird gelesen…",
+ "writing what it found…": "schreibt auf, was es gefunden hat…",
+ "still reading {domain} — taking longer than usual…": "{domain} wird noch gelesen — dauert länger als sonst…",
+ "reading {page}…": "{page} wird gelesen…",
+ "searching for “{query}”…": "suche nach „{query}“…",
+ "That you have seen the one-line offer to read this site in the language your browser prefers, and which language you went on in — so it is shown once on this browser, whether you took it or not, and never on every page.": "Dass du das einzeilige Angebot gesehen hast, diese Website in der Sprache deines Browsers zu lesen, und in welcher Sprache du weitergemacht hast — damit es in diesem Browser einmal erscheint, ob du es angenommen hast oder nicht, und nie auf jeder Seite."
 }

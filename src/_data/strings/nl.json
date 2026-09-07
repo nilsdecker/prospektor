@@ -1,6 +1,5 @@
 {
- "This page is also in {language}.": "Deze pagina is er ook in het {language}.",
- "Read it in {language}": "Lees in het {language}",
+ "This page is also in {language} →": "Deze pagina is er ook in het {language} →",
  "Not now": "Nu niet",
  "Leads that fit you": "Leads die bij je passen",
  "Teach Prospektor what you're after — customers, partners, resellers, investors — and it finds the companies, names who to contact, and writes what you send.": "Vertel Prospektor wie je zoekt — klanten, partners, resellers, investeerders — en het vindt de bedrijven, noemt wie je moet benaderen en schrijft wat je stuurt.",
@@ -201,11 +200,6 @@
  "Checking the draft...": "Versie controleren...",
  "Pitch ready ✓": "Pitch klaar ✓",
  "opening {domain}…": "{domain} openen…",
- "reading what you sell…": "lezen wat je verkoopt…",
- "checking who you sell to…": "kijken aan wie je verkoopt…",
- "looking one search beyond your site…": "één zoekopdracht verder kijken dan je website…",
- "drafting your proposal…": "je voorstel schrijven…",
- "almost there — tightening the wording…": "bijna klaar — de formulering aanscherpen…",
  "That doesn’t look like a domain — try something like acme.com.": "Dat ziet er niet uit als een domein — probeer iets als acme.com.",
  "At capacity today — scans are back tomorrow.": "Vandaag zitten we vol — morgen zijn er weer scans.",
  "Your Prospektor workspace is ready.": "Je Prospektor-workspace staat klaar.",
@@ -360,7 +354,6 @@
  "The scan you asked for — the domain you typed and what we found about it — held just long enough to carry it from the front page into the checkout form so you do not fill the same thing in twice. It stays in this tab; nothing reads it but this site.": "De scan waar je om vroeg — het domein dat je typte en wat we erover vonden — net lang genoeg bewaard om hem van de voorpagina naar het betaalformulier mee te nemen, zodat je niet twee keer hetzelfde invult. Het blijft in dit tabblad; niets leest het behalve deze site.",
  "Until you close the tab, and cleared the moment checkout finishes": "Tot je het tabblad sluit, en gewist zodra het betalen klaar is",
  "The sentence you typed about what you want the studio to find, kept while you are still on the checkout page so a reload does not lose it.": "De zin die je typte over wat de studio voor je moet vinden, bewaard zolang je nog op de betaalpagina bent, zodat hij bij herladen niet verloren gaat.",
- "Your answer to the one-line offer to read this site in the language your browser prefers — the language you chose to stay with, or to switch to — so you are offered it once and not on every page.": "Je antwoord op het aanbod van één regel om deze site te lezen in de taal die je browser verkiest — de taal waar je bij bleef, of waar je naar overstapte — zodat je het één keer krijgt aangeboden en niet op elke pagina.",
  "Until you clear your browser data": "Tot je je browsergegevens wist",
  "Script": "Script",
  "How quickly the pages actually load for real people, so we can fix the slow ones. It puts nothing on this device — no cookie, no storage of any kind — but as you leave a page it posts that page’s timings, with your IP address, to Netlify, who host this site. Off unless you turn it on.": "Hoe snel de pagina's echt laden voor echte mensen, zodat we de trage kunnen repareren. Het zet niets op dit apparaat — geen cookie, geen opslag van welke soort ook — maar als je een pagina verlaat stuurt het de laadtijden van die pagina, met je IP-adres, naar Netlify, dat deze site host. Uit, tenzij je het aanzet.",
@@ -402,5 +395,11 @@
  "Try again": "Opnieuw proberen",
  "If this keeps happening, write to <a href=\"mailto:hello@prospektor.ai\">hello@prospektor.ai</a>.": "Blijft dit gebeuren, mail dan naar <a href=\"mailto:hello@prospektor.ai\">hello@prospektor.ai</a>.",
  "The guides could not be loaded right now — they are served live from the studio, and the studio did not answer in time.": "De handleidingen konden nu niet worden geladen — ze komen live uit de studio, en de studio antwoordde niet op tijd.",
- "The full detail is in the <a href=\"{url}\" target=\"_blank\" rel=\"noopener\">privacy policy</a>. You can change this any time from the Cookies link in the footer.": "Alle details staan in het <a href=\"{url}\" target=\"_blank\" rel=\"noopener\">privacybeleid</a> (in het Engels). Je kunt dit altijd wijzigen via de Cookies-link in de footer."
+ "The full detail is in the <a href=\"{url}\" target=\"_blank\" rel=\"noopener\">privacy policy</a>. You can change this any time from the Cookies link in the footer.": "Alle details staan in het <a href=\"{url}\" target=\"_blank\" rel=\"noopener\">privacybeleid</a> (in het Engels). Je kunt dit altijd wijzigen via de Cookies-link in de footer.",
+ "reading {domain}…": "{domain} lezen…",
+ "writing what it found…": "opschrijven wat het vond…",
+ "still reading {domain} — taking longer than usual…": "nog steeds {domain} aan het lezen — duurt langer dan normaal…",
+ "reading {page}…": "{page} lezen…",
+ "searching for “{query}”…": "zoeken naar “{query}”…",
+ "That you have seen the one-line offer to read this site in the language your browser prefers, and which language you went on in — so it is shown once on this browser, whether you took it or not, and never on every page.": "Dat je het aanbod van één regel hebt gezien om deze site te lezen in de taal die je browser verkiest, en in welke taal je verderging — zodat het in deze browser één keer verschijnt, of je het aannam of niet, en nooit op elke pagina."
 }

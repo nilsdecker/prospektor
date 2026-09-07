@@ -292,13 +292,24 @@ the same.
   Internal hrefs go through `{{ '/pricing/' | localize }}`, which answers the
   twin where the build wrote one and the English page where it did not — so a
   link on a localized page can never point at a URL the build did not produce.
-- **`Accept-Language` suggests. It never redirects.** `src/assets/js/i18n.js`
-  draws one bar under the nav, in the language it is offering, with the twin
-  and a *Not now*; either answer is remembered in `prospektor.lang` (declared
-  in `consent.js`'s inventory) and the bar is seen at most once. Only the
-  browser's first-ranked language counts, for #113's reason. `test/i18n.test.js`
-  fails on a `location.assign` in that file or an `Accept-Language` redirect
-  in `netlify.toml`; `test/drive.js` §14 drives a Spanish browser onto `/`.
+- **The browser's language nudges. It never redirects** (#114 → #544). On an
+  English page, when the browser's first-ranked language (`navigator.languages[0]`
+  — never the IP or a geo lookup: a German VPN is not a German reader) is one
+  the page is built in, `src/assets/js/i18n.js` draws one line under the nav in
+  that language — *Diese Seite gibt es auf Deutsch →* — which is itself the
+  link to the twin, plus an × named *Not now* for a screen reader. Nothing to
+  read, nothing to decide. **It is shown once per browser**: `prospektor.lang`
+  (declared in `consent.js`'s inventory) is written the moment the line is
+  drawn, so ignoring it counts the same as closing it, and taking it overwrites
+  the flag with the language chosen. A translated page is never nudged — it was
+  chosen — and the build sends it no `suggest` payload at all. Only the first-
+  ranked language counts, for #113's reason. `test/i18n.test.js` fails on a
+  `location.assign` in that file, on any sign of a geo lookup, or on an
+  `Accept-Language` redirect in `netlify.toml`; `test/drive.js` §14 drives a
+  Spanish browser onto `/` and proves all four: offered, not moved; ignored,
+  not asked again; closed; taken. Nothing to add to `/privacy/` — a preference
+  flag on the visitor's own device, the same class as the cookie notice's own
+  remembered choice.
 - **Checkout speaks the buyer's language and English sends nothing.** The
   pages post `locale` only when it is not `en`; `create-checkout-session`
   whitelists it against the closed set and, for a hit, sets Stripe's own

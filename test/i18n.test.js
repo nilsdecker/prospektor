@@ -195,8 +195,8 @@ describe('the language contract (#114)', () => {
       const clientKeys = new Set(i18n.clientKeys());
       for (const k of Object.keys(data.strings)) assert.ok(clientKeys.has(k), `${l.code}: payload carries a sentence no script says: ${k}`);
       assert.ok(Object.keys(data.strings).length > 0, `${l.code}: the payload is empty`);
-      for (const code of i18n.built().map(x => x.code))
-        assert.ok(data.suggest[code] && data.suggest[code].line && data.suggest[code].go && data.suggest[code].stay, `${l.code}: no suggestion line for ${code}`);
+      // A translated page was chosen and is never nudged (#544): it carries nothing to nudge with.
+      assert.strictEqual(data.suggest, undefined, `${l.code}: the nudge runs on English pages only — no suggest payload here`);
       // The payload sits in <head>, before every deferred script, and i18n.js is first.
       assert.ok(html.indexOf('id="i18n"') < html.indexOf('consent.'), `${l.code}: the payload is after the first deferred script`);
       assert.ok(html.indexOf('/assets/js/i18n.') < html.indexOf('/assets/js/consent.'), `${l.code}: i18n.js must be the first deferred script`);
@@ -216,10 +216,30 @@ describe('the language contract (#114)', () => {
     }
   });
 
-  test('the suggestion is a bar, never a redirect', () => {
+  test('the English page carries the nudge: one line per other language, none for itself (#544)', () => {
+    const html = read('index.html');
+    const m = html.match(/<script type="application\/json" id="i18n">([\s\S]*?)<\/script>/);
+    assert.ok(m, '/: no payload');
+    const data = JSON.parse(m[1]);
+    assert.strictEqual(data.lang, 'en');
+    assert.ok(data.suggest && !('en' in data.suggest), 'an English page never offers English');
+    for (const l of i18n.built().filter(l => l.code !== 'en')) {
+      const s = data.suggest[l.code];
+      assert.ok(s, `no nudge for ${l.code}`);
+      assert.deepStrictEqual(Object.keys(s).sort(), ['line', 'stay'], `${l.code}: one line and one close, nothing to explain`);
+      assert.ok(s.line.includes(l.own), `${l.code}: the line names the language in itself — ${s.line}`);
+      assert.ok(!/\{\w+\}/.test(s.line + s.stay), `${l.code}: an unfilled placeholder`);
+    }
+  });
+
+  test('the nudge offers once and never redirects', () => {
     const js = fs.readFileSync(path.join(ROOT, 'src', 'assets', 'js', 'i18n.js'), 'utf8');
     assert.doesNotMatch(js, /location\.(?:assign|replace|href\s*=)|window\.location\s*=/,
       'i18n.js must never navigate on its own — Accept-Language suggests, it does not redirect (HANDOVER-website-funnel.md, 23 Aug 2026)');
+    // The browser's own ranking is the only signal (#544): no IP, no geo, no
+    // header read back from anywhere — and only the FIRST ranked language.
+    assert.match(js, /navigator\.languages/, 'the nudge reads the browser\'s language list');
+    assert.doesNotMatch(js, /geolocation|ipapi|ipinfo|cf-ipcountry|x-country|timezone/i, 'the nudge never guesses where the visitor is');
     const toml = fs.readFileSync(path.join(ROOT, 'netlify.toml'), 'utf8');
     assert.doesNotMatch(toml, /Language\s*=/, 'no Accept-Language redirect at the edge either');
   });

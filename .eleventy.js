@@ -104,11 +104,15 @@ module.exports = function(eleventyConfig) {
 
   // What the browser needs, as JSON for the page's <script type="application/json">:
   // the page's own client strings (only the ones a script asks for, only when
-  // the catalogue has them) plus, for every built language, the one line the
-  // suggestion bar says to a visitor whose browser prefers it.
+  // the catalogue has them) plus, on an ENGLISH page only, the one line the
+  // language nudge says in each other language to a visitor whose browser
+  // prefers it (#544). A translated page was chosen — by a click, a link or a
+  // typed URL — and is never nudged, so it carries nothing to nudge with.
   eleventyConfig.addFilter("i18nPayload", function(url) {
     const code = i18n.localeOf(url);
-    return JSON.stringify({ lang: code, strings: i18n.clientStrings(code) || {}, suggest: i18n.suggestStrings() });
+    const payload = { lang: code, strings: i18n.clientStrings(code) || {} };
+    if (code === 'en') payload.suggest = i18n.suggestStrings();
+    return JSON.stringify(payload);
   });
 
   // The languages this build writes, for pagination: `src/_data/locales.js`

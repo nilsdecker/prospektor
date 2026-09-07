@@ -139,7 +139,7 @@
       name: 'prospektor.lang',
       kind: t('Local storage'),
       category: 'necessary',
-      purpose: t('Your answer to the one-line offer to read this site in the language your browser prefers — the language you chose to stay with, or to switch to — so you are offered it once and not on every page.'),
+      purpose: t('That you have seen the one-line offer to read this site in the language your browser prefers, and which language you went on in — so it is shown once on this browser, whether you took it or not, and never on every page.'),
       retention: t('Until you clear your browser data'),
     },
     {
