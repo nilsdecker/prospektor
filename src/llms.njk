@@ -12,6 +12,9 @@ eleventyExcludeFromCollections: true
 > client's voice, grounded in the work that client has already won.
 
 This domain is the marketing site: what the product is, and what it costs. The
+funnel — the front page, the pricing page and checkout — is also served in
+{% for l in languages %}{% if l.code != 'en' %}{{ l.own }} under `{{ l.prefix }}/`{% if not loop.last %}, {% endif %}{% endif %}{% endfor %};
+every translated page names its siblings with `hreflang`, and `/` is English. The
 application is `studio.prospektor.ai`, and it has its own file for machines —
 [studio.prospektor.ai/llms.txt](https://studio.prospektor.ai/llms.txt) lists the
 calls that need no account. Nothing on this domain is an API.
@@ -21,7 +24,9 @@ calls that need no account. Nothing on this domain is an API.
 US$999 a month, per workspace, paid before you start. A workspace is one company
 you are selling for, so an agency selling for five clients keeps five. Runs are
 unlimited and every colleague on your work-email domain is included — no seats to
-count, no credit meter. Money back if it doesn't earn its keep.
+count, no credit meter. Money back if it doesn't earn its keep. If the price ever
+changes, customers get at least 30 days' notice and it applies from the next renewal,
+never to a period already paid for.
 [prospektor.ai/pricing/](https://prospektor.ai/pricing/) answers the rest of the
 money questions.
 

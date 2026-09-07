@@ -26,6 +26,10 @@
   const msg = document.getElementById('buyMsg');
   const live = document.getElementById('buyLive');
   const btnLabel = btn.textContent;
+  // #114: which language the buyer is reading in, so Stripe's hosted page and
+  // the welcome email speak it too. Nothing is sent for English, so an
+  // English purchase is the request it always was.
+  const LANG = document.documentElement.lang || 'en';
 
   fetch('/.netlify/functions/create-checkout-session')
     .then(r => {
@@ -45,7 +49,7 @@
     if (signinUrl) {
       const a = document.createElement('a');
       a.href = signinUrl;
-      a.textContent = 'Sign in instead';
+      a.textContent = t('Sign in instead');
       msg.append(' ', a, '.');
     }
     msg.hidden = false;
@@ -60,13 +64,13 @@
     e.preventDefault();
     const email = emailInput.value.trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      note('That doesn’t look like an email address — this one becomes your studio’s sign-in.');
+      note(t('That doesn’t look like an email address — this one becomes your studio’s sign-in.'));
       emailInput.focus();
       return;
     }
 
     btn.disabled = true;
-    btn.textContent = 'Opening secure checkout…';
+    btn.textContent = t('Opening secure checkout…');
     msg.hidden = true;
 
     let response, data;
@@ -78,16 +82,16 @@
         // the step the price must not detour through. /api/provision infers a
         // goal from the site and the buyer confirms it on first sign-in, which
         // is what it does for anyone who skips the scan.
-        body: JSON.stringify({
+        body: JSON.stringify(Object.assign({
           email: email,
           domain: siteInput.hidden ? '' : siteInput.value.trim(),
           from: 'pricing',
-        }),
+        }, LANG === 'en' ? {} : { locale: LANG })),
       });
       data = await response.json().catch(() => null);
     } catch (err) {
       reset();
-      note('That didn’t open. Try again — or email hello@prospektor.ai and we’ll sort it by hand.');
+      note(t('That didn’t open. Try again — or email hello@prospektor.ai and we’ll sort it by hand.'));
       return;
     }
 
@@ -96,7 +100,7 @@
       form.hidden = true;
       live.hidden = true;
       link.hidden = false;
-      note('Checkout is reopening — start here and we’ll take it from the payment step.');
+      note(t('Checkout is reopening — start here and we’ll take it from the payment step.'));
       return;
     }
 
@@ -105,7 +109,7 @@
     if (response.status === 422) {
       reset();
       siteInput.hidden = false;
-      note((data && data.error) || 'What’s your company’s website?');
+      note((data && data.error) || t('What’s your company’s website?'));
       siteInput.focus();
       return;
     }
@@ -114,7 +118,7 @@
     // whether this is their own address or a colleague's company domain.
     if (response.status === 409) {
       reset();
-      note((data && data.error) || 'This email already has a studio.',
+      note((data && data.error) || t('This email already has a studio.'),
         (data && data.signin) || 'https://studio.prospektor.ai');
       return;
     }
@@ -122,7 +126,7 @@
     if (!response.ok || !data || !data.url) {
       reset();
       note((data && data.error)
-        || 'That didn’t open. Try again — or email hello@prospektor.ai and we’ll sort it by hand.');
+        || t('That didn’t open. Try again — or email hello@prospektor.ai and we’ll sort it by hand.'));
       return;
     }
 

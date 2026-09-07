@@ -9,7 +9,7 @@ updated: 7 September 2026
   <div class="legal-inner">
     <span class="tag">privacy</span>
     <h1 class="legal-h1">What we do with data.</h1>
-    <p class="legal-lede">This covers two things: this website, and Prospektor Studio — the tool where a sales team researches a target company and drafts the material to approach it. It's written to be read. Where the honest answer is unflattering, it's here anyway.</p>
+    <p class="legal-lede">This covers two things: this website, and Prospektor — the tool where a sales team researches a target company and drafts the material to approach it. It's written to be read. Where the honest answer is unflattering, it's here anyway.</p>
     <div class="legal-meta">
       <span>Last updated {{ updated }}</span>
       <span>·</span>
@@ -42,7 +42,7 @@ updated: 7 September 2026
       <span class="legal-n">01</span>
       <div>
         <h2>Who we are</h2>
-        <p>Prospektor builds Prospektor Studio, an AI go-to-market tool: a client's sales team enters a target company, the studio researches it, scores it as a partner, drafts sales material, and lists the people worth approaching there.</p>
+        <p>Prospektor is an AI go-to-market tool: a client's sales team enters a target company, the studio researches it, scores it as a partner, drafts sales material, and lists the people worth approaching there.</p>
         <p>We decide how this website and the studio itself handle personal data, so for that we're the data controller. For the research and drafts produced inside a client's workspace, we're acting on that client's instructions — they choose which companies to research and what to do with the result. That split is written down in the <a href="/dpa/">data processing addendum</a>, which is part of the terms every workspace accepts: the client is the controller of what its workspace holds and connects, and we process it for them.</p>
         <p>There's no data protection officer. <a href="mailto:{{ site.privacyEmail }}">{{ site.privacyEmail }}</a> reaches a person.</p>
       </div>
@@ -102,7 +102,7 @@ updated: 7 September 2026
 
         <h3>Where it comes from</h3>
         <p>Names, roles and profiles: publicly available web sources, found by an AI model running up to ten web searches during a single run. We don't take anything from behind a login. The studio is instructed never to invent a person: if it can't attach a credible source to a name, it returns the role with the name left blank — and may then ask a contact-data provider who holds that role, so a blank can be filled by a person that provider names, with their profile as the source.</p>
-        <p><strong>Work email addresses are bought, one person at a time.</strong> For each named person the studio sends the name and the target company's web domain — or the LinkedIn profile URL, where it read one — to <strong>Tomba</strong>, then to <strong>Findymail</strong>, and if neither has one, through <strong>treg</strong> — a routing service that asks up to eight further contact-data providers one at a time, cheapest first, and tells us which one answered (all in <a href="#subprocessors">section 08</a>) — and gets back a verified work address or nothing. We don't buy lists, and we hold no address neither provider could verify. Personal email addresses and phone numbers are never requested and never come back. Two more questions go through treg the same way: for a role the studio could not put a name to, the role title and the company's web domain, answered with the name, title and LinkedIn profile of whoever holds it; and for a named person whose profile the studio did not find, the name and the web domain — or, once a work address has been found for them, that address — answered with their profile link. A name is kept only when the person is at that company in that role. A user can type free-text notes into a run, though, so anything they choose to type is stored with it.</p>
+        <p><strong>Work email addresses are bought, one person at a time.</strong> For each named person the studio sends the name and the target company's web domain — or the LinkedIn profile URL, where it read one — to <strong>Tomba</strong>, then to <strong>Findymail</strong>, and if neither has one, through <strong>treg</strong> — a routing service that asks up to eight further contact-data providers one at a time, cheapest first, and tells us which one answered (all in <a href="#subprocessors">section 08</a>) — and gets back a verified work address or nothing. We don't buy lists, and we hold no address neither provider could verify. Personal email addresses are never requested and never come back. A phone number is bought for one named decision-maker only when a member of the researching workspace asks for that person's, and only from Tomba: their work email address — or their LinkedIn profile URL, or their name and the company's web domain — goes to Tomba's phone finder, which answers a number, whether it is valid and what kind of line it is, or nothing. Nobody's number is looked up unasked, and a shared pitch never carries one. Two more questions go through treg the same way: for a role the studio could not put a name to, the role title and the company's web domain, answered with the name, title and LinkedIn profile of whoever holds it; and for a named person whose profile the studio did not find, the name and the web domain — or, once a work address has been found for them, that address — answered with their profile link. A name is kept only when the person is at that company in that role. A user can type free-text notes into a run, though, so anything they choose to type is stored with it.</p>
 
         <h3>Why we think we're allowed to</h3>
         <p>We rely on legitimate interests — ours and our client's interest in working out who to approach about a business partnership. What we hold is professional information, published in a professional context, about your job rather than your private life, and limited to what's needed to decide whether to contact you. Weighed against that, we think the intrusion is small. You're entitled to disagree, and the balance is yours to challenge: see <a href="#rights">your rights</a>.</p>
@@ -162,7 +162,7 @@ updated: 7 September 2026
         <p>Into the studio, if that company becomes a customer: it’s what saves them entering their own details a second time. Nowhere else. <strong>We do not publish it</strong>, we don’t list or publish the companies that have been scanned, we don’t sell it, and there’s no page anywhere that can be browsed for it. It’s processed by the providers in <a href="#subprocessors">section 08</a>.</p>
 
         <h3>If you’re the one who typed a domain in</h3>
-        <p>Then this is about you rather than about the company you looked up, and the answer is short. Typing an address into the field leaves us no IP address, no user agent, no referrer and no cookie — the endpoint reads none of them.</p>
+        <p>Then this is about you rather than about the company you looked up, and the answer is short. Typing an address into the field leaves us no IP address, no user agent, no referrer and no cookie — the endpoint reads none of them. While you type, the characters so far go through our server to Clearbit, which suggests companies to pick from — that is the one thing that leaves before you press Scan, and section 08 says exactly what they get.</p>
         <p>If you go on to a free run, that run holds the domain you typed, the reading of it, whatever you put in the box asking what you’re hunting for, the companies it found, our own token counts, and — if you asked for one — a report on a competitor you named. That report is a reading of that company’s public pages, and holds nothing about you. It’s addressed only by an unguessable link, and there’s no way to list runs or look one up by domain. If you ask us to email you the result, we store the address on that run, use it once for that mail, and never show it to anybody who has the link. That send puts you on no list and starts no sequence. The one box that would is beside it — product news and tips, unticked unless you tick it, and one click in any mail we send stops it.</p>
 
         <h3>It’s a glance, and it can be wrong</h3>
@@ -273,10 +273,11 @@ updated: 7 September 2026
              Two traps for whoever edits this next:
                1. Do not restore a whole-PRODUCT "no third-party request"
                   claim. It is true of loading a page and not true of the
-                  studio's company-name autocomplete, which sends the typed
-                  name to Clearbit from our own server. Whether that earns a
-                  row in the table below is COMPLIANCE's call (#90) and is
-                  filed in HANDOVER-compliance.md — not this lane's to answer.
+                  company-name autocomplete — the studio's, and since #241 the
+                  scan field's on this site — which sends the typed characters
+                  to Clearbit from our own server. Clearbit has had its
+                  own row in the table below since 7 Sep 2026 (#90) — an
+                  uncontracted recipient, named rather than left silent.
                2. The 22 Aug replacement text offered in the handover ends
                   "nothing about your visit reaches anyone but us", and that
                   is no longer true of this website either: Netlify Real User
@@ -307,14 +308,19 @@ updated: 7 September 2026
                 <td>Authentication, typography</td>
               </tr>
               <tr>
+                <td>Clearbit</td>
+                <td>The characters typed into a company field, as they are typed — the studio's company fields, and since 7 September 2026 the scan field on this site's front page — and nothing else. No identifier, no session, no IP address: the request goes from our server, never from your browser. What comes back is a list of company names and web domains to pick from. It is Clearbit, a HubSpot company, based in the United States — and it is the one provider on this list we have <strong>no contract with</strong>: the endpoint is public and free, so nothing but their own terms governs what they do with a typed name.</td>
+                <td>Company-name autocomplete, in the studio and on the scan field</td>
+              </tr>
+              <tr>
                 <td>Clay</td>
                 <td>The web address somebody scanned, or the company name they typed — and nothing else. No identifier, no session, no IP address, and nothing about the person asking, because the scan never knew anything about them. What comes back is about the company, never a person: headcount, location, industry, founding year. It is Clay Runner Inc., based in the United States.</td>
                 <td>Company facts on a scan</td>
               </tr>
               <tr>
                 <td>Tomba</td>
-                <td>For each named person in a research result: their name and the target company's web domain, or their LinkedIn profile URL — and nothing about the client, the user or the workspace. What comes back is that person's work email address, whether it was verified, and a confidence score; if they have nothing, nothing. It is Tomba Technology Web Service LLC, based in the United States, which says its data is stored and processed in the European Union.</td>
-                <td>Work email addresses for decision-makers</td>
+                <td>For each named person in a research result: their name and the target company's web domain, or their LinkedIn profile URL — and nothing about the client, the user or the workspace. What comes back is that person's work email address, whether it was verified, and a confidence score; if they have nothing, nothing. And when a member asks for one person's phone number, and only then: that person's work email address — or their LinkedIn profile URL, or their name and the company's web domain — goes to Tomba's phone finder, which returns a phone number, whether it is valid, and its line type (mobile, landline or VoIP); a miss returns nothing. It is Tomba Technology Web Service LLC, based in the United States, which says its data is stored and processed in the European Union.</td>
+                <td>Work email addresses for decision-makers, and a phone number when a member asks for one</td>
               </tr>
               <tr>
                 <td>Findymail</td>
@@ -341,7 +347,7 @@ updated: 7 September 2026
         </div>
         <p><strong>We do run marketing email.</strong> If you have an account, subscribed to our newsletter, or ticked the box when you asked for a free run, we send product news, new features and occasional offers alongside the transactional mail — your receipt, your welcome, your sign-in. That goes through our email provider above and through a newsletter platform, and we can see whether a message was opened and which links were clicked. <strong>Every marketing message carries a one-click unsubscribe</strong>, and unsubscribing never stops the transactional mail, because that is how having an account works.</p>
         <p>Not used, so you can rule them out: no CRM integration, no session recording, and no advertising vendor.</p>
-        <p>Anthropic, Netlify, Google, Clay, Tomba, treg, Stripe and Postmark all process data outside the European Economic Area, mainly in the United States; Findymail processes only inside it. That's an international transfer, and it needs a documented safeguard &mdash; standard contractual clauses, or each provider's own data-processing terms. We haven't completed that documentation. Ask us and we'll tell you where it stands.</p>
+        <p>Anthropic, Netlify, Google, Clearbit, Clay, Tomba, treg, Stripe and Postmark all process data outside the European Economic Area, mainly in the United States; Findymail processes only inside it. That's an international transfer, and it needs a documented safeguard &mdash; standard contractual clauses, or each provider's own data-processing terms. We haven't completed that documentation. Ask us and we'll tell you where it stands.</p>
       </div>
     </section>
 

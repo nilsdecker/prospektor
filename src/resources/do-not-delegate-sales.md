@@ -32,8 +32,9 @@ One practitioner's thresholds for what may leave the founder, and when:
 | $3M+ | A VP of Sales |
 
 Below $300,000 you are not running a sales process, you are discovering one. Every
-call is teaching you which objection is real, which segment converts, what people
-call the problem, and what has to be true before anyone signs. A hired rep can
+call is teaching you which objection is real, which segment converts — and
+[it is a job they share, not an industry](/resources/sell-the-job-not-the-persona/)
+— what people call the problem, and what has to be true before anyone signs. A hired rep can
 execute a process. They cannot discover one, because discovering one requires
 changing the product and the positioning in response to what you hear, and that is
 not a thing you can delegate.
@@ -87,6 +88,9 @@ This is the opposite of how most founders sequence it, because email is the one 
 can do without talking to anybody. It is also the one that teaches you the least per
 attempt — a non-reply carries no information at all. Fifty conversations tell you
 more than five thousand sends, and they take less calendar time than you think.
+Never having made a cold call is not a reason to start with email, either:
+[getting competent at a channel takes two days of reading and one bad first
+call](/resources/learn-a-channel-fast/), not a course.
 
 ## The activity model, with numbers
 

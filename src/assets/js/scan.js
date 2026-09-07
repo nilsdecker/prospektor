@@ -13,6 +13,10 @@
   const RUN = 'https://studio.prospektor.ai/r';
   const POLL_MS = 2000;
   const DEADLINE_MS = 90000;
+  // #114: the page's language rides to the scan, so the studio can answer in
+  // it once it learns to (HANDOVER-website-funnel.md, 7 Sep 2026). English
+  // sends nothing, so an English scan is the request it always was.
+  const LANG = document.documentElement.lang || 'en';
 
   const form = document.getElementById('scanForm');
   if (!form) return;
@@ -35,6 +39,9 @@
   const fallbackEl = document.getElementById('scanFallback');
   const fallbackMsg = document.getElementById('scanFallbackMsg');
   const fallbackCta = document.getElementById('scanFallbackCta');
+  // Where checkout is on THIS page's language — the template wrote the
+  // localized href (#114), so the script reads it rather than assuming /checkout/.
+  const CHECKOUT = (ctaEl && ctaEl.getAttribute('href')) || '/checkout/';
 
   // ── Arriving at #scan means "I want to scan" ──
   // #207: the fragment jump moves the viewport and nothing else — keyboard
@@ -64,6 +71,113 @@
     if (e.target.closest && e.target.closest('a[href$="#scan"]')) focusField();
   });
 
+  // ── The typeahead (#241) ──
+  // Companies matching what has been typed so far, one line each — name,
+  // domain — under the field, from the site's own function (never the
+  // provider directly: the function is the one door, so nothing but the
+  // characters typed leaves the visitor's browser). Picking one fills the
+  // field with the domain, because the scan is domain-keyed underneath, and
+  // changes nothing else: the visitor still presses Scan. Every failure is
+  // simply no list — the field was a plain text box until today and still is.
+  const SUGGEST = '/.netlify/functions/company-suggest?q=';
+  const SUGGEST_MIN = 2;
+  const SUGGEST_DEBOUNCE_MS = 200;
+  const listEl = document.getElementById('scanSuggest');
+  const suggest = (() => {
+    if (!listEl) return { close: () => {} };
+    listEl.setAttribute('aria-label', t('Suggestions'));
+    let timer = null, inflight = null, shown = [], active = -1;
+
+    function close() {
+      if (timer) { clearTimeout(timer); timer = null; }
+      if (inflight) { inflight.abort(); inflight = null; }
+      listEl.hidden = true;
+      listEl.textContent = '';
+      shown = []; active = -1;
+      input.setAttribute('aria-expanded', 'false');
+      input.removeAttribute('aria-activedescendant');
+    }
+
+    function mark(i) {
+      active = i;
+      const items = listEl.children;
+      for (let k = 0; k < items.length; k++) items[k].setAttribute('aria-selected', k === i ? 'true' : 'false');
+      if (i >= 0) input.setAttribute('aria-activedescendant', items[i].id);
+      else input.removeAttribute('aria-activedescendant');
+    }
+
+    function pick(entry) {
+      if (!entry) return;
+      input.value = entry.domain;
+      close();
+      input.focus();
+    }
+
+    function render(entries) {
+      listEl.textContent = '';
+      entries.forEach((entry, i) => {
+        const li = document.createElement('li');
+        li.id = 'scanSuggest-' + i;
+        li.setAttribute('role', 'option');
+        li.setAttribute('aria-selected', 'false');
+        li.dataset.i = String(i);
+        const name = document.createElement('span');
+        name.className = 'scan-suggest-name';
+        name.textContent = entry.name;
+        const domain = document.createElement('span');
+        domain.className = 'scan-suggest-domain';
+        domain.textContent = entry.domain;
+        li.appendChild(name);
+        li.appendChild(domain);
+        listEl.appendChild(li);
+      });
+      shown = entries; active = -1;
+      listEl.hidden = entries.length === 0;
+      input.setAttribute('aria-expanded', entries.length ? 'true' : 'false');
+    }
+
+    async function ask(q) {
+      if (inflight) inflight.abort();
+      const ctl = new AbortController();
+      inflight = ctl;
+      let entries = [];
+      try {
+        const r = await fetch(SUGGEST + encodeURIComponent(q), { signal: ctl.signal });
+        const data = r.ok ? await r.json() : null;
+        entries = (data && Array.isArray(data.suggestions) ? data.suggestions : [])
+          .filter(e => e && e.name && e.domain).slice(0, 6);
+      } catch (e) { /* aborted, offline, or the function is down — no list */ }
+      if (inflight !== ctl) return;
+      inflight = null;
+      // Only for the characters still in the field, and only while it has focus.
+      if (input.value.trim() !== q || document.activeElement !== input) return;
+      render(entries);
+    }
+
+    input.addEventListener('input', () => {
+      const q = input.value.trim();
+      if (timer) clearTimeout(timer);
+      if (q.length < SUGGEST_MIN) { close(); return; }
+      timer = setTimeout(() => { timer = null; ask(q); }, SUGGEST_DEBOUNCE_MS);
+    });
+    input.addEventListener('keydown', e => {
+      if (listEl.hidden) return;
+      if (e.key === 'ArrowDown') { e.preventDefault(); mark((active + 1) % shown.length); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); mark(active <= 0 ? shown.length - 1 : active - 1); }
+      else if (e.key === 'Enter') { if (active >= 0) { e.preventDefault(); pick(shown[active]); } else close(); }
+      else if (e.key === 'Escape') { close(); }
+    });
+    input.addEventListener('blur', close);
+    // A press on the list must not blur the field — the click that follows
+    // needs the list still there.
+    listEl.addEventListener('mousedown', e => e.preventDefault());
+    listEl.addEventListener('click', e => {
+      const li = e.target.closest && e.target.closest('li[data-i]');
+      if (li) pick(shown[Number(li.dataset.i)]);
+    });
+    return { close };
+  })();
+
   // Bumped on every submit; stale polls and status tickers check it and stop.
   let generation = 0;
   let statusTimer = null;
@@ -75,7 +189,7 @@
     if (domain) p.set('domain', domain);
     if (company) p.set('company', company);
     const q = p.toString();
-    return '/checkout/' + (q ? '?' + q : '');
+    return CHECKOUT + (q ? '?' + q : '');
   }
 
   // The domain the scan resolved, not the raw string typed: /r normalises the
@@ -104,28 +218,59 @@
     settle();
   }
 
-  // A live scan takes up to a minute or so. The bar climbs asymptotically
-  // toward ~92% on elapsed time (the status endpoint reports no stages) and
-  // the message advances so the wait reads as work, not a hang.
+  // ── The wait (#323) ──
+  // A scan is bounded at 20 s on the studio's side (#319) and answers in
+  // ~9 s at the median (#239's measurement), so the wait is timed against
+  // THAT envelope — not the 60–70 s one the first build had, whose stages
+  // at 20, 38, 55 and 75 s described a scan that had already failed. The
+  // sentence changes when the work does: opening, reading, writing; and
+  // past 14 s it says the one thing that is true of nearly every slow scan
+  // (9% spend over 7.5 s waiting on the origin) — it is taking longer than
+  // usual — rather than inventing a stage. The bar climbs toward ~92% with
+  // the median in mind, so a scan that lands at 9 s lands past halfway.
+  //
+  // And when the studio serves what the scan is actually doing — `notes` on
+  // GET /api/scan while it runs, each `{ kind: 'read' | 'search', url |
+  // query }` (HANDOVER-website-funnel.md §1) — the LAST note is the
+  // sentence, in place of the timed one: "reading acme.com/about…" is
+  // better than any guess. Nothing here needs those notes to exist; a poll
+  // that carries none leaves the timed sentence in place.
+  const STAGES = [
+    [0,  d => t('opening {domain}…', { domain: d })],
+    [2,  d => t('reading {domain}…', { domain: d })],
+    [8,  () => t('writing what it found…')],
+    [14, d => t('still reading {domain} — taking longer than usual…', { domain: d })],
+  ];
+  let liveNote = '';
+
+  // One sentence from the studio's notes, in this page's language, or '' —
+  // the timed sentence stands in for anything this cannot read.
+  function noteLine(notes) {
+    if (!Array.isArray(notes) || !notes.length) return '';
+    const last = notes[notes.length - 1];
+    if (!last || typeof last !== 'object') return '';
+    if (last.kind === 'read' && last.url) {
+      try {
+        const u = new URL(String(last.url));
+        const page = (u.host + u.pathname).replace(/^www\./, '').replace(/\/$/, '');
+        return page ? t('reading {page}…', { page: page }) : '';
+      } catch (e) { return ''; }
+    }
+    if (last.kind === 'search' && last.query) return t('searching for “{query}”…', { query: String(last.query) });
+    return '';
+  }
+
   function showStatus(domain, gen) {
-    const stages = [
-      [0,  'opening ' + domain + '…'],
-      [6,  'reading what you sell…'],
-      [20, 'checking who you sell to…'],
-      [38, 'looking one search beyond your site…'],
-      [55, 'drafting your proposal…'],
-      [75, 'almost there — tightening the wording…'],
-    ];
     const t0 = Date.now();
     statusEl.hidden = false;
     if (barEl) barEl.style.width = '2%';
     const tick = () => {
       if (gen !== generation) { clearInterval(statusTimer); return; }
       const elapsed = (Date.now() - t0) / 1000;
-      let msg = stages[0][1];
-      for (const [at, m] of stages) if (elapsed >= at) msg = m;
-      statusMsg.textContent = msg;
-      if (barEl) barEl.style.width = (92 * (1 - Math.exp(-elapsed / 30))).toFixed(1) + '%';
+      let msg = STAGES[0][1](domain);
+      for (const [at, m] of STAGES) if (elapsed >= at) msg = m(domain);
+      statusMsg.textContent = liveNote || msg;
+      if (barEl) barEl.style.width = (92 * (1 - Math.exp(-elapsed / 8))).toFixed(1) + '%';
     };
     tick();
     statusTimer = setInterval(tick, 500);
@@ -220,6 +365,8 @@
       if (data) {
         if (data.status === 'done' && data.result) { renderResult(data.domain || domain, data.result); return; }
         if (data.status === 'failed') { showFallback(domain); return; }
+        // #323: what the scan is doing right now, when the studio says.
+        liveNote = noteLine(data.notes) || liveNote;
       }
     }
     if (gen === generation) showFallback(domain);
@@ -231,6 +378,8 @@
     if (!raw) { input.focus(); return; }
 
     const gen = ++generation;
+    liveNote = '';
+    suggest.close();
     hideAll();
     if (hintEl) hintEl.hidden = true;
     // Focus mode: the scan is the page now; the pitch copy steps back.
@@ -246,7 +395,7 @@
       res = await fetch(API, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ website: raw }),
+        body: JSON.stringify(LANG === 'en' ? { website: raw } : { website: raw, language: LANG }),
       });
       data = await res.json().catch(() => null);
     } catch (err) {
@@ -256,9 +405,9 @@
     if (gen !== generation) return;
 
     if (res.status === 400) {
-      showError('That doesn’t look like a domain — try something like acme.com.');
+      showError(t('That doesn’t look like a domain — try something like acme.com.'));
     } else if (res.status === 429) {
-      showFallback(roughDomain, (data && data.error) || 'At capacity today — scans are back tomorrow.');
+      showFallback(roughDomain, (data && data.error) || t('At capacity today — scans are back tomorrow.'));
     } else if (res.status === 200 && data && data.status === 'done' && data.result) {
       renderResult(data.domain || roughDomain, data.result);
     } else if (res.status === 202 && data && data.domain) {

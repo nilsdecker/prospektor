@@ -101,6 +101,27 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
   const page = await ctx.newPage();
   await page.goto(SITE+'/', { waitUntil: 'domcontentloaded' });
   check('scan field is the hero', await page.isVisible('#scanForm'));
+  // #241: the typeahead — the site's own function answers, and the page
+  // draws the answer under the field. Asked of production because the
+  // function is deployed beside the page and a green build says nothing
+  // about whether Netlify actually serves it.
+  {
+    const r = await fetch(SITE + '/.netlify/functions/company-suggest?q=stripe');
+    const data = r.ok ? await r.json().catch(() => null) : null;
+    const list = data && Array.isArray(data.suggestions) ? data.suggestions : null;
+    check('company-suggest answers from this origin (#241)', !!list, 'status ' + r.status);
+    check('and hands back names and domains only — no logo URL (#241)',
+      !!list && list.length > 0 && list.every(e => Object.keys(e).sort().join(',') === 'domain,name'),
+      JSON.stringify((list || []).slice(0, 2)));
+    await page.click('#scanInput');
+    await page.keyboard.type('stri');
+    let listed = false;
+    try { await page.waitForSelector('#scanSuggest:not([hidden]) li', { timeout: 8000 }); listed = true; } catch (e) {}
+    check('the scan field suggests companies as you type (#241)', listed,
+      listed ? (await page.textContent('#scanSuggest li:first-child')).trim().slice(0, 60) : 'no list within 8 s');
+    await page.keyboard.press('Escape');
+    await page.fill('#scanInput', '');
+  }
   await page.fill('#scanInput', 'stripe.com');
   await page.click('#scanBtn');
   let scanOutcome = 'timeout';
@@ -522,15 +543,51 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
                        // nor the cause. test/drive.js keeps the same list for
                        // the built sitemap and needs the same edit.
                        'https://prospektor.ai/contact/'];
+  // #114: each static page is followed by its twin in every language this
+  // repo has a catalogue for — asked of lib/i18n.js and of the live site (a
+  // twin that answers 200 is listed; one that 404s is not), never listed here.
+  const i18n = require('../lib/i18n.js');
+  const STATIC_WITH_TWINS = [];
+  for (const loc of STATIC_LOCS) {
+    for (const l of i18n.built()) {
+      const u = 'https://prospektor.ai' + i18n.twin(loc.replace('https://prospektor.ai', ''), l.code);
+      if (l.code === 'en') { STATIC_WITH_TWINS.push(u); continue; }
+      let res = null;
+      try { res = await fetch(u.replace('https://prospektor.ai', SITE), { redirect: 'manual' }); } catch (e) { res = null; }
+      if (res && res.status === 200) STATIC_WITH_TWINS.push(u);
+    }
+  }
   // Everything after the static block is derived — the help guides (#166) and
   // then the articles (#159). Both are checked by SHAPE rather than by count,
   // because both lists are supposed to grow without this file being edited.
-  const derivedLocs = liveLocs.slice(STATIC_LOCS.length);
+  const derivedLocs = liveLocs.slice(STATIC_WITH_TWINS.length);
   const guideLocs = derivedLocs.filter(l => l.startsWith('https://prospektor.ai/help/'));
   const articleLocs = derivedLocs.filter(l => !l.startsWith('https://prospektor.ai/help/'));
-  check('sitemap.xml serves exactly the static pages we want ranked',
-    mapRes.status === 200 && JSON.stringify(liveLocs.slice(0, STATIC_LOCS.length)) === JSON.stringify(STATIC_LOCS),
-    liveLocs.slice(0, STATIC_LOCS.length).join(' '));
+  check('sitemap.xml serves exactly the static pages we want ranked, each with its live twins (#114)',
+    mapRes.status === 200 && JSON.stringify(liveLocs.slice(0, STATIC_WITH_TWINS.length)) === JSON.stringify(STATIC_WITH_TWINS),
+    liveLocs.slice(0, STATIC_WITH_TWINS.length).join(' '));
+  // The Spanish funnel (#114): served, in Spanish, self-canonical, naming
+  // its English twin — and the English page naming it back.
+  for (const l of i18n.built().filter(l => l.code !== 'en')) {
+    for (const p of ['/', '/pricing/', '/checkout/']) {
+      const twin = l.prefix + p;
+      const res = await fetch(SITE + twin);
+      const html = res.status === 200 ? await res.text() : '';
+      check(`${twin} is served in ${l.name} (#114)`,
+        res.status === 200 && new RegExp(`<html lang="${l.code}">`).test(html)
+        && html.includes(`<link rel="canonical" href="https://prospektor.ai${twin}">`)
+        && html.includes(`<link rel="alternate" hreflang="en" href="https://prospektor.ai${p}">`)
+        && html.includes(`<link rel="alternate" hreflang="${l.code}" href="https://prospektor.ai${twin}">`), res.status);
+      const en = await (await fetch(SITE + p)).text();
+      check(`and ${p} names ${twin} as its ${l.code} twin`,
+        en.includes(`<link rel="alternate" hreflang="${l.code}" href="https://prospektor.ai${twin}">`)
+        && en.includes(`<link rel="alternate" hreflang="x-default" href="https://prospektor.ai${p}">`));
+    }
+    const home = await (await fetch(SITE + l.prefix + '/')).text();
+    check(`${l.prefix}/ speaks ${l.name}: the h1 is not the English one`,
+      !/Find Leads\./.test(home.match(/<h1>[\s\S]*?<\/h1>/)?.[0] || ''));
+    check(`${l.prefix}/ links checkout in ${l.name}`, home.includes(`href="${l.prefix}/checkout/"`));
+  }
   check('everything else in the sitemap is a help guide or a published article',
     derivedLocs.length > 0 && derivedLocs.every(l =>
       /^https:\/\/prospektor\.ai\/(resources|help)\/[a-z0-9-]+\/$/.test(l)),

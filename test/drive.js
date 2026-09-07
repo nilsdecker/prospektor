@@ -450,9 +450,14 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
 
     check('the guide is served whole, before any fetch',
       /New client workspace/.test(await page.textContent('#guide-workspace')));
+    // The title is the corpus's, not this file's — the studio retitles guides
+    // and a literal here pinned its content (the #131 rule; it bit at the 7 Sep
+    // snapshot refresh, when this said "Workspace settings, members, billing").
+    const workspaceTitle = SNAPSHOT.files.find(f => f.name === '08-workspace.md')
+      .text.split('\n')[0].replace(/^#\s*/, '').trim();
     check('its title is the page\'s h1, said once',
       (await page.$$eval('h1', hs => hs.map(h => h.textContent.trim())))
-        .join('|') === 'Workspace settings, members, billing');
+        .join('|') === workspaceTitle);
     check('studio-relative links point at the studio',
       (await page.getAttribute('.help-guide a[target="_blank"]', 'href') || '').startsWith('https://studio.prospektor.ai/'));
     check('there is a way back to the hub', await page.isVisible('.res-back'));
@@ -572,8 +577,9 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     await page.goto('http://localhost:8899/help/workspace/');
     check('a dead studio leaves the prerendered guide on screen',
       /New client workspace/.test(await page.textContent('#guide-workspace')));
-    check('and shows no error over it',
-      !/could not be loaded/.test(await page.textContent('body')));
+    // The error is its own element, not a phrase: the corpus itself may say
+    // "could not be loaded" (the troubleshooting guide does since 7 Sep).
+    check('and shows no error over it', !(await page.$('#helpRetry')));
 
     await page.goto('http://localhost:8899/help/');
     await page.waitForSelector('.card', { timeout: 5000 });
@@ -614,7 +620,7 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
       check('and the fetch gives up rather than staying open',
         said.some(t => /could not be read/.test(t)), said);
       check('with no error shown over a page full of answers',
-        !/could not be loaded/.test(await page.textContent('body')));
+        !(await page.$('#helpRetry')));
       await page.close();
     }
 
@@ -701,11 +707,23 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
                     // here fails as "one article too many, and it has no date",
                     // which names neither the page nor the cause.
                     'https://prospektor.ai/contact/'];
-    const derived = locs.filter(l => !STATIC.includes(l));
+    // #114: each static page is followed by its twins in every language the
+    // build wrote it in — derived from lib/i18n.js and the built tree, the
+    // same way sitemap.njk derives them, so a new language or a newly
+    // translated page changes nothing here. The list of ENGLISH statics stays
+    // exact, for #135's reason.
+    const i18n = require('../lib/i18n.js');
+    const staticWithTwins = STATIC.flatMap(loc => i18n.built().map(l =>
+      'https://prospektor.ai' + i18n.twin(loc.replace('https://prospektor.ai', ''), l.code))
+      .filter(u => fs.existsSync(path.join(ROOT, new URL(u).pathname, 'index.html'))));
+    const derived = locs.filter(l => !staticWithTwins.includes(l));
     const guideLocs = derived.filter(l => l.startsWith('https://prospektor.ai/help/'));
     const articleLocs = derived.filter(l => !l.startsWith('https://prospektor.ai/help/'));
-    check('sitemap lists exactly the static pages we want ranked',
-      JSON.stringify(locs.slice(0, STATIC.length)) === JSON.stringify(STATIC), locs);
+    check('sitemap lists exactly the static pages we want ranked, each with its built twins',
+      JSON.stringify(locs.slice(0, staticWithTwins.length)) === JSON.stringify(staticWithTwins), locs);
+    check('the Spanish funnel is in the sitemap beside its English pages (#114)',
+      staticWithTwins.includes('https://prospektor.ai/es/') && staticWithTwins.includes('https://prospektor.ai/es/pricing/')
+      && !staticWithTwins.includes('https://prospektor.ai/es/help/'), staticWithTwins);
 
     const slugs = fs.readdirSync(path.join(__dirname, '..', 'src', 'resources'))
       .filter(f => f.endsWith('.md')).map(f => f.replace(/\.md$/, ''));
@@ -730,7 +748,7 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     // stamp taken at build time would claim every guide changed on every deploy.
     check('every article carries a real lastmod, and no static or guide page does',
       [...xml.matchAll(/<loc>([^<]+)<\/loc>(<lastmod>[^<]+<\/lastmod>)?/g)]
-        .every(([, loc, mod]) => STATIC.includes(loc) || guideLocs.includes(loc)
+        .every(([, loc, mod]) => staticWithTwins.includes(loc) || guideLocs.includes(loc)
           ? mod === undefined
           : /<lastmod>\d{4}-\d{2}-\d{2}<\/lastmod>/.test(mod || '')), xml);
 
@@ -888,7 +906,12 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
       await page.waitForSelector('.ppsc-panel', { timeout: 5000 });
       check('the footer Cookies link opens the panel', await page.isVisible('.ppsc-panel'));
       const rows = await page.$$eval('.ppsc-table td:first-child', ns => ns.map(n => n.textContent));
-      check('the panel names every declared item', rows.length === 4, rows);
+      // Derived from consent.js's own INVENTORY rather than pinned to a
+      // number (#131): a storage key added to the inventory — #114's
+      // `prospektor.lang` was the first — must not turn this red by existing.
+      const declared = (fs.readFileSync(path.join(__dirname, '..', 'src', 'assets', 'js', 'consent.js'), 'utf8')
+        .match(/^\s+kind: '[^']+',$/gm) || []).length;
+      check('the panel names every declared item', declared > 0 && rows.length === declared, { rows, declared });
       check('and names the one third party by name', rows.includes('Netlify Real User Metrics'), rows);
       await page.close();
     }
@@ -1012,6 +1035,330 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     check('/pricing/ without keys keeps the /checkout/ link visible', await page.isVisible('#buyLink'));
     check('/pricing/ without keys shows no form', !(await page.isVisible('#buyForm')));
     await page.close();
+  }
+
+  // 14 — the funnel in Spanish (#114). The Spanish pages are the English ones
+  //      through a catalogue, so what is worth driving is the seams: the
+  //      scan's status line and error in Spanish, the pricing tile telling the
+  //      server which language the buyer read, the nav landing on the Spanish
+  //      twin where one exists and the English page where none does, the
+  //      switcher going back, and the one rule the spec states in capitals —
+  //      a Spanish browser on the English page is TOLD, never redirected.
+  {
+    const i18n = require('../lib/i18n.js');
+    const ctx = await browser.newContext({ locale: 'es-ES' });
+    const page = await ctx.newPage();
+    const posts = [];
+    await page.route('**/.netlify/functions/create-checkout-session', async route => {
+      if (route.request().method() === 'GET') return route.fulfill({ status: 200, body: JSON.stringify({ configured: true }) });
+      posts.push(JSON.parse(route.request().postData()));
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ url: 'https://checkout.stripe.com/c/pay/cs_es' }) });
+    });
+    await page.route('https://checkout.stripe.com/**', route =>
+      route.fulfill({ status: 200, contentType: 'text/html', body: '<h1>STRIPE CHECKOUT</h1>' }));
+    const scans = [];
+    await page.route('https://studio.prospektor.ai/api/scan', async route => {
+      if (route.request().method() === 'POST') {
+        scans.push(JSON.parse(route.request().postData()));
+        return route.fulfill({ status: 400, contentType: 'application/json', body: JSON.stringify({ error: 'nope' }) });
+      }
+      return route.fulfill({ status: 200, contentType: 'application/json', body: '{}' });
+    });
+
+    // A Spanish browser on the ENGLISH page: offered, not moved.
+    await page.goto('http://localhost:8899/');
+    await page.waitForSelector('#langSuggest', { timeout: 5000 });
+    check('a Spanish browser on / is offered Spanish', await page.isVisible('#langSuggest'));
+    check('and is NOT redirected', new URL(page.url()).pathname === '/', page.url());
+    check('the offer is in Spanish', /Esta página también está en Español/.test(await page.textContent('#langSuggest')));
+    check('and links the Spanish twin', (await page.getAttribute('#langSuggest a', 'href')) === '/es/');
+    await page.click('#langSuggest button');
+    check('“Ahora no” removes the bar', !(await page.$('#langSuggest')));
+    await page.goto('http://localhost:8899/pricing/');
+    await page.waitForLoadState('domcontentloaded');
+    check('and it stays away on the next page', !(await page.$('#langSuggest')));
+    check('because the answer was remembered', (await page.evaluate(() => localStorage.getItem('prospektor.lang'))) === 'en');
+    await page.evaluate(() => localStorage.removeItem('prospektor.lang'));
+
+    // The Spanish page itself.
+    await page.goto('http://localhost:8899/es/');
+    await page.waitForLoadState('domcontentloaded');
+    check('/es/ is Spanish', (await page.getAttribute('html', 'lang')) === 'es');
+    check('no offer on the page already in the browser’s language', !(await page.$('#langSuggest')));
+    check('the h1 is Spanish', /Encuentra leads/.test(await page.textContent('h1')));
+    check('the scan hint is Spanish', /Gratis · sin registro/.test(await page.textContent('#scanHint')));
+    await page.fill('#scanInput', 'acme.com');
+    await page.click('#scanBtn');
+    await page.waitForSelector('#scanError:not([hidden])', { timeout: 5000 });
+    check('the scan’s 400 message is Spanish (scan.js says it through t)', /Eso no parece un dominio/.test(await page.textContent('#scanError')));
+    check('the scan carried the page’s language to the studio', scans.length === 1 && scans[0].language === 'es', scans);
+
+    // The nav: a twin where one was built, the English page where not.
+    const built = i18n.built().map(l => l.code);
+    check('Spanish is a built language', built.includes('es'), built);
+    await page.click('.nav-links a[href="/es/pricing/"]');
+    await page.waitForLoadState('domcontentloaded');
+    check('Precio lands on /es/pricing/', new URL(page.url()).pathname === '/es/pricing/', page.url());
+    check('the pricing h1 is Spanish', /Un precio/.test(await page.textContent('h1')));
+    await page.waitForSelector('#buyForm:not([hidden])', { timeout: 5000 });
+    await page.fill('#buyEmail', 'comprador@acme.es');
+    await page.click('#buyBtn');
+    await page.waitForURL(/checkout\.stripe\.com/, { timeout: 5000 });
+    check('the Spanish pricing tile reaches Stripe', page.url().startsWith('https://checkout.stripe.com/'));
+    check('and told the server the buyer read Spanish', posts.length === 1 && posts[0].locale === 'es' && posts[0].from === 'pricing', posts);
+    await page.goto('http://localhost:8899/es/');
+    await page.click('.nav-links a[href="/help/"]');
+    await page.waitForLoadState('domcontentloaded');
+    check('Ayuda lands on the English /help/ — there is no Spanish one, and no dead link', new URL(page.url()).pathname === '/help/', page.url());
+    check('and /help/ carries no switcher: it has no twin', !(await page.$('.footer-langs')));
+
+    // The switcher, both ways.
+    await page.goto('http://localhost:8899/es/pricing/');
+    await page.click('.footer-langs a[hreflang="en"]');
+    await page.waitForLoadState('domcontentloaded');
+    check('the footer switcher goes to the English twin of THIS page', new URL(page.url()).pathname === '/pricing/', page.url());
+    await page.click('.footer-langs a[hreflang="es"]');
+    await page.waitForLoadState('domcontentloaded');
+    check('and back to the Spanish one', new URL(page.url()).pathname === '/es/pricing/', page.url());
+
+    // English browser, English page: nothing at all.
+    const en = await browser.newContext({ locale: 'en-US' });
+    const p2 = await en.newPage();
+    await p2.goto('http://localhost:8899/');
+    await p2.waitForLoadState('domcontentloaded');
+    check('an English browser on / sees no offer', !(await p2.$('#langSuggest')));
+    check('and t() is defined on every page, so scripts can assume it', await p2.evaluate(() => typeof window.t === 'function'));
+    await p2.goto('http://localhost:8899/help/');
+    await p2.waitForLoadState('domcontentloaded');
+    check('t() exists on a page with no twin too', await p2.evaluate(() => typeof window.t === 'function' && window.t('x {a}', { a: 1 }) === 'x 1'));
+    await en.close();
+    await ctx.close();
+  }
+
+  // 15 — the scan field's typeahead (#241). Companies matching what has been
+  //      typed, one line each — name, domain — from the site's OWN function,
+  //      never from the provider: the browser must make no request to
+  //      autocomplete.clearbit.com, which is the whole of /privacy/ §08's
+  //      "never from your browser" sentence. A pick fills the field with the
+  //      domain and submits nothing; Scan is still the visitor's press.
+  {
+    const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+    const asked = [];
+    const outside = [];
+    await page.route('**/*', route => {
+      const u = new URL(route.request().url());
+      if (!['localhost'].includes(u.hostname)) outside.push(u.hostname);
+      return route.continue();
+    });
+    await page.route('**/.netlify/functions/company-suggest**', route => {
+      const q = new URL(route.request().url()).searchParams.get('q');
+      asked.push(q);
+      const all = [
+        { name: 'Acme Corporation', domain: 'acme.com' },
+        { name: 'Acme Widgets', domain: 'acmewidgets.io' },
+        { name: 'Acmeta', domain: 'acmeta.example' },
+      ];
+      return route.fulfill({ status: 200, contentType: 'application/json',
+        body: JSON.stringify({ suggestions: all.filter(e => e.name.toLowerCase().startsWith(q.toLowerCase())) }) });
+    });
+    const scans = [];
+    await page.route('https://studio.prospektor.ai/api/scan**', async route => {
+      if (route.request().method() === 'POST') scans.push(JSON.parse(route.request().postData()));
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+        domain: 'acme.com', status: 'done', mode: 'live',
+        result: { name: 'Acme Corporation', inferredGoal: 'Mid-size property managers.', facts: ['B2B'] },
+      }) });
+    });
+    await page.goto('http://localhost:8899/');
+    check('the list is there and hidden before anyone types', await page.evaluate(() =>
+      document.getElementById('scanSuggest').hidden && document.getElementById('scanInput').getAttribute('aria-expanded') === 'false'));
+    check('the browser’s own URL autofill is off, so it cannot draw over ours',
+      (await page.getAttribute('#scanInput', 'autocomplete')) === 'off');
+
+    await page.click('#scanInput');
+    await page.keyboard.type('a');
+    await page.waitForTimeout(400);
+    check('one character asks for nothing', asked.length === 0 && await page.evaluate(() => document.getElementById('scanSuggest').hidden));
+
+    await page.keyboard.type('cm');
+    await page.waitForSelector('#scanSuggest:not([hidden])', { timeout: 3000 });
+    const rows = await page.evaluate(() => [...document.querySelectorAll('#scanSuggest li')].map(li => ({
+      name: li.querySelector('.scan-suggest-name').textContent,
+      domain: li.querySelector('.scan-suggest-domain').textContent,
+      lines: li.getClientRects().length, role: li.getAttribute('role'),
+      h: li.getBoundingClientRect().height,
+    })));
+    check('typing "acm" lists the matches, one line each — name, domain', rows.length === 3
+      && rows[0].name === 'Acme Corporation' && rows[0].domain === 'acme.com'
+      && rows.every(r => r.role === 'option' && r.h < 40), rows);
+    check('the debounce asked once for the three characters, not once per keystroke',
+      asked.length === 1 && asked[0] === 'acm', asked);
+    const geo = await page.evaluate(() => {
+      const b = el => el.getBoundingClientRect();
+      const f = b(document.querySelector('.scan-form')), l = b(document.getElementById('scanSuggest'));
+      const hint = b(document.getElementById('scanHint'));
+      return { formW: f.width, listW: l.width, under: l.top >= f.bottom, hintTop: hint.top, formBottom: f.bottom };
+    });
+    check('the list hangs under the field at the field’s width', Math.abs(geo.listW - geo.formW) < 3 && geo.under, geo);
+    check('and nothing else on the page moved to make room', geo.hintTop - geo.formBottom < 30, geo);
+    check('the list speaks the page’s language (aria-label through t())',
+      (await page.getAttribute('#scanSuggest', 'aria-label')) === 'Suggestions');
+    check('the list is a listbox the field controls', await page.evaluate(() =>
+      document.getElementById('scanInput').getAttribute('aria-controls') === 'scanSuggest'
+      && document.getElementById('scanInput').getAttribute('aria-expanded') === 'true'));
+
+    // Keyboard: down, down, Enter picks the second — and submits nothing.
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('ArrowDown');
+    check('arrow keys mark a row, and the field says which',
+      await page.evaluate(() => document.querySelector('#scanSuggest li[aria-selected="true"]').id === 'scanSuggest-1'
+        && document.getElementById('scanInput').getAttribute('aria-activedescendant') === 'scanSuggest-1'));
+    await page.keyboard.press('Enter');
+    await page.waitForTimeout(300);
+    check('Enter on a marked row fills the field with its domain', (await page.inputValue('#scanInput')) === 'acmewidgets.io');
+    check('and closes the list', await page.evaluate(() => document.getElementById('scanSuggest').hidden));
+    check('and submits nothing — Scan is still the visitor’s press', scans.length === 0
+      && await page.evaluate(() => document.getElementById('scanStatus').hidden && document.getElementById('scanResult').hidden));
+    check('focus stays in the field', await page.evaluate(() => document.activeElement.id === 'scanInput'));
+
+    // Mouse: retype, click the first row.
+    await page.fill('#scanInput', '');
+    await page.keyboard.type('acme');
+    await page.waitForSelector('#scanSuggest:not([hidden])', { timeout: 3000 });
+    await page.click('#scanSuggest li:first-child');
+    await page.waitForTimeout(200);
+    check('a click picks too', (await page.inputValue('#scanInput')) === 'acme.com'
+      && await page.evaluate(() => document.getElementById('scanSuggest').hidden));
+
+    // Escape closes without touching the value; blur closes too.
+    await page.keyboard.type('x');
+    await page.fill('#scanInput', 'acm');
+    await page.keyboard.type('e');
+    await page.waitForSelector('#scanSuggest:not([hidden])', { timeout: 3000 });
+    await page.keyboard.press('Escape');
+    check('Escape closes the list and leaves what was typed', (await page.inputValue('#scanInput')) === 'acme'
+      && await page.evaluate(() => document.getElementById('scanSuggest').hidden));
+
+    // Enter with nothing marked is the ordinary submit, and the scan runs on
+    // what is in the field.
+    await page.fill('#scanInput', 'acme.com');
+    await page.keyboard.press('Enter');
+    await page.waitForSelector('#scanResult:not([hidden])', { timeout: 5000 });
+    check('Enter with no row marked scans what is in the field', scans.length === 1 && scans[0].website === 'acme.com', scans);
+    check('the browser asked nobody outside this origin — the function is the one door (§08)',
+      !outside.some(h => /clearbit/.test(h)) && outside.every(h => h === 'studio.prospektor.ai'), [...new Set(outside)]);
+
+    // An unreachable function is simply no list.
+    await page.unroute('**/.netlify/functions/company-suggest**');
+    await page.route('**/.netlify/functions/company-suggest**', route => route.abort());
+    await page.fill('#scanInput', '');
+    await page.keyboard.type('acm');
+    await page.waitForTimeout(600);
+    check('a dead function is no list, never an error', await page.evaluate(() =>
+      document.getElementById('scanSuggest').hidden && document.getElementById('scanError').hidden));
+    await page.close();
+
+    // The Spanish page: the same list, labelled in Spanish.
+    const es = await browser.newPage();
+    await es.route('**/.netlify/functions/company-suggest**', route =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ suggestions: [{ name: 'Acme', domain: 'acme.com' }] }) }));
+    await es.goto('http://localhost:8899/es/');
+    await es.click('#scanInput');
+    await es.keyboard.type('acm');
+    await es.waitForSelector('#scanSuggest:not([hidden])', { timeout: 3000 });
+    check('on /es/ the list is labelled in Spanish', (await es.getAttribute('#scanSuggest', 'aria-label')) === 'Sugerencias');
+    await es.close();
+  }
+
+  // 16 — the wait says what the scan is doing (#323). Timed against the real
+  //      envelope (20 s bound, ~9 s median) rather than the 60–70 s one, and
+  //      when the studio serves `notes` on the poll, the last note is the
+  //      sentence. The old stages at 20–75 s described a scan that had already
+  //      failed; they are gone, and their catalogue entries with them.
+  {
+    const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+    let polls = 0;
+    await page.route('https://studio.prospektor.ai/api/scan**', async route => {
+      if (route.request().method() === 'POST') {
+        return route.fulfill({ status: 202, contentType: 'application/json',
+          body: JSON.stringify({ domain: 'acme.com', status: 'queued', result: null }) });
+      }
+      polls++;
+      if (polls === 1) return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+        domain: 'acme.com', status: 'running', result: null,
+        notes: [{ kind: 'search', detail: 'Searched “acme”', query: 'acme' },
+                { kind: 'read', detail: 'Read https://www.acme.com/about/', sources: 1, url: 'https://www.acme.com/about/' }],
+      }) });
+      if (polls === 2) return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+        domain: 'acme.com', status: 'running', result: null,
+        notes: [{ kind: 'search', detail: 'Searched “acme anvils”', query: 'acme anvils' }],
+      }) });
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
+        domain: 'acme.com', status: 'done', mode: 'live',
+        result: { name: 'Acme', inferredGoal: 'Coyotes with a grudge.', facts: ['B2B'] },
+      }) });
+    });
+    await page.goto('http://localhost:8899/');
+    await page.fill('#scanInput', 'acme.com');
+    await page.click('#scanBtn');
+    await page.waitForSelector('#scanStatus:not([hidden])', { timeout: 3000 });
+    const first = await page.textContent('#scanStatusMsg');
+    check('the wait opens on the domain', first === 'opening acme.com…', first);
+    // The first poll (2 s in) carries notes; the LAST one is the sentence.
+    await page.waitForFunction(() => /reading acme\.com\/about…/.test(document.getElementById('scanStatusMsg').textContent), null, { timeout: 5000 })
+      .then(() => check('a read note becomes “reading acme.com/about…” — host and path, no scheme, no www', true))
+      .catch(async () => check('a read note becomes “reading acme.com/about…” — host and path, no scheme, no www', false, await page.textContent('#scanStatusMsg')));
+    await page.waitForFunction(() => /searching for “acme anvils”…/.test(document.getElementById('scanStatusMsg').textContent), null, { timeout: 5000 })
+      .then(() => check('a search note becomes “searching for “…”…”', true))
+      .catch(async () => check('a search note becomes “searching for “…”…”', false, await page.textContent('#scanStatusMsg')));
+    const bar = await page.evaluate(() => parseFloat(document.getElementById('scanBarFill').style.width));
+    check('the bar is past a third by the time the second poll lands (~4 s)', bar > 33, bar);
+    await page.waitForSelector('#scanResult:not([hidden])', { timeout: 8000 });
+    check('and the result still lands', (await page.textContent('#scanName')) === 'Acme');
+    await page.close();
+
+    // No notes at all — the timed sentences, against the real envelope.
+    const p2 = await browser.newPage();
+    let t0 = 0;
+    await p2.route('https://studio.prospektor.ai/api/scan**', async route => {
+      if (route.request().method() === 'POST') { t0 = Date.now(); return route.fulfill({ status: 202, contentType: 'application/json', body: JSON.stringify({ domain: 'slow.example', status: 'queued', result: null }) }); }
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ domain: 'slow.example', status: 'running', result: null }) });
+    });
+    await p2.goto('http://localhost:8899/');
+    await p2.fill('#scanInput', 'slow.example');
+    await p2.click('#scanBtn');
+    await p2.waitForSelector('#scanStatus:not([hidden])', { timeout: 3000 });
+    await p2.waitForFunction(() => document.getElementById('scanStatusMsg').textContent === 'reading slow.example…', null, { timeout: 4000 })
+      .then(() => check('with no notes, “reading <domain>…” by 2 s', true))
+      .catch(async () => check('with no notes, “reading <domain>…” by 2 s', false, await p2.textContent('#scanStatusMsg')));
+    await p2.waitForFunction(() => document.getElementById('scanStatusMsg').textContent === 'writing what it found…', null, { timeout: 8000 })
+      .then(() => check('“writing what it found…” by 8 s', true))
+      .catch(async () => check('“writing what it found…” by 8 s', false, await p2.textContent('#scanStatusMsg')));
+    await p2.waitForFunction(() => /taking longer than usual/.test(document.getElementById('scanStatusMsg').textContent), null, { timeout: 8000 })
+      .then(() => check('past 14 s it says the honest thing: taking longer than usual', true))
+      .catch(async () => check('past 14 s it says the honest thing: taking longer than usual', false, await p2.textContent('#scanStatusMsg')));
+    check('no sentence describes a stage the 20 s bound cannot reach',
+      !/drafting your proposal|tightening the wording|one search beyond/.test(await p2.evaluate(() => document.documentElement.outerHTML)));
+    await p2.close();
+
+    // /es/ — the same wait, in Spanish, notes included.
+    const es = await browser.newPage();
+    let esPolls = 0;
+    await es.route('https://studio.prospektor.ai/api/scan**', async route => {
+      if (route.request().method() === 'POST') return route.fulfill({ status: 202, contentType: 'application/json', body: JSON.stringify({ domain: 'acme.com', status: 'queued', result: null }) });
+      esPolls++;
+      return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ domain: 'acme.com', status: 'running', result: null,
+        notes: esPolls === 1 ? [{ kind: 'read', url: 'https://acme.com/equipo' }] : [] }) });
+    });
+    await es.goto('http://localhost:8899/es/');
+    await es.fill('#scanInput', 'acme.com');
+    await es.click('#scanBtn');
+    await es.waitForSelector('#scanStatus:not([hidden])', { timeout: 3000 });
+    check('on /es/ the wait opens in Spanish', (await es.textContent('#scanStatusMsg')) === 'abriendo acme.com…', await es.textContent('#scanStatusMsg'));
+    await es.waitForFunction(() => document.getElementById('scanStatusMsg').textContent === 'leyendo acme.com/equipo…', null, { timeout: 5000 })
+      .then(() => check('and a note reads in Spanish too', true))
+      .catch(async () => check('and a note reads in Spanish too', false, await es.textContent('#scanStatusMsg')));
+    await es.close();
   }
 
   // 13 — the /resources topic filter (#159). The section is one article per

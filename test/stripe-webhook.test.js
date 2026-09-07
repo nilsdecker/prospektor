@@ -47,6 +47,45 @@ describe('stripe-webhook', () => {
     assert.ok(w.HtmlBody.includes('/?signin=' + encodeURIComponent('b@acme.com')), 'the button link prefills');
   });
 
+  // #114: a buyer who bought in Spanish is welcomed in Spanish, the operator is
+  // told which language, and the studio is offered the language for the
+  // workspace (it ignores the field until it learns it). An English buyer's
+  // mail is byte for byte the one this always sent — no language is written
+  // for English at checkout, so none arrives here.
+  test('a Spanish buyer is welcomed in Spanish, and the operator and the studio are told', async () => {
+    const calls = stubFetch([provisioned({ goal: true }), ['postmarkapp', { status: 200, body: {} }]]);
+    const r = await fn.handler(signedStripeEvent(SECRET, checkoutSessionCompleted({
+      email: 'b@acme.com', metadata: { domain: 'acme.com', language: 'es' } })));
+    assert.equal(r.statusCode, 200);
+    const w = mail(calls).find(m => /estudio está listo/.test(m.Subject));
+    assert.ok(w, 'the welcome subject is Spanish');
+    assert.ok(w.TextBody.includes('Tu espacio de trabajo de Prospektor está listo.'), 'the text body is Spanish');
+    assert.ok(w.HtmlBody.includes('Entrar en tu estudio &rarr;'), 'the button is Spanish');
+    assert.ok(w.TextBody.includes('/?signin=' + encodeURIComponent('b@acme.com')), 'the sign-in link still prefills');
+    assert.ok(!/Your studio is ready/.test(w.TextBody + w.HtmlBody), 'no English sentence leaks into the Spanish mail');
+    const n = notice(calls);
+    assert.ok(/Language: Spanish/.test(n.TextBody), 'the operator notice names the language');
+    const body = JSON.parse(calls.find(c => c.url.includes('/api/provision')).body);
+    assert.equal(body.language, 'es', 'the studio is offered the language');
+  });
+
+  test('an English buyer gets the English mail, and no language field anywhere', async () => {
+    const calls = stubFetch([provisioned({ goal: true }), ['postmarkapp', { status: 200, body: {} }]]);
+    await fn.handler(signedStripeEvent(SECRET, checkoutSessionCompleted({ email: 'b@acme.com', metadata: { domain: 'acme.com' } })));
+    const w = welcome(calls);
+    assert.ok(w && w.TextBody.startsWith('Your Prospektor workspace is ready.'));
+    assert.ok(!/Language:/.test(notice(calls).TextBody), 'nothing to say about English');
+    const body = JSON.parse(calls.find(c => c.url.includes('/api/provision')).body);
+    assert.ok(!('language' in body), 'an older studio sees nothing new');
+  });
+
+  test('a language outside the set is treated as English, never as a fifth language', async () => {
+    const calls = stubFetch([provisioned({ goal: true }), ['postmarkapp', { status: 200, body: {} }]]);
+    await fn.handler(signedStripeEvent(SECRET, checkoutSessionCompleted({ email: 'b@acme.com', metadata: { domain: 'acme.com', language: 'fr' } })));
+    assert.ok(welcome(calls), 'the English welcome went out');
+    assert.ok(!('language' in JSON.parse(calls.find(c => c.url.includes('/api/provision')).body)));
+  });
+
   test('sends the shared secret to the studio, and no secret to the buyer', async () => {
     const calls = stubFetch([provisioned(), ['postmarkapp', { status: 200, body: {} }]]);
     await fn.handler(signedStripeEvent(SECRET, checkoutSessionCompleted({ email: 'b@acme.com', metadata: { domain: 'acme.com' } })));

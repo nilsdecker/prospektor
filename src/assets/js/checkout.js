@@ -15,6 +15,9 @@
     pay: document.getElementById('panelPay'),
   };
   const metaEl = document.getElementById('obMeta');
+  // #114: the language this checkout is read in — Stripe's hosted page,
+  // the return URLs and the welcome email follow it. English sends nothing.
+  const LANG = document.documentElement.lang || 'en';
   const goalInput = document.getElementById('goalInput');
 
   const params = new URLSearchParams(location.search);
@@ -63,7 +66,7 @@
     if (!domain) {
       const typed = cleanDomain(siteInput.value);
       if (!typed) {
-        siteMsg.textContent = 'That doesn’t look like a web address — just the domain is fine, like acme.com.';
+        siteMsg.textContent = t('That doesn’t look like a web address — just the domain is fine, like acme.com.');
         siteMsg.hidden = false;
         return;
       }
@@ -110,7 +113,7 @@
     if (withSignin) {
       const a = document.createElement('a');
       a.href = 'https://studio.prospektor.ai';
-      a.textContent = 'Sign in instead';
+      a.textContent = t('Sign in instead');
       stripeMsg.append(' ', a, '.');
     }
     stripeMsg.hidden = false;
@@ -120,11 +123,11 @@
     e.preventDefault();
     const email = document.getElementById('payEmail').value.trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      stripeNote('That doesn’t look like an email address — this one becomes your studio’s sign-in.');
+      stripeNote(t('That doesn’t look like an email address — this one becomes your studio’s sign-in.'));
       return;
     }
     stripeBtn.disabled = true;
-    stripeBtn.textContent = 'Opening secure checkout…';
+    stripeBtn.textContent = t('Opening secure checkout…');
     stripeMsg.hidden = true;
     let goal = goalInput.value.trim();
     try { goal = sessionStorage.getItem('prospektor.goal') || goal; } catch (e2) {}
@@ -146,7 +149,7 @@
           // already owning the studio is a different message from this exact
           // address owning it, and only the server knows which it is.
           stripeNote(owns.message
-            || 'This email already has a studio — signing in will take you to it, or use a different address to start a new one.', true);
+            || t('This email already has a studio — signing in will take you to it, or use a different address to start a new one.'), true);
           return;
         }
       } catch (e2) { /* fail open — never block a sale on a hiccup */ }
@@ -157,10 +160,10 @@
       const r = await fetch('/.netlify/functions/create-checkout-session', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({
+        body: JSON.stringify(Object.assign({
           domain: domain, company: company, goal: goal, email: email,
           marketing: !!(marketingBox && marketingBox.checked),
-        }),
+        }, LANG === 'en' ? {} : { locale: LANG })),
       });
       if (r.status === 503) { showFallback(); return; } // keys pulled since the probe
       const data = await r.json().catch(() => null);
@@ -171,7 +174,7 @@
       if (r.status === 409) {
         stripeBtn.disabled = false;
         stripeBtn.textContent = stripeBtnLabel;
-        stripeNote((data && data.error) || 'This email already has a studio.', true);
+        stripeNote((data && data.error) || t('This email already has a studio.'), true);
         return;
       }
       if (!r.ok || !data || !data.url) throw new Error('no session url');
@@ -179,7 +182,7 @@
     } catch (err) {
       stripeBtn.disabled = false;
       stripeBtn.textContent = stripeBtnLabel;
-      stripeNote('That didn’t open. Try again — or email hello@prospektor.ai and we’ll sort it by hand.');
+      stripeNote(t('That didn’t open. Try again — or email hello@prospektor.ai and we’ll sort it by hand.'));
     }
   });
 
@@ -195,7 +198,7 @@
     reserveMsg.append(text);
     if (isError) {
       const a = document.createElement('a');
-      a.href = 'mailto:hello@prospektor.ai?subject=' + encodeURIComponent('Hold my founding spot');
+      a.href = 'mailto:hello@prospektor.ai?subject=' + encodeURIComponent(t('Hold my founding spot'));
       a.textContent = 'hello@prospektor.ai';
       reserveMsg.append(' ', a);
     }
@@ -207,7 +210,7 @@
     e.preventDefault();
     const email = reserveEmail.value.trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      reserveNote('That doesn’t look like an email address — try your work email.');
+      reserveNote(t('That doesn’t look like an email address — try your work email.'));
       return;
     }
     reserveBtn.disabled = true;
@@ -244,10 +247,10 @@
 
     if (sent) {
       reserveForm.hidden = true;
-      reserveNote('✓ Spot held. One email when checkout opens — nothing else.');
+      reserveNote(t('✓ Spot held. One email when checkout opens — nothing else.'));
     } else {
       reserveBtn.disabled = false;
-      reserveNote('That didn’t send. Email us instead:', true);
+      reserveNote(t('That didn’t send. Email us instead:'), true);
     }
   });
 })();

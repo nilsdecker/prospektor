@@ -1,8 +1,14 @@
 ---
 layout: base.njk
 title: Your studio is ready
-permalink: /checkout/done/
 noindex: true
+# One page per language (#114) — see src/index.njk for the reasoning.
+pagination:
+  data: languages
+  size: 1
+  alias: language
+  addAllPagesToCollections: true
+permalink: "{{ language.prefix }}/checkout/done/"
 description: "Your Prospektor workspace is live. Sign in with the address you paid with; the brief is drafted and the first prospects are already being researched."
 ---
 
@@ -17,32 +23,32 @@ description: "Your Prospektor workspace is live. Sign in with the address you pa
   <div class="onboard-inner">
 
     <ol class="steps">
-      <li class="step done"><span class="step-n-badge">✓</span>Scan</li>
-      <li class="step done"><span class="step-n-badge">✓</span>Your target</li>
-      <li class="step done"><span class="step-n-badge">✓</span>Payment</li>
-      <li class="step active"><span class="step-n-badge">4</span>Sign in</li>
+      <li class="step done"><span class="step-n-badge">✓</span>{% t %}Scan{% endt %}</li>
+      <li class="step done"><span class="step-n-badge">✓</span>{% t %}Your target{% endt %}</li>
+      <li class="step done"><span class="step-n-badge">✓</span>{% t %}Payment{% endt %}</li>
+      <li class="step active"><span class="step-n-badge">4</span>{% t %}Sign in{% endt %}</li>
     </ol>
 
     <div class="onboard-panel">
-      <h1 class="onboard-h1">You're in. <span class="done-check">✓</span></h1>
-      <p class="onboard-sub">Payment confirmed — your studio is already reading your site and drafting your brief.</p>
+      <h1 class="onboard-h1">{% t %}You're in.{% endt %} <span class="done-check">✓</span></h1>
+      <p class="onboard-sub">{% t %}Payment confirmed — your studio is already reading your site and drafting your brief.{% endt %}</p>
 
       <div class="order-card" id="confirmCard">
         <div class="order-row">
-          <span class="order-name">Prospektor Studio · one workspace</span>
+          <span class="order-name">{% t %}Prospektor · one workspace{% endt %}</span>
           <span class="order-price">$999<span class="order-per">/mo</span></span>
         </div>
         <ul class="confirm-list">
-          <li id="confirmPaid" hidden>Paid today: <strong id="confirmAmount"></strong></li>
-          <li id="confirmEmail" hidden>Your sign-in: <strong id="confirmAddress"></strong></li>
-          <li>Your receipt is on its way — Stripe emails it to the address you paid with</li>
+          <li id="confirmPaid" hidden>{% t %}Paid today:{% endt %} <strong id="confirmAmount"></strong></li>
+          <li id="confirmEmail" hidden>{% t %}Your sign-in:{% endt %} <strong id="confirmAddress"></strong></li>
+          <li>{% t %}Your receipt is on its way — Stripe emails it to the address you paid with{% endt %}</li>
         </ul>
       </div>
 
       <div class="onboard-actions">
-        <a class="btn-cta" href="https://studio.prospektor.ai">Sign in to your studio →</a>
+        <a class="btn-cta" href="https://studio.prospektor.ai">{% t %}Sign in to your studio →{% endt %}</a>
       </div>
-      <p class="onboard-sub">Sign in with Google using that address — or have the studio email you a single-use link. No token, no setup wizard.</p>
+      <p class="onboard-sub">{% t %}Sign in with Google using that address — or have the studio email you a single-use link. No token, no setup wizard.{% endt %}</p>
     </div>
 
   </div>

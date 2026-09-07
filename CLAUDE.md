@@ -203,6 +203,109 @@ finish parsing.
   of two hashes, not a race, so `defer` cannot break it — and the drive proves
   it rather than the reasoning doing so.
 
+## The typeahead contract — one door, and nothing but the characters typed (#241)
+
+The scan field suggests companies as the visitor types — one line each, name
+and domain — and a pick fills the field with the domain, because the scan is
+domain-keyed underneath. Nothing else on the page moves, and Scan is still the
+visitor's press.
+
+- **The source is Clearbit's public suggest endpoint, and only that.** It is
+  what the studio has called since before #42 wrote it down, and `/privacy/`
+  §08 names it as the recipient (#90). No new third party, no key, no account.
+- **The browser never talks to the provider.** `netlify/functions/company-suggest.js`
+  is the one door: it forwards the typed characters and nothing else — no
+  header, no identifier — and answers `{ name, domain }` pairs. A provider
+  entry is **never a URL** (studio #443): Clearbit's `logo` is dropped at the
+  boundary, so a browser can never be made to fetch from `logo.clearbit.com`.
+  `test/company-suggest.test.js` pins both; `test/drive.js` §15 watches the
+  browser's outbound hosts while it types.
+- **Every failure is no list.** A dead, slow or odd provider — or the function
+  itself unreachable — answers an empty list or nothing, and the field is the
+  plain text box it was before. There is no error state to draw.
+- **The cost posture per keystroke** is a 200 ms debounce, two characters
+  minimum, one request in flight (the previous one is aborted), a ten-minute
+  memo in the warm container and a ten-minute browser cache on the answer.
+  The provider is free; the meter is Netlify invocations.
+- **The list speaks the page's language** through `t()`, the same way every
+  other sentence a script says does — its one sentence is in every catalogue.
+- **`/privacy/` §08's Clearbit row and §05's typed-in paragraph say the scan
+  field sends this.** They said the opposite until #241; the row and the
+  sentence were changed in the same push as the field, because the notice may
+  never state something false. Studio-side, `DATA-HANDLING.md` §2 and §5 carry
+  the same correction.
+
+## The language contract — the English sentence is the key (#114)
+
+The funnel — `/`, `/pricing/`, `/checkout/`, `/checkout/done/` — is served in
+Spanish, German and Dutch under `/es/`, `/de/`, `/nl/`; `/` stays English for a
+visitor who never chose. The convention is #113's, carried over from the studio
+where it transfers, and the reasons are the same.
+
+- **One catalogue file per language, and the English sentence is the key.**
+  `src/_data/strings/<code>.json` is `{ "English sentence": "translation" }`.
+  There is no English catalogue to be incomplete and no key that can render
+  raw: a sentence a catalogue lacks renders in English and is logged once at
+  build time, never thrown. **Untranslated is reported, never red** — a feature
+  ships its English in the code that uses it and `npm run i18n:coverage` lists
+  what a sweep should catch up on (#113, #131). Red is reserved for what rots
+  silently: a catalogue entry for a sentence the site no longer says, a
+  translation that drops a `{placeholder}`, a `{% t %}` block the extractor
+  cannot read (`test/i18n.test.js`).
+- **English is a no-op, byte for byte.** `lib/i18n.js` returns the key
+  untouched for `en` before it looks anything up, so the English pages are the
+  pages the build wrote before #114 — checked by diffing a pre-#114 build
+  against a post-#114 one on the day it shipped: additions only (hreflang, the
+  switcher, the payload), not one moved byte. Keep it that way: wrap a
+  sentence, never rewrite it to make it wrappable.
+- **A language exists exactly when its catalogue does.** `lib/i18n.js`'s
+  `built()` is the list. The funnel templates paginate over it
+  (`pagination: data: languages`) to write one page per language; the layout
+  derives `<html lang>`, `hreflang` (every sibling, itself and `x-default`
+  included — SEO-AUDIT.md R5), `og:locale`, the footer switcher and the nav's
+  hrefs from the built page list; `sitemap.njk` derives the twins the same
+  way. Nothing lists `/es/` anywhere. Delete `es.json` and every one of those
+  leaves the same way.
+- **How copy is written.** `{% t %}…{% endt %}` around a sentence in a
+  template, markup inside allowed; `{{ value | t }}` for a value that arrives
+  in a variable (a frontmatter title, a site.json label); `t('…')` in a script
+  under `src/assets/js/` (the page ships exactly the sentences its scripts ask
+  for, inline, only where a twin exists — `i18n.js` defines `window.t` first
+  on every page) and in a Netlify function (`netlify/lib/strings.js` carries
+  the catalogues as literal requires, because a bundler ships what it can see).
+  Internal hrefs go through `{{ '/pricing/' | localize }}`, which answers the
+  twin where the build wrote one and the English page where it did not — so a
+  link on a localized page can never point at a URL the build did not produce.
+- **`Accept-Language` suggests. It never redirects.** `src/assets/js/i18n.js`
+  draws one bar under the nav, in the language it is offering, with the twin
+  and a *Not now*; either answer is remembered in `prospektor.lang` (declared
+  in `consent.js`'s inventory) and the bar is seen at most once. Only the
+  browser's first-ranked language counts, for #113's reason. `test/i18n.test.js`
+  fails on a `location.assign` in that file or an `Accept-Language` redirect
+  in `netlify.toml`; `test/drive.js` §14 drives a Spanish browser onto `/`.
+- **Checkout speaks the buyer's language and English sends nothing.** The
+  pages post `locale` only when it is not `en`; `create-checkout-session`
+  whitelists it against the closed set and, for a hit, sets Stripe's own
+  `locale` (a translated hosted page for one parameter), returns the buyer to
+  the translated pages, and writes `metadata[language]`; the webhook welcomes
+  them in it, tells the operator, and offers it to `/api/provision`. An
+  English purchase is byte for byte the Stripe request and the email it always
+  was — `test/checkout-session.test.js` and `test/stripe-webhook.test.js` pin
+  both halves.
+- **What stays English, and why.** `/help/` renders the studio's corpus and
+  waits on #113 Slice D and a locale-aware `/api/help`; `/terms/` and
+  `/privacy/` are COMPLIANCE's and not a translation job; `/resources/` is
+  written, not translated; the two product pages and `/contact/` are queued
+  (their nav items fall back to the English page, by the rule above); the scan
+  card's guess and the free run answer in the language the studio chooses
+  (#113) — the page sends `language` with the scan for the day `/api/scan`
+  reads it, asked for in the handover on 7 Sep 2026. `consent.js`'s banner is
+  English too: it is the studio's copy (#131 → #143) and is not wrapped here.
+- **Nothing counts sentences, pages or languages.** Adding a language is one
+  JSON file plus its literal require; adding a page to the funnel is a
+  `pagination:` block and its sentences wrapped. Either can only turn the suite
+  red by being stale, unreadable or dead-linked — the #131 rule.
+
 ## The sign-off
 
 When the deliverable is shipped, end the thread with exactly this shape and

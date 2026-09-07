@@ -123,6 +123,14 @@
       retention: 'Until you close the tab, and cleared the moment checkout finishes',
     },
     {
+      id: 'prospektor.lang',
+      name: 'prospektor.lang',
+      kind: 'Local storage',
+      category: 'necessary',
+      purpose: 'Your answer to the one-line offer to read this site in the language your browser prefers — the language you chose to stay with, or to switch to — so you are offered it once and not on every page.',
+      retention: 'Until you clear your browser data',
+    },
+    {
       /* Injected by Netlify into the served HTML, not written by our
          templates — which is why gating it needs an edge function and a
          loader rather than one call site. See the header note and the foot

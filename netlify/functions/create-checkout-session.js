@@ -1,7 +1,7 @@
 // Opens Stripe Checkout — for the pricing tile's one-field buy form and for
 // the /checkout/ payment step alike.
 //
-// One product, one price: a Prospektor Studio workspace, $999/month,
+// One product, one price: a Prospektor workspace, $999/month,
 // as a subscription (CEO decision, 16 Aug 2026). The price is inline
 // price_data so no dashboard product needs to exist; promotion codes are on
 // so founding-client rates are coupons the operator creates in the Stripe
@@ -30,6 +30,7 @@
 
 const { checkOwnership, ownershipMessage } = require('../lib/ownership');
 const { companyDomainFromEmail, cleanDomain } = require('../lib/email-domain');
+const { languageOf, LANGUAGES } = require('../../lib/i18n');
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -60,6 +61,15 @@ exports.handler = async function(event) {
   const company = meta(data.company);
   const goal = meta(data.goal);
   const email = String(data.email || '').trim().toLowerCase();
+  // #114: the language the buyer was reading in. Only a code from the closed
+  // set counts, and English counts as nothing — so an English purchase sends
+  // Stripe exactly the request it always did, and a Spanish one adds three
+  // things: Stripe's own translated hosted page (`locale`), return URLs on the
+  // Spanish pages, and a `language` in the metadata for the welcome email and
+  // the studio. Whitelisted by the set, so the field can never steer a URL.
+  const language = languageOf(data.locale);
+  const lang = language && language !== 'en' ? LANGUAGES.find(l => l.code === language) : null;
+  const prefix = lang ? lang.prefix : '';
 
   // Required now, where it used to be optional. Stripe can collect an address
   // itself, but an address Stripe collects is one nothing has checked — and
@@ -116,7 +126,7 @@ exports.handler = async function(event) {
   // cannot become an open redirect.
   const cancelUrl = data.from === 'resubscribe'
     ? 'https://studio.prospektor.ai/'
-    : site + (data.from === 'pricing' ? '/#pricing' : '/checkout/');
+    : site + prefix + (data.from === 'pricing' ? '/#pricing' : '/checkout/');
 
   const params = new URLSearchParams({
     mode: 'subscription',
@@ -124,21 +134,22 @@ exports.handler = async function(event) {
     'line_items[0][price_data][currency]': 'usd',
     'line_items[0][price_data][unit_amount]': '99900',
     'line_items[0][price_data][recurring][interval]': 'month',
-    'line_items[0][price_data][product_data][name]': 'Prospektor Studio — one workspace',
+    'line_items[0][price_data][product_data][name]': 'Prospektor — one workspace',
     allow_promotion_codes: 'true',
     // {CHECKOUT_SESSION_ID} is Stripe's template literal — Stripe substitutes
     // the real cs_… id on redirect, and /checkout/done/ trades it back for
     // the paid amount and sign-in address via checkout-session-status (#244).
     success_url: data.from === 'resubscribe' ? 'https://studio.prospektor.ai/'
-      : site + '/checkout/done/?session_id={CHECKOUT_SESSION_ID}',
+      : site + prefix + '/checkout/done/?session_id={CHECKOUT_SESSION_ID}',
     cancel_url: cancelUrl,
   });
+  if (lang) params.set('locale', lang.code);
   // #204: the optional marketing box. Only a literal true becomes metadata —
   // "false" from a form, or anything else truthy-looking, must never ride
   // through checkout and come out the other side as consent. Absent means
   // exactly what an unticked box means: nothing is recorded anywhere.
   const marketing = data.marketing === true ? 'yes' : '';
-  for (const [k, v] of [['domain', website], ['company', company], ['goal', goal], ['marketing', marketing]]) {
+  for (const [k, v] of [['domain', website], ['company', company], ['goal', goal], ['marketing', marketing], ['language', lang ? lang.code : '']]) {
     if (v) {
       params.set('metadata[' + k + ']', v);
       params.set('subscription_data[metadata][' + k + ']', v);

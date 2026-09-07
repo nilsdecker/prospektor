@@ -1,5 +1,11 @@
+{#- The language of this page is its URL (#114): `/es/…` is Spanish, the rest
+    is English. `alts` is every language this page exists in — a list of one
+    for an English page with no twin, which is also the case where nothing
+    below changes a byte of what this layout wrote before #114. -#}
+{%- set loc = page.url | localeOf -%}
+{%- set alts = page.url | alternates -%}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ loc.code }}">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,10 +14,23 @@
     lets a page whose own headline is longer than the budget give search a
     shorter one without touching the <h1>. See .eleventy.js for the reasoning
     and the measurements. -#}
-<title>{{ (seoTitle or title) | metaTitle(site.name, site.tagline) }}</title>
-<meta name="description" content="{{ description or site.description }}">
+<title>{{ ((seoTitle or title) | t) | metaTitle(site.name, site.tagline | t) }}</title>
+<meta name="description" content="{{ (description or site.description) | t }}">
 <link rel="canonical" href="{{ site.url }}{{ page.url }}">
 {% if noindex %}<meta name="robots" content="noindex, follow">{% endif %}
+{#- hreflang (#114), designed with the canonical as SEO-AUDIT.md R5 asks:
+    every language's page self-canonicalises (the line above) and names every
+    sibling INCLUDING itself; x-default is the English page, which is what a
+    visitor who never chose gets. Written only when there is a sibling to
+    name — a lone page carries no hreflang, because one is meaningless. -#}
+{%- if alts.length > 1 %}
+{%- for a in alts %}
+<link rel="alternate" hreflang="{{ a.code }}" href="{{ site.url }}{{ a.url }}">
+{%- endfor %}
+{%- for a in alts %}{% if a.code == 'en' %}
+<link rel="alternate" hreflang="x-default" href="{{ site.url }}{{ a.url }}">
+{%- endif %}{% endfor %}
+{%- endif %}
 
 {#- Search Console's HTML-tag fallback (#135). Empty in the repo and expected
     to stay that way: the property is verified by a DNS TXT record at the
@@ -25,17 +44,20 @@
      with no image behind it, which renders as a blank card everywhere. -->
 <meta property="og:type" content="{{ ogType or 'website' }}">
 <meta property="og:site_name" content="{{ site.name }}">
-<meta property="og:title" content="{% if title %}{{ title }} — {% endif %}{{ site.name }}">
-<meta property="og:description" content="{{ description or site.description }}">
+{%- if loc.code != 'en' %}
+<meta property="og:locale" content="{{ loc.og }}">
+{%- endif %}
+<meta property="og:title" content="{% if title %}{{ title | t }} — {% endif %}{{ site.name }}">
+<meta property="og:description" content="{{ (description or site.description) | t }}">
 <meta property="og:url" content="{{ site.url }}{{ page.url }}">
 <meta property="og:image" content="{{ site.url }}{{ (ogImage or '/assets/img/og.png') | asset }}">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 {% if ogType == "article" %}<meta property="og:image:alt" content="{{ title }} — Prospektor">
-{% else %}<meta property="og:image:alt" content="{{ ogAlt or ('Prospektor — ' + site.tagline + '. $999 per month, per workspace.') }}">{% endif %}
+{% else %}<meta property="og:image:alt" content="{{ ogAlt or ('Prospektor — ' + (site.tagline | t) + '. ' + ('$999 per month, per workspace.' | t)) }}">{% endif %}
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="{% if title %}{{ title }} — {% endif %}{{ site.name }}">
-<meta name="twitter:description" content="{{ description or site.description }}">
+<meta name="twitter:title" content="{% if title %}{{ title | t }} — {% endif %}{{ site.name }}">
+<meta name="twitter:description" content="{{ (description or site.description) | t }}">
 <meta name="twitter:image" content="{{ site.url }}{{ (ogImage or '/assets/img/og.png') | asset }}">
 
 <link rel="icon" href="{{ '/assets/img/favicon.svg' | asset }}" type="image/svg+xml">
@@ -45,6 +67,17 @@
 <link rel="preload" href="{{ '/assets/fonts/jetbrains-mono-latin.woff2' | asset }}" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="{{ '/assets/css/fonts.css' | asset }}">
 <link rel="stylesheet" href="{{ '/assets/css/main.css' | asset }}">
+
+{#- The browser's half of the language work (#114), on every page that has a
+    twin: the sentences the scripts on this page say, in this page's language,
+    and the one line the suggestion bar can say in each language the site is
+    built in. Deferred and FIRST, so `t()` exists before any other deferred
+    script runs — on EVERY page, so `t()` is one global every script may
+    assume; the bar it draws only ever suggests, it never redirects. -#}
+{%- if alts.length > 1 %}
+<script type="application/json" id="i18n">{{ page.url | i18nPayload | safe }}</script>
+{%- endif %}
+<script src="{{ '/assets/js/i18n.js' | asset }}" defer></script>
 
 <!-- Cookie consent (#143), copied from the studio's #131. In the head and on
      every page, because the gate has to be in place before anything optional
@@ -79,7 +112,7 @@
       "@id": "{{ site.url }}/#organization",
       "name": "{{ site.name }}",
       "url": "{{ site.url }}",
-      "description": {{ site.description | dump | safe }},{# #216: the Organization node answers "what is this company" on every page and has no length budget, so it takes the full approved sentence rather than the tagline fragment. The WebSite node below keeps site.description too — they are the same claim, stated once. #}
+      "description": {{ (site.description | t) | dump | safe }},{# #216: the Organization node answers "what is this company" on every page and has no length budget, so it takes the full approved sentence rather than the tagline fragment. The WebSite node below keeps site.description too — they are the same claim, stated once. #}
       "email": "{{ site.email }}",
       "logo": {
         "@type": "ImageObject",
@@ -92,9 +125,9 @@
       "@id": "{{ site.url }}/#website",
       "url": "{{ site.url }}",
       "name": "{{ site.name }}",
-      "description": {{ site.description | dump | safe }},
+      "description": {{ (site.description | t) | dump | safe }},
       "publisher": { "@id": "{{ site.url }}/#organization" },
-      "inLanguage": "en"
+      "inLanguage": "{{ loc.code }}"
     }
   ]
 }
@@ -103,7 +136,7 @@
 <body>
 
 <nav>
-  <a href="/" class="logo">
+  <a href="{{ '/' | localize }}" class="logo">
     <div class="logo-mark">
       <svg viewBox="0 0 12 12" fill="none"><path d="M2 6C2 3.79 3.79 2 6 2s4 1.79 4 4-1.79 4-4 4" stroke="white" stroke-width="1.5" stroke-linecap="round"/><circle cx="6" cy="6" r="1.2" fill="white"/></svg>
     </div>
@@ -111,13 +144,13 @@
   </a>
   <ul class="nav-links" id="navLinks">
     {% for item in site.nav %}
-    <li><a href="{{ item.url }}">{{ item.label }}</a></li>
+    <li><a href="{{ item.url | localize }}">{{ item.label | t }}</a></li>
     {% endfor %}
   </ul>
   <div class="nav-right">
     <span class="nav-ai-badge">AI_FIRST</span>
-    <a href="https://studio.prospektor.ai" class="nav-signin">Sign in</a>
-    <a href="/#scan" class="nav-cta">Scan your site</a>
+    <a href="https://studio.prospektor.ai" class="nav-signin">{% t %}Sign in{% endt %}</a>
+    <a href="{{ '/#scan' | localize }}" class="nav-cta">{% t %}Scan your site{% endt %}</a>
     {#- The phone's way in (#153). Until the nav became real pages, hiding it
         under 860px cost a visitor three anchors onto the page they were
         already reading — nothing. It now costs them /who-to-pitch/,
@@ -127,7 +160,7 @@
         CSS, so there is exactly one nav in the markup and the tests that
         derive from site.nav keep covering both. No JS, no panel. -#}
     <button class="nav-toggle" id="navToggle" type="button"
-            aria-controls="navLinks" aria-expanded="false" aria-label="Menu">
+            aria-controls="navLinks" aria-expanded="false" aria-label="{{ 'Menu' | t }}">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M3 6h18"></path><path d="M3 12h18"></path><path d="M3 18h18"></path></svg>
       <svg class="nav-toggle-x" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 5l14 14"></path><path d="M19 5L5 19"></path></svg>
     </button>
@@ -137,16 +170,16 @@
 {{ content | safe }}
 
 <footer>
-  <a href="/" class="footer-logo">
+  <a href="{{ '/' | localize }}" class="footer-logo">
     <div class="logo-mark">
       <svg viewBox="0 0 12 12" fill="none"><path d="M2 6C2 3.79 3.79 2 6 2s4 1.79 4 4-1.79 4-4 4" stroke="white" stroke-width="1.5" stroke-linecap="round"/><circle cx="6" cy="6" r="1.2" fill="white"/></svg>
     </div>
     {{ site.name }}
   </a>
-  <span class="footer-tagline">{{ site.tagline }}</span>
+  <span class="footer-tagline">{{ site.tagline | t }}</span>
   <ul class="footer-links">
     {% for item in site.legal %}
-    <li><a href="{{ item.url }}">{{ item.label }}</a></li>
+    <li><a href="{{ item.url | localize }}">{{ item.label | t }}</a></li>
     {% endfor %}
     {#- Not in site.legal, because it is not a page: consent.js catches the
         click by delegation and opens the preferences panel. Withdrawal has to
@@ -165,8 +198,21 @@
         their own mail client. The five other places that publish the address
         (help hub, each guide, /pricing/, /terms/) are untouched — there it
         reads as a courtesy in context, not as a competing route. -#}
-    <li><a href="/contact/">Contact</a></li>
+    <li><a href="{{ '/contact/' | localize }}">{% t %}Contact{% endt %}</a></li>
   </ul>
+  {#- The language switcher (#114): each language in its own name, so the
+      right one is findable by somebody who reads none of the others, linking
+      to THIS page's twin. In the footer rather than the header on purpose —
+      the header is at capacity (site.json, `//nav`), and the visitor whose
+      browser already prefers another language is met by the suggestion bar
+      instead. Only on a page that has a twin: a list of one is a decoration. -#}
+  {%- if alts.length > 1 %}
+  <ul class="footer-langs">
+    {%- for a in alts %}
+    <li>{% if a.current %}<span aria-current="page">{{ a.own }}</span>{% else %}<a href="{{ a.url }}" hreflang="{{ a.code }}" lang="{{ a.code }}">{{ a.own }}</a>{% endif %}</li>
+    {%- endfor %}
+  </ul>
+  {%- endif %}
 </footer>
 
 {#- defer (#137). This sat mid-document without it, so the parser stopped

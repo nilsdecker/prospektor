@@ -203,6 +203,36 @@ nav {
 }
 .scan-form:focus-within { border-color: var(--accent); }
 
+/* The typeahead (#241): one line per company — name, then domain — hanging
+   under the field at the field's own width, in the field's own box style. It
+   is absolute inside the form so it covers the hint rather than moving it:
+   nothing else on the page shifts while a visitor picks. */
+.scan-form { position: relative; }
+.scan-suggest {
+  position: absolute; left: -1px; right: -1px; top: calc(100% + 6px);
+  margin: 0; padding: 0.35rem 0; list-style: none;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.08);
+  z-index: 5; text-align: left;
+}
+.scan-suggest li {
+  display: flex; align-items: baseline; gap: 0.6rem;
+  padding: 0.5rem 1.25rem; cursor: pointer;
+  white-space: nowrap; overflow: hidden;
+}
+.scan-suggest li:hover,
+.scan-suggest li[aria-selected="true"] { background: var(--off-white); }
+.scan-suggest-name {
+  font-size: 0.9rem; font-weight: 600; color: var(--ink);
+  overflow: hidden; text-overflow: ellipsis;
+}
+.scan-suggest-domain {
+  font-family: var(--mono); font-size: 0.72rem; color: var(--ink-faint);
+  overflow: hidden; text-overflow: ellipsis; flex-shrink: 0;
+}
+
 .scan-form-label {
   font-family: var(--mono); font-size: 0.72rem; font-weight: 500;
   color: var(--ink-faint); white-space: nowrap; flex-shrink: 0;
@@ -1804,3 +1834,36 @@ footer {
   .nav-right { gap: 0.75rem; }
   .nav-cta { padding: 0.5rem 0.9rem; }
 }
+
+/* ── The funnel in more than one language (#114) ───────────────────────
+   Two pieces of chrome. The switcher lives in the footer, each language in
+   its own name, because the header is at capacity (site.json, `//nav`) and
+   the visitor whose browser already prefers another language never has to
+   find it: the suggestion bar meets them. The bar hangs under the fixed 58px
+   nav, over the hero's own top padding, and says one line in the language
+   it is suggesting — a link to the twin page, and a way to say no. It never
+   redirects. Both exist only on a page that has a twin. */
+.footer-langs {
+  display: flex; gap: 1rem; list-style: none; flex-wrap: wrap;
+}
+.footer-langs a { color: rgba(255,255,255,0.35); text-decoration: none; transition: color .15s; }
+.footer-langs a:hover { color: white; }
+.footer-langs [aria-current] { color: rgba(255,255,255,0.7); }
+
+.lang-suggest {
+  position: fixed; top: 58px; left: 0; right: 0; z-index: 199;
+  display: flex; align-items: center; justify-content: center; flex-wrap: wrap;
+  gap: 0.4rem 1.1rem; padding: 0.55rem 1.25rem;
+  background: var(--ink); color: rgba(255,255,255,0.8);
+  font-size: 0.82rem; line-height: 1.4;
+}
+.lang-suggest p { margin: 0; }
+.lang-suggest a {
+  color: white; font-weight: 700; text-decoration: none;
+  border-bottom: 1px solid var(--accent);
+}
+.lang-suggest button {
+  background: none; border: 0; padding: 0; cursor: pointer;
+  color: rgba(255,255,255,0.5); font: inherit;
+}
+.lang-suggest button:hover { color: white; }
