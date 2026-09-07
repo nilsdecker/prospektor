@@ -39,7 +39,10 @@ committed elsewhere.
 
 Almost every ICP definition in circulation describes **could-want**: industry,
 headcount, tech stack, revenue band, job title. All of it real, all of it
-necessary, and none of it predictive of whether anyone buys this quarter.
+necessary, and none of it predictive of whether anyone buys this quarter. None of
+it is [the job they would be buying for](/resources/sell-the-job-not-the-persona/)
+either, which is a different axis again — but even the job does not tell you the
+quarter.
 
 The missing axis is whether there is a person inside that company **whose current
 quarter depends on solving this.** Cohen's phrasing:

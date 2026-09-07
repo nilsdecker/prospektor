@@ -38,7 +38,15 @@
       "exception — a founder deciding what to run their own sales on is deciding",
       "how to win a customer, and the arithmetic is theirs to apply, not this",
       "company's. Part 7 is otherwise what the scope note says it is: a strategic",
-      "argument about where this business sits, which is not a finding for a reader."
+      "argument about where this business sits, which is not a finding for a reader.",
+      "",
+      "PROMOTED, 7 Sep 2026 (#447): learn-a-channel-fast and direct-mail-needs-the-acv",
+      "out of §7.6, and job-not-persona out of §7.5 — the last three spoke-sized",
+      "findings on the founder-led sales term, and the reason the cluster closes at",
+      "four pieces (ROADMAP.md, #447, 7 Sep). Each qualifies on the reader test: how",
+      "to get competent at a channel, whether a channel's price can carry it, and",
+      "what to segment a prospect list on are all decisions a founder takes to win a",
+      "customer. Nothing else in Part 7 is, and it stays out."
     ]
   },
   "learnings": [
@@ -143,6 +151,9 @@
     { "id": "cancellation-toolkit", "ref": "§9.6", "title": "Instrument why people cancel: multiple choice not freeform, offer a pause, route by reason", "verdict": "not-publishable", "reason": "Post-sale retention mechanics. The one part a seller acts on — that the stated reason is usually not the real one — is the too-expensive article, which has its own row." },
     { "id": "pricing-mechanics", "ref": "§9.7", "title": "The rule of 15, the announced annual increase, and why freemium is not a distribution fix", "verdict": "not-publishable", "reason": "Price-book operations for a company with a live subscriber base. What a price licenses you to *do* in sales is the row that has an article; what you charge existing customers next year is not this section's subject." },
     { "id": "expansion-revenue", "ref": "§9.4", "title": "Expansion revenue is the missing holy grail", "verdict": "not-publishable", "reason": "Revenue growth inside accounts you already won. Out of remit for the same reason as concierge onboarding — this section is about the sale, up to and including the moment it closes." },
-    { "id": "build-to-save-is-a-rounding-error", "ref": "§7.1", "title": "Building a tool to save money is a rounding error against the enterprise value a growing month produces — and the two cases that survive the arithmetic", "verdict": "article", "article": "founder-sales-stack" }
+    { "id": "build-to-save-is-a-rounding-error", "ref": "§7.1", "title": "Building a tool to save money is a rounding error against the enterprise value a growing month produces — and the two cases that survive the arithmetic", "verdict": "article", "article": "founder-sales-stack" },
+    { "id": "learn-a-channel-fast", "ref": "§7.6", "title": "Learning a channel you have never run: one practitioner, the reading time-boxed to a day or two, the first attempt made badly, then a coach — and an LLM gives the average answer", "verdict": "article", "article": "learn-a-channel-fast" },
+    { "id": "direct-mail-needs-the-acv", "ref": "§7.6", "title": "Direct mail is an account-based motion that needs the annual contract value, cash upfront and annual billing — the early letters are paid for before any of them work", "verdict": "article", "article": "learn-a-channel-fast" },
+    { "id": "job-not-persona", "ref": "§7.5", "title": "Why they buy is not who they are — segment by the job and the workflow, not the industry or the persona; two independent experts, one conclusion", "verdict": "article", "article": "sell-the-job-not-the-persona" }
   ]
 }
