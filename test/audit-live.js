@@ -607,8 +607,10 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
       check(`${l.prefix}${p} speaks ${l.name}: the h1 is not the English one (#535)`,
         !(html.match(/<h1[^>]*>([\s\S]*?)<\/h1>/) || ['', ''])[1].includes(h1));
     }
+    // Netlify rewrites a <form netlify> tag at deploy time — single quotes,
+    // attributes reordered — so the action is matched, not the markup.
     check(`${l.prefix}/contact/ posts to ${l.prefix}/contact/thanks/, which is served (#535)`,
-      (await (await fetch(SITE + l.prefix + '/contact/')).text()).includes(`action="${l.prefix}/contact/thanks/"`)
+      new RegExp(`<form[^>]*\\saction=["']${l.prefix}/contact/thanks/["']`).test(await (await fetch(SITE + l.prefix + '/contact/')).text())
       && (await fetch(SITE + l.prefix + '/contact/thanks/')).status === 200);
     if (hasHelp) {
       // The Spanish help section (#535): the hub links its own guide pages,
@@ -632,8 +634,10 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
     }
   }
   check('everything else in the sitemap is a help guide or a published article',
+    // A guide URL may sit under a language's prefix (#535); an article never does.
     derivedLocs.length > 0 && derivedLocs.every(l =>
-      /^https:\/\/prospektor\.ai\/(resources|help)\/[a-z0-9-]+\/$/.test(l)),
+      /^https:\/\/prospektor\.ai\/resources\/[a-z0-9-]+\/$/.test(l)
+      || i18n.built().some(x => new RegExp(`^https://prospektor\\.ai${x.prefix}/help/[a-z0-9-]+/$`).test(l))),
     `${guideLocs.length} guide URL(s), ${articleLocs.length} article URL(s)`);
   check('and every guide the studio publishes is among them (#166)',
     guideLocs.length > 0 && liveSlugs.length > 0 &&
