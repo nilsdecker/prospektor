@@ -1458,11 +1458,13 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
   {
     const page = await browser.newPage({ viewport: { width: 1440, height: 900 } });
     let polls = 0;
+    const pollUrls = [];
     await page.route('https://studio.prospektor.ai/api/scan**', async route => {
       if (route.request().method() === 'POST') {
         return route.fulfill({ status: 202, contentType: 'application/json',
           body: JSON.stringify({ domain: 'acme.com', status: 'queued', result: null }) });
       }
+      pollUrls.push(route.request().url());
       polls++;
       if (polls === 1) return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({
         domain: 'acme.com', status: 'running', result: null,
@@ -1495,6 +1497,9 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     check('the bar is past a third by the time the second poll lands (~4 s)', bar > 33, bar);
     await page.waitForSelector('#scanResult:not([hidden])', { timeout: 8000 });
     check('and the result still lands', (await page.textContent('#scanName')) === 'Acme');
+    // #536: English adds nothing to the poll — byte for byte the GET it was.
+    check('the English poll names no language (#536)',
+      pollUrls.length > 0 && pollUrls.every(u => !/[?&]language=/.test(u)), pollUrls[0]);
     await page.close();
 
     // No notes at all — the timed sentences, against the real envelope.
@@ -1524,8 +1529,10 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     // /es/ — the same wait, in Spanish, notes included.
     const es = await browser.newPage();
     let esPolls = 0;
+    const esPollUrls = [];
     await es.route('https://studio.prospektor.ai/api/scan**', async route => {
       if (route.request().method() === 'POST') return route.fulfill({ status: 202, contentType: 'application/json', body: JSON.stringify({ domain: 'acme.com', status: 'queued', result: null }) });
+      esPollUrls.push(route.request().url());
       esPolls++;
       return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ domain: 'acme.com', status: 'running', result: null,
         notes: esPolls === 1 ? [{ kind: 'read', url: 'https://acme.com/equipo' }] : [] }) });
@@ -1538,6 +1545,15 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     await es.waitForFunction(() => document.getElementById('scanStatusMsg').textContent === 'leyendo acme.com/equipo…', null, { timeout: 5000 })
       .then(() => check('and a note reads in Spanish too', true))
       .catch(async () => check('and a note reads in Spanish too', false, await es.textContent('#scanStatusMsg')));
+    // #536: and the POLL names the language, not only the POST. Since #534 a
+    // Spanish reading is its own record beside the English one, so a poll
+    // that names none reads the English one — and a Spanish visitor whose
+    // domain someone already scanned in English is shown that card while
+    // their own reading finishes unseen.
+    check('the Spanish poll carries the page’s language (#536)',
+      esPollUrls.length > 0 && esPollUrls.every(u => /[?&]language=es(&|$)/.test(u)), esPollUrls[0]);
+    check('and the domain is still what it always was beside it (#536)',
+      esPollUrls.every(u => new URL(u).search === '?domain=acme.com&language=es'), esPollUrls[0]);
     await es.close();
   }
 

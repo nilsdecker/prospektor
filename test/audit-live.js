@@ -153,6 +153,67 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
       /[?&]domain=/.test(runHref || ''), runHref);
   }
 
+  // ── CLAIM (#536): the scan's POLL names the page's language too ──
+  // Since #534 the studio files a Spanish reading beside the English one, so
+  // a poll that names no language reads the English record: a Spanish
+  // visitor whose domain somebody already scanned in English was shown that
+  // English card while their own reading finished unseen. Asked of
+  // production in both halves — the bytes the browser is actually served,
+  // and the request that browser actually makes.
+  {
+    const esHtml = await (await fetch(SITE + '/es/')).text();
+    const src = (esHtml.match(/<script\b[^>]*\ssrc=["'](\/assets\/js\/scan\.[^"']+)["']/i) || [])[1];
+    const js = src ? await (await fetch(SITE + src)).text() : '';
+    // The whole fix is one query string, so read for it rather than for a
+    // line: the file is minified-by-nobody but it is still the build's copy.
+    const buildsIt = /['"]&language=['"]\s*\+\s*encodeURIComponent\(LANG\)/.test(js);
+    const englishNoOp = /LANG\s*===\s*['"]en['"]\s*\?\s*['"]{2}/.test(js);
+    const pollUsesIt = /API\s*\+\s*['"]\?domain=['"]\s*\+\s*encodeURIComponent\(domain\)\s*\+\s*langQuery\(\)/.test(js);
+    check('the /es/ page is served a scan script that names its language (#536)',
+      !!src && buildsIt && pollUsesIt, src || 'no scan script on /es/');
+    check('and one that still adds nothing at all for English (#536)', englishNoOp, src || '');
+
+    // And the request the browser makes. stripe.com is the domain the English
+    // claim above already scanned, so the Spanish reading this warms is one
+    // scan against the day's budget, once, and cached after it (#534).
+    const pes = await ctx.newPage();
+    const esPolls = [];
+    let answered = null;
+    pes.on('request', r => {
+      if (r.method() === 'GET' && r.url().startsWith('https://studio.prospektor.ai/api/scan')) esPolls.push(r.url());
+    });
+    pes.on('response', async r => {
+      const rq = r.request();
+      if (!rq.url().startsWith('https://studio.prospektor.ai/api/scan')) return;
+      try {
+        const body = await r.json();
+        if (body && body.status === 'done') answered = body;
+      } catch (e) { /* not the answer we are reading */ }
+    });
+    await pes.goto(SITE + '/es/', { waitUntil: 'domcontentloaded' });
+    await pes.fill('#scanInput', 'stripe.com');
+    await pes.click('#scanBtn');
+    let esOutcome = 'timeout';
+    try {
+      await pes.waitForSelector('#scanResult:not([hidden]), #scanFallback:not([hidden]), #scanError:not([hidden])', { timeout: 100000 });
+      if (await pes.isVisible('#scanResult')) esOutcome = 'result';
+      else if (await pes.isVisible('#scanFallback')) esOutcome = 'fallback';
+      else esOutcome = 'error';
+    } catch (e) {}
+    check('a Spanish scan reaches a terminal state against the live studio (#536)',
+      esOutcome !== 'timeout', 'outcome: ' + esOutcome);
+    // Vacuous only when the reading was already cached and the POST answered
+    // outright — which is the case the two byte checks above cover.
+    check('every poll a Spanish scan makes names the language (#536)',
+      esPolls.every(u => /[?&]language=es(&|$)/.test(u)),
+      esPolls.length ? `${esPolls.length} poll(s), first: ${new URL(esPolls[0]).search}` : 'no poll — answered outright');
+    if (answered) {
+      check('and the studio says which reading answered (#536)', answered.language === 'es',
+        'language: ' + JSON.stringify(answered.language));
+    }
+    await pes.close();
+  }
+
   // ── CLAIM: the pricing tile pays directly ──
   const p2 = await ctx.newPage();
   await p2.goto(SITE+'/#pricing', { waitUntil: 'domcontentloaded' });
