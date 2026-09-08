@@ -161,17 +161,30 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
   // production in both halves — the bytes the browser is actually served,
   // and the request that browser actually makes.
   {
-    const esHtml = await (await fetch(SITE + '/es/')).text();
-    const src = (esHtml.match(/<script\b[^>]*\ssrc=["'](\/assets\/js\/scan\.[^"']+)["']/i) || [])[1];
-    const js = src ? await (await fetch(SITE + src)).text() : '';
+    // Three attempts, like every other direct read in this file: this
+    // session's egress drops roughly one request in six, and a dropped GET
+    // reported as "no scan script on /es/" is the audit crying wolf about
+    // the one claim it exists to make.
+    const tryText = async (url) => {
+      for (let i = 0; i < 3; i++) {
+        try { return await (await fetch(url)).text(); }
+        catch (e) { RELAY_RETRIES.push(url); }
+      }
+      return null;
+    };
+    const esHtml = await tryText(SITE + '/es/');
+    const src = (String(esHtml || '').match(/<script\b[^>]*\ssrc=["'](\/assets\/js\/scan\.[^"']+)["']/i) || [])[1];
+    const js = src ? (await tryText(SITE + src)) || '' : '';
     // The whole fix is one query string, so read for it rather than for a
     // line: the file is minified-by-nobody but it is still the build's copy.
     const buildsIt = /['"]&language=['"]\s*\+\s*encodeURIComponent\(LANG\)/.test(js);
     const englishNoOp = /LANG\s*===\s*['"]en['"]\s*\?\s*['"]{2}/.test(js);
     const pollUsesIt = /API\s*\+\s*['"]\?domain=['"]\s*\+\s*encodeURIComponent\(domain\)\s*\+\s*langQuery\(\)/.test(js);
     check('the /es/ page is served a scan script that names its language (#536)',
-      !!src && buildsIt && pollUsesIt, src || 'no scan script on /es/');
-    check('and one that still adds nothing at all for English (#536)', englishNoOp, src || '');
+      !!src && buildsIt && pollUsesIt,
+      src || (esHtml === null ? 'unreachable ×3' : 'no scan script on /es/'));
+    check('and one that still adds nothing at all for English (#536)', englishNoOp,
+      src || (esHtml === null ? 'unreachable ×3' : ''));
 
     // And the request the browser makes. stripe.com is the domain the English
     // claim above already scanned, so the Spanish reading this warms is one
