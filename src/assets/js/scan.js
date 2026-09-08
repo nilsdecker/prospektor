@@ -17,6 +17,9 @@
   // it once it learns to (HANDOVER-website-funnel.md, 7 Sep 2026). English
   // sends nothing, so an English scan is the request it always was.
   const LANG = document.documentElement.lang || 'en';
+  // What the scan's GET adds for this page's language — nothing at all for
+  // English (#114's rule: English is byte for byte the request it was).
+  const langQuery = () => (LANG === 'en' ? '' : '&language=' + encodeURIComponent(LANG));
 
   const form = document.getElementById('scanForm');
   if (!form) return;
@@ -358,7 +361,15 @@
       if (gen !== generation) return;
       let data = null;
       try {
-        const r = await fetch(API + '?domain=' + encodeURIComponent(domain));
+        // #536: the poll names the language too, not just the POST. Since
+        // #534 the studio files a Spanish reading BESIDE the English one, so
+        // a poll that names no language reads the English record — and a
+        // Spanish visitor scanning a domain somebody already scanned in
+        // English is shown that English card while their own reading
+        // finishes unseen. English still sends nothing, so the English poll
+        // is the request it always was; the reply's `language` says which
+        // reading answered.
+        const r = await fetch(API + '?domain=' + encodeURIComponent(domain) + langQuery());
         if (r.ok) data = await r.json();
       } catch (e) { /* transient network hiccup — keep polling until the deadline */ }
       if (gen !== generation) return;
