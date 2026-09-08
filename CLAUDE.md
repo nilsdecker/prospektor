@@ -310,6 +310,20 @@ the same.
   not asked again; closed; taken. Nothing to add to `/privacy/` — a preference
   flag on the visitor's own device, the same class as the cookie notice's own
   remembered choice.
+- **The scan says the language on BOTH requests, and English says nothing on
+  either (#114 → #536).** `scan.js` reads it from `<html lang>` once, and one
+  `langQuery()` decides what the GET adds: the POST carries `language` in its
+  body, the poll carries `&language=` on the URL, and for `en` both are the
+  request they were before #114. The poll is not decoration — since the
+  studio's #534 a Spanish reading is **its own record beside** the English one,
+  keyed `(domain, language)`, so a poll naming no language reads the English
+  record and a Spanish visitor whose domain somebody already scanned in English
+  was shown that English card while their own reading finished unseen. The
+  studio bridges the case where only one reading exists, so a poll can never
+  come back empty; naming the language is what makes it come back *right*. The
+  reply's `language` says which reading answered — `"es"`, absent for English —
+  and that is what `npm run audit` asserts against the live studio.
+  `test/drive.js` §16 drives both halves.
 - **Checkout speaks the buyer's language and English sends nothing.** The
   pages post `locale` only when it is not `en`; `create-checkout-session`
   whitelists it against the closed set and, for a hit, sets Stripe's own
