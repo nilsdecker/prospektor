@@ -81,12 +81,16 @@ describe('llms.txt — the machine-readable front door (#316)', () => {
     }
   });
 
-  test('the price it quotes is the price the pricing page charges', () => {
+  test('every price it quotes is a price the pricing page charges', () => {
     const pricing = fs.readFileSync(path.join(SITE, 'pricing', 'index.html'), 'utf8');
-    const quoted = (txt.match(/US\$([\d,]+) a month/) || [])[1];
-    assert.ok(quoted, 'llms.txt must state the price a machine came here to read');
-    assert.ok(pricing.includes(`"price": "${quoted}.00"`),
-      `llms.txt says US$${quoted}/month; /pricing/ offers something else`);
+    // #542: two figures now, and a machine reading this file must not be told
+    // either one that /pricing/ does not offer. Read as a set, so a third plan
+    // named here and nowhere else is red.
+    const quoted = [...txt.matchAll(/US\$([\d,]+) (?:a|for a) (?:month|year)/g)].map(m => m[1]);
+    assert.ok(quoted.length, 'llms.txt must state the price a machine came here to read');
+    for (const q of quoted)
+      assert.ok(pricing.includes(`"price": "${q.replace(/,/g, '')}.00"`),
+        `llms.txt says US$${q}; /pricing/ offers no such price`);
     assert.ok(pricing.includes('"priceCurrency": "USD"'));
   });
 

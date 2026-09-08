@@ -508,6 +508,27 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
       missingIds.length === 0 && /assets\/js\/buy(?:\.[0-9a-f]+)?\.js/.test(pricing),
       missingIds.length ? 'missing #' + missingIds.join(', #')
         : (/assets\/js\/buy(?:\.[0-9a-f]+)?\.js/.test(pricing) ? '' : 'the ids are there but buy.js is not loaded'));
+
+    // ── CLAIM (#542): the yearly plan is on the live pricing page ──
+    // The board's own definition of done for that row: the yearly figure
+    // visible as SERVED BYTES on prospektor.ai/pricing/. Asked of production
+    // rather than of the build, because a green build is not a deploy — which
+    // is the whole reason this file exists. Both the reader's figure and the
+    // machine's Offer, since Google reads one and a buyer the other.
+    const yearlyOffer = /"price":\s*"9990\.00"/.test(pricing) && /"billingPeriod":\s*"P1Y"/.test(pricing);
+    check('/pricing/ serves the yearly plan — the switch, the figure and a second Offer (#542)',
+      pricing.includes('id="planSwitch"') && pricing.includes('$9,990') && yearlyOffer
+        && /assets\/js\/plan(?:\.[0-9a-f]+)?\.js/.test(pricing),
+      [!pricing.includes('id="planSwitch"') && 'no #planSwitch',
+       !pricing.includes('$9,990') && 'the $9,990 figure is not in the bytes',
+       !yearlyOffer && 'no P1Y Offer at 9990.00 in the structured data',
+       !/assets\/js\/plan(?:\.[0-9a-f]+)?\.js/.test(pricing) && 'plan.js is not loaded',
+      ].filter(Boolean).join('; '));
+    const terms = await (await fetch(SITE + '/terms/')).text();
+    check('and /terms/ §02 says a yearly price is fixed for the year (#542)',
+      /fixed for the year/i.test(terms) && terms.includes('$9,990'),
+      [!/fixed for the year/i.test(terms) && 'no "fixed for the year" clause',
+       !terms.includes('$9,990') && 'the yearly figure is not on /terms/'].filter(Boolean).join('; '));
   }
 
   check('robots.txt is a real robots.txt, not the app shell',

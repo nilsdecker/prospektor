@@ -743,6 +743,32 @@ nav {
   color: var(--ink-faint);
 }
 
+/* #542 — the plan switch. A segmented control, not a second buy button: a
+   pricing page and a checkout each get one primary action (style rule 8), and
+   this is a choice about that one action rather than a second escape hatch. */
+.plan-switch {
+  display: inline-flex; gap: 2px; padding: 3px; margin-bottom: 1.5rem;
+  background: var(--off-white); border: 1px solid var(--border); border-radius: 100px;
+}
+.plan-opt {
+  border: 0; background: none; cursor: pointer;
+  font-family: var(--font); font-size: 0.76rem; font-weight: 700; line-height: 1.2;
+  color: var(--ink-mid); padding: 0.45rem 0.95rem; border-radius: 100px;
+  white-space: nowrap;
+}
+.plan-opt[aria-pressed="true"] {
+  background: var(--white); color: var(--ink);
+  box-shadow: 0 1px 3px rgba(26,26,24,0.14);
+}
+.plan-note {
+  margin-top: 0.8rem;
+  font-size: 0.86rem; color: var(--ink-mid); line-height: 1.55;
+}
+.plan-note strong { color: var(--ink); font-weight: 700; }
+/* On the order card the switch sits above a row that is already tight. */
+.order-card .plan-switch { margin-bottom: 1.1rem; }
+.order-card .plan-note { margin: 1rem 0 0; font-size: 0.82rem; }
+
 .pricing-list {
   list-style: none; margin: 1.5rem 0 0;
   display: flex; flex-direction: column; gap: 0.6rem;
@@ -1206,6 +1232,10 @@ footer {
   .scan-form-label { display: none; }
   .scan-form { padding-left: 1rem; }
   .pricing-card { padding: 1.5rem; }
+  /* #542: the switch holds one line inside a 1.5rem-padded card at 320px —
+     style rule 9, a label that would wrap gets shorter, not smaller, and the
+     drive measures it rather than trusting this. */
+  .plan-opt { font-size: 0.68rem; padding: 0.42rem 0.66rem; }
 }
 /* ══ /resources/ — the lead-generation blog (#144) ══════════════════════
    Two page shapes: the card-grid hub and the article. Both reuse the

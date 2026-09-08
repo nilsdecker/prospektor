@@ -1,7 +1,7 @@
 ---
 layout: base.njk
 title: Start your studio
-description: "Start your Prospektor workspace: $999 a month, unlimited runs, your whole team in. Next stop is Stripe, and the research runs while you are still paying."
+description: "Start your Prospektor workspace: $999 a month or $9,990 a year, unlimited runs, your whole team in. Next stop is Stripe, and the research runs while you pay."
 # One page per language (#114) — see src/index.njk for the reasoning.
 pagination:
   data: languages
@@ -54,10 +54,20 @@ permalink: "{{ language.prefix }}/checkout/"
       <h2 class="onboard-h1">{% t %}Payment.{% endt %}</h2>
       <p class="onboard-sub">{% t %}The moment payment lands, your studio starts researching you.{% endt %}</p>
       <div class="order-card">
+        {#- #542 — the same switch /pricing/ carries, and the same rule: both
+            figures are written here by the build and plan.js only hides one of
+            them, so the order card can never show a price the checkout call
+            does not send. `?plan=year` from /pricing/ arrives preselected. -#}
+        <div class="plan-switch" id="planSwitch" role="group" aria-label="{% t %}Billing period{% endt %}">
+          <button type="button" class="plan-opt" data-plan="month" aria-pressed="true">{% t %}Monthly{% endt %}</button>
+          <button type="button" class="plan-opt" data-plan="year" aria-pressed="false">{% t %}Yearly — 2 months free{% endt %}</button>
+        </div>
         <div class="order-row">
           <span class="order-name">{% t %}Prospektor · one workspace{% endt %}</span>
-          <span class="order-price">$999<span class="order-per">/mo</span></span>
+          <span class="order-price" data-plan-show="month">$999<span class="order-per">/mo</span></span>
+          <span class="order-price" data-plan-show="year" hidden>$9,990<span class="order-per">/yr</span></span>
         </div>
+        <p class="plan-note" data-plan-show="year" hidden>{% t %}<strong>Two months free</strong> on $11,988 — charged once, and the price is fixed for the year.{% endt %}</p>
         <ul class="pricing-list">
           <li>{% t %}Unlimited pitch runs, under fair use{% endt %}</li>
           <li>{% t %}Deck, one-pager, cold emails and proposal — every run, in your voice{% endt %}</li>
@@ -128,3 +138,5 @@ permalink: "{{ language.prefix }}/checkout/"
     returns if they are absent, so deferring is not only cheaper — it is the
     case the guard was written for, with the DOM guaranteed complete. -#}
 <script src="{{ '/assets/js/checkout.js' | asset }}" defer></script>
+{#- After checkout.js, for the reason given on /pricing/ (#542). -#}
+<script src="{{ '/assets/js/plan.js' | asset }}" defer></script>

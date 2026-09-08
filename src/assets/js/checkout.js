@@ -18,6 +18,15 @@
   // #114: the language this checkout is read in — Stripe's hosted page,
   // the return URLs and the welcome email follow it. English sends nothing.
   const LANG = document.documentElement.lang || 'en';
+  // #542: monthly or yearly, chosen on the order card (or carried here as
+  // `?plan=year` from /pricing/). plan.js owns the switch and announces the
+  // choice; this only remembers which one to send. Monthly sends nothing, the
+  // way English sends no locale.
+  let plan = 'month';
+  const planSwitch = document.getElementById('planSwitch');
+  if (planSwitch) planSwitch.addEventListener('plan', e => {
+    plan = e.detail === 'year' ? 'year' : 'month';
+  });
   const goalInput = document.getElementById('goalInput');
 
   const params = new URLSearchParams(location.search);
@@ -163,7 +172,7 @@
         body: JSON.stringify(Object.assign({
           domain: domain, company: company, goal: goal, email: email,
           marketing: !!(marketingBox && marketingBox.checked),
-        }, LANG === 'en' ? {} : { locale: LANG })),
+        }, plan === 'year' ? { plan: 'year' } : {}, LANG === 'en' ? {} : { locale: LANG })),
       });
       if (r.status === 503) { showFallback(); return; } // keys pulled since the probe
       const data = await r.json().catch(() => null);

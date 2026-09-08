@@ -189,6 +189,31 @@ describe('stripe-webhook billing gate', () => {
     assert.deepEqual(JSON.parse(patch.body), { email: 'b@acme.com', action: 'suspend', reason: 'payment_failed' });
   });
 
+  // #542 asked for this to be VERIFIED rather than assumed, and a test says it
+  // better than a reading does: the gate is keyed on the event TYPE and the
+  // address, and reads nothing about the money. A yearly renewal is the same
+  // five events twelve months apart, so a yearly customer is locked and
+  // unlocked by exactly the path a monthly one is — and a future line that
+  // starts reading an amount, an interval or a price id turns this red.
+  test('a yearly renewal locks and unlocks the same way a monthly one does (#542)', async () => {
+    const YEARLY = {
+      customer: 'cus_1',
+      customer_email: 'b@acme.com',
+      amount_due: 999000,
+      lines: { data: [{ price: { recurring: { interval: 'year' }, unit_amount: 999000 } }] },
+      period_start: 1757289600, period_end: 1788825600,
+    };
+    for (const [type, want] of [
+      ['invoice.payment_failed', { email: 'b@acme.com', action: 'suspend', reason: 'payment_failed' }],
+      ['invoice.paid', { email: 'b@acme.com', action: 'resume' }],
+    ]) {
+      const calls = stubFetch([suspended()]);
+      const r = await fn.handler(signedStripeEvent(SECRET, { type, data: { object: YEARLY } }));
+      assert.equal(r.statusCode, 200, type);
+      assert.deepEqual(JSON.parse(patchCalls(calls)[0].body), want, type);
+    }
+  });
+
   test('a chargeback suspends, resolving the customer when the event has no email', async () => {
     const calls = stubFetch([
       ['api.stripe.com/v1/customers/cus_9', { status: 200, body: { email: 'B@Acme.com' } }],

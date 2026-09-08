@@ -40,6 +40,11 @@
         document.getElementById('confirmAddress').textContent = d.email;
         document.getElementById('confirmEmail').hidden = false;
       }
+      // #542: the order row is written for both plans; show the one that was
+      // bought. Anything but the word 'year' leaves the monthly row standing,
+      // so an older session or a missing field reads as it always did.
+      for (const el of document.querySelectorAll('[data-plan-show]'))
+        el.hidden = el.dataset.planShow !== (d.plan === 'year' ? 'year' : 'month');
     })
     .catch(() => {});
 })();

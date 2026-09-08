@@ -1613,6 +1613,161 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     await page.close();
   }
 
+  // 16 — the yearly plan (#542). The operator's call on 7 Sep 2026: two months
+  //      free for prepaying a year. Four things this drives that no static
+  //      assertion can: that the switch actually swaps the figure a buyer
+  //      reads, that the choice reaches the checkout call, that the DEFAULT is
+  //      untouched (a monthly POST is the POST it has always been — the same
+  //      property #114 holds for English), and that the choice survives the
+  //      hop from /pricing/ to /checkout/, which is a URL and not a memory.
+  {
+    const page = await browser.newPage();
+    const posts = [];
+    await page.route('**/.netlify/functions/create-checkout-session', async route => {
+      if (route.request().method() === 'GET')
+        return route.fulfill({ status: 200, body: JSON.stringify({ configured: true }) });
+      posts.push(JSON.parse(route.request().postData()));
+      return route.fulfill({ status: 200, contentType: 'application/json',
+        body: JSON.stringify({ url: 'https://checkout.stripe.com/c/pay/cs_live_1' }) });
+    });
+    await page.route('**/.netlify/functions/check-email', route =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ taken: false }) }));
+    await page.route('https://checkout.stripe.com/**', route =>
+      route.fulfill({ status: 200, contentType: 'text/html', body: '<h1>STRIPE CHECKOUT</h1>' }));
+
+    await page.goto('http://localhost:8899/pricing/');
+    await page.waitForSelector('#buyForm:not([hidden])', { timeout: 5000 });
+    // The big figure — one of the two price rows — and the line under it.
+    const priced = () => page.$$eval('.pricing-card .price-row:not([hidden])',
+      ns => ns.map(n => n.textContent.replace(/\s+/g, ' ').trim()).join(' | '));
+    const note = () => page.$$eval('.pricing-card .plan-note:not([hidden])',
+      ns => ns.map(n => n.textContent.replace(/\s+/g, ' ').trim()).join(' | '));
+
+    check('/pricing/ opens on the monthly figure', (await priced()).includes('$999'));
+    check('and exactly one price row is on screen', (await priced()).split('|').length === 1);
+    check('with the yearly figure named beside it, which is the whole point',
+      (await note()).includes('$9,990') && (await note()).includes('two months free'), await note());
+    check('the monthly option reports itself pressed',
+      await page.getAttribute('.plan-opt[data-plan="month"]', 'aria-pressed') === 'true');
+
+    await page.click('.plan-opt[data-plan="year"]');
+    const yearly = (await priced());
+    check('choosing yearly swaps the big figure', yearly.includes('$9,990'), yearly);
+    check('and it never shows two price rows at once', yearly.split('|').length === 1, yearly);
+    check('and says what the two months free are free OF',
+      (await note()).includes('$11,988'), await note());
+    check('the CTA carries the yearly figure too',
+      ((await page.textContent('#buyBtn')) || '').includes('$9,990'), await page.textContent('#buyBtn'));
+    check('the yearly option reports itself pressed, the monthly one not',
+      await page.getAttribute('.plan-opt[data-plan="year"]', 'aria-pressed') === 'true'
+      && await page.getAttribute('.plan-opt[data-plan="month"]', 'aria-pressed') === 'false');
+
+    // Style rule 9: a label that would wrap gets shorter, not smaller. The
+    // switch is the narrowest thing on the card at 320px, so it is measured.
+    await page.setViewportSize({ width: 320, height: 900 });
+    const box = await page.locator('#planSwitch').boundingBox();
+    const card = await page.locator('.pricing-card').boundingBox();
+    check('the switch holds one line inside the card at 320px',
+      box.height < 46 && box.x >= card.x - 1 && box.x + box.width <= card.x + card.width + 1,
+      { switch: box, card });
+    await page.setViewportSize({ width: 1280, height: 900 });
+
+    await page.fill('#buyEmail', 'buyer@acme.com');
+    await page.click('#buyBtn');
+    await page.waitForURL(/checkout\.stripe\.com/, { timeout: 5000 });
+    check('a yearly buy tells the server which plan', posts.length === 1 && posts[0].plan === 'year', posts);
+    await page.close();
+  }
+  {
+    // The default is the load-bearing half: nothing about the switch existing
+    // may change what a monthly buyer sends.
+    const page = await browser.newPage();
+    const posts = [];
+    await page.route('**/.netlify/functions/create-checkout-session', async route => {
+      if (route.request().method() === 'GET')
+        return route.fulfill({ status: 200, body: JSON.stringify({ configured: true }) });
+      posts.push(JSON.parse(route.request().postData()));
+      return route.fulfill({ status: 200, contentType: 'application/json',
+        body: JSON.stringify({ url: 'https://checkout.stripe.com/c/pay/cs_live_1' }) });
+    });
+    await page.route('https://checkout.stripe.com/**', route =>
+      route.fulfill({ status: 200, contentType: 'text/html', body: '<h1>STRIPE CHECKOUT</h1>' }));
+    await page.goto('http://localhost:8899/pricing/');
+    await page.waitForSelector('#buyForm:not([hidden])', { timeout: 5000 });
+    await page.fill('#buyEmail', 'buyer@acme.com');
+    await page.click('#buyBtn');
+    await page.waitForURL(/checkout\.stripe\.com/, { timeout: 5000 });
+    check('an untouched pricing page sends no plan at all',
+      posts.length === 1 && !('plan' in posts[0]), posts);
+    await page.close();
+  }
+  {
+    // The hop: /pricing/'s own link to /checkout/ carries the choice, and the
+    // switch on the far side is already on it. This is the path a visitor
+    // takes when there are no Stripe keys — the one that used to be a dead end
+    // for a yearly buyer, since the pricing CTA is a link then, not a form.
+    const page = await browser.newPage();
+    await page.route('**/.netlify/functions/create-checkout-session', route =>
+      route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'not open' }) }));
+    await page.goto('http://localhost:8899/pricing/');
+    await page.click('.plan-opt[data-plan="year"]');
+    check('with no keys the /checkout/ link carries the choice',
+      /[?&]plan=year/.test(await page.getAttribute('#buyLink', 'href')),
+      await page.getAttribute('#buyLink', 'href'));
+    await page.click('.plan-opt[data-plan="month"]');
+    check('and drops it again when the visitor goes back to monthly',
+      !/plan=/.test(await page.getAttribute('#buyLink', 'href')),
+      await page.getAttribute('#buyLink', 'href'));
+    await page.close();
+
+    const far = await browser.newPage();
+    const posts = [];
+    await far.route('**/.netlify/functions/create-checkout-session', async route => {
+      if (route.request().method() === 'GET')
+        return route.fulfill({ status: 200, body: JSON.stringify({ configured: true }) });
+      posts.push(JSON.parse(route.request().postData()));
+      return route.fulfill({ status: 200, contentType: 'application/json',
+        body: JSON.stringify({ url: 'https://checkout.stripe.com/c/pay/cs_live_1' }) });
+    });
+    await far.route('**/.netlify/functions/check-email', route =>
+      route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ taken: false }) }));
+    await far.route('https://checkout.stripe.com/**', route =>
+      route.fulfill({ status: 200, contentType: 'text/html', body: '<h1>STRIPE CHECKOUT</h1>' }));
+    await far.goto('http://localhost:8899/checkout/?domain=acme.com&plan=year');
+    await far.click('#toPayBtn');
+    await far.waitForSelector('#stripePay:not([hidden])', { timeout: 5000 });
+    check('/checkout/ opens on yearly when it was chosen on /pricing/',
+      await far.getAttribute('.plan-opt[data-plan="year"]', 'aria-pressed') === 'true');
+    // Asked of what is on screen, not of textContent: the monthly figure is
+    // still in the document, hidden, which is the whole mechanism.
+    const card = (await far.$$eval('.order-card .order-price:not([hidden])',
+      ns => ns.map(n => n.textContent.replace(/\s+/g, ' ').trim()))).join(' | ');
+    check('and the order card shows the yearly figure, and only it',
+      card.includes('$9,990') && !card.includes('$999'), card);
+    await far.fill('#payEmail', 'buyer@acme.com');
+    await far.click('#stripeBtn');
+    await far.waitForURL(/checkout\.stripe\.com/, { timeout: 8000 });
+    check('and the checkout call carries the plan', posts.length === 1 && posts[0].plan === 'year', posts);
+    await far.close();
+  }
+  {
+    // /checkout/done/ used to print "$999/mo" as a constant. A yearly buyer
+    // must not be shown a number they were not charged.
+    const page = await browser.newPage();
+    await page.route('**/.netlify/functions/checkout-session-status**', route =>
+      route.fulfill({ status: 200, contentType: 'application/json',
+        body: JSON.stringify({ paid: true, amount_total: 999000, currency: 'usd', email: 'buyer@acme.com', plan: 'year' }) }));
+    await page.goto('http://localhost:8899/checkout/done/?session_id=cs_test_abcdefghij');
+    await page.waitForSelector('#confirmPaid:not([hidden])', { timeout: 5000 });
+    const card = (await page.$$eval('#confirmCard .order-price:not([hidden])',
+      ns => ns.map(n => n.textContent.replace(/\s+/g, ' ').trim()))).join(' | ');
+    check('done names the yearly plan a yearly buyer bought, and only it',
+      card.includes('$9,990') && !card.includes('$999'), card);
+    check('and the amount is the one that left the card',
+      (await page.textContent('#confirmAmount')) === '$9,990.00');
+    await page.close();
+  }
+
   await browser.close();
   server.close();
   console.log('\n' + pass + ' passed, ' + fail + ' failed');

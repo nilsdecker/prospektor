@@ -88,6 +88,53 @@ describe('create-checkout-session', () => {
     }
   });
 
+  // #542: the yearly plan. Two things matter and they pull against each other —
+  // a yearly buyer must actually be charged the yearly price and billed once a
+  // year, and a monthly buyer's request must be the one this function has always
+  // sent, byte for byte, so nothing about the switch can change what a monthly
+  // purchase does.
+  test('a yearly buyer is charged $9,990 once a year, and the plan rides through as metadata', async () => {
+    const calls = stubFetch([STRIPE_OK, FREE]);
+    assert.equal((await post(fn, { email: 'b@acme.com', from: 'pricing', plan: ' year ' })).statusCode, 200,
+      'trimmed like every other field this function reads');
+    const p = new URLSearchParams(stripeCalls(calls)[0].body);
+    assert.equal(p.get('line_items[0][price_data][unit_amount]'), '999000', 'ten months for twelve');
+    assert.equal(p.get('line_items[0][price_data][recurring][interval]'), 'year');
+    assert.equal(p.get('mode'), 'subscription', 'yearly is a subscription, not a one-off');
+    assert.equal(p.get('metadata[plan]'), 'year', '/checkout/done/ and the operator notice read this');
+    assert.equal(p.get('subscription_data[metadata][plan]'), 'year');
+  });
+
+  test('the two prices are the PLANS table, and nothing else can be charged', async () => {
+    // The table is the only place either figure is written, so this reads it
+    // rather than restating it: a plan whose price moves moves here too, and a
+    // plan added without a page to sell it on is caught by test/seo.test.js.
+    assert.deepEqual(Object.keys(fn.PLANS).sort(), ['month', 'year']);
+    for (const [plan, want] of Object.entries(fn.PLANS)) {
+      const calls = stubFetch([STRIPE_OK, FREE]);
+      await post(fn, { email: 'b@acme.com', from: 'pricing', plan });
+      const p = new URLSearchParams(stripeCalls(calls)[0].body);
+      assert.equal(p.get('line_items[0][price_data][unit_amount]'), want.unit_amount);
+      assert.equal(p.get('line_items[0][price_data][recurring][interval]'), want.interval);
+    }
+  });
+
+  test('monthly, an unknown plan and no plan all send Stripe the request it always got', async () => {
+    // Same posture as the language field: the default writes nothing, so the
+    // request a monthly buyer makes is unchanged by the yearly plan existing —
+    // and nothing a browser can be made to send charges an invented price.
+    for (const plan of [undefined, 'month', 'yearly', 'YEAR', 'constructor', '__proto__', 42, { unit_amount: '1' }]) {
+      const calls = stubFetch([STRIPE_OK, FREE]);
+      await post(fn, { email: 'b@acme.com', from: 'pricing', plan });
+      const p = new URLSearchParams(stripeCalls(calls)[0].body);
+      assert.equal(p.get('line_items[0][price_data][unit_amount]'), '99900',
+        `plan=${JSON.stringify(plan)} must charge the monthly price`);
+      assert.equal(p.get('line_items[0][price_data][recurring][interval]'), 'month');
+      assert.equal(p.get('metadata[plan]'), null, `plan=${JSON.stringify(plan)} must write no plan metadata`);
+      assert.equal(p.get('subscription_data[metadata][plan]'), null);
+    }
+  });
+
   test('refuses an address that already owns a studio, and mints nothing', async () => {
     const calls = stubFetch([STRIPE_OK, ['provision-check', { status: 200, body: { taken: true, name: 'Acme GmbH', reason: 'email' } }]]);
     const r = await post(fn, { email: 'b@acme.com', from: 'pricing' });

@@ -1,7 +1,7 @@
 ---
 layout: base.njk
 title: Pricing
-description: "$999 a month, per workspace. Unlimited runs, your whole team in, no seats to count, money back if it doesn't earn its keep. What's in it, and what isn't."
+description: "$999 a month, or $9,990 a year with two months free. Unlimited runs, your whole team in, no seats to count, money back if it doesn't earn its keep."
 # One page per language (#114) — see src/index.njk for the reasoning.
 pagination:
   data: languages
@@ -33,7 +33,13 @@ permalink: "{{ language.prefix }}/pricing/"
 
     `brand` and `seller` point at the Organization node base.njk puts on every
     page. `priceValidUntil` is deliberately absent: it is optional for a
-    subscription that has no end date, and an invented one expires. -#}
+    subscription that has no end date, and an invented one expires.
+
+    #542: two Offers, because there are now two ways to buy the same one
+    workspace. `offers` takes a list for exactly this, and the test above reads
+    BOTH against the PLANS table in the function — so a plan whose figure moves
+    in one place and not the other fails the suite rather than reaching a
+    search result. -#}
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -43,23 +49,44 @@ permalink: "{{ language.prefix }}/pricing/"
   "brand": { "@id": "{{ site.url }}/#organization" },
   "url": "{{ site.url }}{{ page.url }}",
   "image": "{{ site.url }}{{ '/assets/img/og.png' | asset }}",
-  "offers": {
-    "@type": "Offer",
-    "url": "{{ site.url }}{{ page.url }}",
-    "price": "999.00",
-    "priceCurrency": "USD",
-    "availability": "https://schema.org/InStock",
-    "seller": { "@id": "{{ site.url }}/#organization" },
-    "priceSpecification": {
-      "@type": "UnitPriceSpecification",
+  "offers": [
+    {
+      "@type": "Offer",
+      "name": {{ ("Monthly" | t) | dump | safe }},
+      "url": "{{ site.url }}{{ page.url }}",
       "price": "999.00",
       "priceCurrency": "USD",
-      "billingIncrement": 1,
-      "unitText": "workspace",
-      "billingDuration": 1,
-      "billingPeriod": "P1M"
+      "availability": "https://schema.org/InStock",
+      "seller": { "@id": "{{ site.url }}/#organization" },
+      "priceSpecification": {
+        "@type": "UnitPriceSpecification",
+        "price": "999.00",
+        "priceCurrency": "USD",
+        "billingIncrement": 1,
+        "unitText": "workspace",
+        "billingDuration": 1,
+        "billingPeriod": "P1M"
+      }
+    },
+    {
+      "@type": "Offer",
+      "name": {{ ("Yearly" | t) | dump | safe }},
+      "url": "{{ site.url }}{{ page.url }}",
+      "price": "9990.00",
+      "priceCurrency": "USD",
+      "availability": "https://schema.org/InStock",
+      "seller": { "@id": "{{ site.url }}/#organization" },
+      "priceSpecification": {
+        "@type": "UnitPriceSpecification",
+        "price": "9990.00",
+        "priceCurrency": "USD",
+        "billingIncrement": 1,
+        "unitText": "workspace",
+        "billingDuration": 1,
+        "billingPeriod": "P1Y"
+      }
     }
-  }
+  ]
 }
 </script>
 
@@ -76,10 +103,29 @@ permalink: "{{ language.prefix }}/pricing/"
 
 <section class="pricing pricing-page">
   <div class="pricing-card">
-    <div class="price-row">
+    {#- #542 — the yearly plan. A SEGMENTED CONTROL, not a second buy button:
+        a pricing page gets one primary action (the style skill, rule 8), and
+        two CTAs is the shape the operator has twice asked us not to build.
+
+        Both figures and both sentences are written here, by the build, in the
+        reader's language; plan.js only decides which of them is hidden. So the
+        switch can never say a price the build did not write, it costs a script
+        no sentence of its own, and with JavaScript off the page is the monthly
+        page it was — which is also what a crawler reads. -#}
+    <div class="plan-switch" id="planSwitch" role="group" aria-label="{% t %}Billing period{% endt %}">
+      <button type="button" class="plan-opt" data-plan="month" aria-pressed="true">{% t %}Monthly{% endt %}</button>
+      <button type="button" class="plan-opt" data-plan="year" aria-pressed="false">{% t %}Yearly — 2 months free{% endt %}</button>
+    </div>
+    <div class="price-row" data-plan-show="month">
       <span class="price-num">$999</span>
       <span class="price-per">{% t %}/ month · per workspace{% endt %}</span>
     </div>
+    <div class="price-row" data-plan-show="year" hidden>
+      <span class="price-num">$9,990</span>
+      <span class="price-per">{% t %}/ year · per workspace{% endt %}</span>
+    </div>
+    <p class="plan-note" data-plan-show="month">{% t %}Or <strong>$9,990 a year</strong> — two months free.{% endt %}</p>
+    <p class="plan-note" data-plan-show="year" hidden>{% t %}<strong>Two months free</strong> on $11,988 — and the price is fixed for the year.{% endt %}</p>
     <p class="price-line">{% t %}Unlimited runs · your whole team in · money back if it doesn't earn its keep{% endt %}</p>
 
     <ul class="pricing-list">
@@ -97,7 +143,13 @@ permalink: "{{ language.prefix }}/pricing/"
       <form class="reserve-form buy-form" id="buyForm" hidden novalidate>
         <input class="reserve-input" id="buyEmail" type="email" autocomplete="email"
                placeholder="you@yourcompany.com" aria-label="{% t %}Your work email{% endt %}">
-        <button class="btn-cta" type="submit" id="buyBtn">{% t %}Pay &amp; start &mdash; $999/mo →{% endt %}</button>
+        {#- The label carries the figure, so the yearly one is here too — read
+            off the button by buy.js when the switch moves, which is also what
+            it restores after a failed attempt. `| safe` because the entities
+            are the sentence's own; without it Nunjucks would escape the `&`
+            twice and the button would read "Pay &amp; start". -#}
+        <button class="btn-cta" type="submit" id="buyBtn"
+                data-label-year="{{ 'Pay &amp; start &mdash; $9,990/yr →' | t | safe }}">{% t %}Pay &amp; start &mdash; $999/mo →{% endt %}</button>
       </form>
       <input class="reserve-input buy-site" id="buySite" type="text" inputmode="url" autocomplete="url"
              placeholder="yourcompany.com" aria-label="{% t %}Your company website{% endt %}" hidden>
@@ -116,6 +168,10 @@ permalink: "{{ language.prefix }}/pricing/"
     returns if they are absent, so deferring is not only cheaper — it is the
     case the guard was written for, with the DOM guaranteed complete. -#}
 <script src="{{ '/assets/js/buy.js' | asset }}" defer></script>
+{#- plan.js loads AFTER buy.js on purpose (#542): deferred scripts run in
+    document order, so buy.js is listening for the switch's `plan` event by the
+    time plan.js announces the choice a `?plan=` in the URL already made. -#}
+<script src="{{ '/assets/js/plan.js' | asset }}" defer></script>
 
 <section class="pricing-faq">
   <div class="pricing-faq-inner">
@@ -164,6 +220,17 @@ permalink: "{{ language.prefix }}/pricing/"
         <dd>{% t %}Exactly what it says. Write to
           <a href="mailto:{{ site.email }}">{{ site.email }}</a> and we refund
           you. We would rather hear why than keep a month you regret.{% endt %}</dd>
+      </div>
+      <div class="pricing-faq-item">
+        {#- #542. The one thing the yearly plan does NOT do yet: move a
+            workspace that is already paying. Saying so on the page it is sold
+            from is cheaper than a support thread that starts with a broken
+            expectation, and it is the only honest answer until billing is
+            self-serve. -#}
+        <dt>{% t %}Can I switch between monthly and yearly?{% endt %}</dt>
+        <dd>{% t %}Yes — email <a href="mailto:{{ site.email }}">{{ site.email }}</a> and
+          we move you at your next renewal. There is no switch inside the studio
+          yet, so today it is a reply from a human rather than a button.{% endt %}</dd>
       </div>
       <div class="pricing-faq-item">
         <dt>{% t %}What happens if I stop?{% endt %}</dt>

@@ -34,9 +34,14 @@ description: "Your Prospektor workspace is live. Sign in with the address you pa
       <p class="onboard-sub">{% t %}Payment confirmed — your studio is already reading your site and drafting your brief.{% endt %}</p>
 
       <div class="order-card" id="confirmCard">
+        {#- #542: the row said "$999/mo" as a constant, which stopped being
+            true the day a yearly plan existed. Both are written here and
+            checkout-done.js unhides the one the session actually bought;
+            without JS, or without keys, the page reads as it always did. -#}
         <div class="order-row">
           <span class="order-name">{% t %}Prospektor · one workspace{% endt %}</span>
-          <span class="order-price">$999<span class="order-per">/mo</span></span>
+          <span class="order-price" data-plan-show="month">$999<span class="order-per">/mo</span></span>
+          <span class="order-price" data-plan-show="year" hidden>$9,990<span class="order-per">/yr</span></span>
         </div>
         <ul class="confirm-list">
           <li id="confirmPaid" hidden>{% t %}Paid today:{% endt %} <strong id="confirmAmount"></strong></li>

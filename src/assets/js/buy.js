@@ -25,7 +25,19 @@
   const btn = document.getElementById('buyBtn');
   const msg = document.getElementById('buyMsg');
   const live = document.getElementById('buyLive');
-  const btnLabel = btn.textContent;
+  // #542: the button's label carries the figure, so it moves with the plan
+  // switch. The monthly label is the button's own text — the page a crawler
+  // and a JavaScript-off visitor read — and the yearly one rides on a data
+  // attribute, written and translated by the build like every other sentence
+  // on the page. Nothing here invents a price.
+  const labels = { month: btn.textContent, year: btn.dataset.labelYear || btn.textContent };
+  let plan = 'month';
+  const planSwitch = document.getElementById('planSwitch');
+  if (planSwitch) planSwitch.addEventListener('plan', e => {
+    plan = e.detail === 'year' ? 'year' : 'month';
+    // Not while a session is being opened: that label is a state, not a price.
+    if (!btn.disabled) btn.textContent = labels[plan];
+  });
   // #114: which language the buyer is reading in, so Stripe's hosted page and
   // the welcome email speak it too. Nothing is sent for English, so an
   // English purchase is the request it always was.
@@ -57,7 +69,7 @@
 
   function reset() {
     btn.disabled = false;
-    btn.textContent = btnLabel;
+    btn.textContent = labels[plan];
   }
 
   form.addEventListener('submit', async e => {
@@ -86,7 +98,9 @@
           email: email,
           domain: siteInput.hidden ? '' : siteInput.value.trim(),
           from: 'pricing',
-        }, LANG === 'en' ? {} : { locale: LANG })),
+          // #542: monthly sends nothing, the way English sends no locale — so
+          // a monthly purchase is the request this has always made.
+        }, plan === 'year' ? { plan: 'year' } : {}, LANG === 'en' ? {} : { locale: LANG })),
       });
       data = await response.json().catch(() => null);
     } catch (err) {

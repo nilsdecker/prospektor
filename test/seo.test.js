@@ -152,21 +152,46 @@ describe('SEO — the #137 findings, pinned', () => {
       assert.ok(p.jsonld.length >= 1, `${p.url}: no structured data`);
   });
 
-  test('the Offer on /pricing/ is the price Stripe actually charges', () => {
-    // The number in the schema and the number in the charge cannot be allowed
+  test('every Offer on /pricing/ is a price Stripe actually charges', () => {
+    // The numbers in the schema and the numbers in the charge cannot be allowed
     // to drift: one of them is what a buyer reads in a search result and the
     // other is what leaves their card.
+    //
+    // #542 made this a set rather than a number, because there are now two ways
+    // to buy the same workspace. It reads the function's own PLANS table rather
+    // than the file's text, and it asserts in BOTH directions — a plan with no
+    // Offer, and an Offer no plan backs, each fail — so adding a third plan and
+    // forgetting the page is red, and so is inventing a price on the page.
+    const { PLANS } = require(path.join(ROOT, 'netlify/functions/create-checkout-session.js'));
     const fn = fs.readFileSync(path.join(ROOT, 'netlify/functions/create-checkout-session.js'), 'utf8');
-    const amount = (fn.match(/'line_items\[0\]\[price_data\]\[unit_amount\]':\s*'(\d+)'/) || [])[1];
     const currency = (fn.match(/'line_items\[0\]\[price_data\]\[currency\]':\s*'(\w+)'/) || [])[1];
-    assert.ok(amount && currency, 'could not read the price out of create-checkout-session.js');
+    assert.ok(currency, 'could not read the currency out of create-checkout-session.js');
+    assert.ok(Object.keys(PLANS).length, 'create-checkout-session.js exports no plans');
 
     const pricing = pages().find(p => p.url === '/pricing/');
     const product = pricing.jsonld.map(JSON.parse).find(v => v['@type'] === 'Product');
     assert.ok(product, '/pricing/ has no Product structured data');
-    assert.strictEqual(product.offers.price, (Number(amount) / 100).toFixed(2),
-      `schema says ${product.offers.price}, Stripe charges ${amount} minor units`);
-    assert.strictEqual(product.offers.priceCurrency, currency.toUpperCase());
+    const offers = [].concat(product.offers);
+    // schema.org's own period for a recurring charge, per interval.
+    const PERIOD = { month: 'P1M', year: 'P1Y' };
+
+    const charged = Object.entries(PLANS).map(([name, p]) => ({
+      name,
+      price: (Number(p.unit_amount) / 100).toFixed(2),
+      period: PERIOD[p.interval],
+    }));
+    for (const plan of charged) {
+      assert.ok(plan.period, `no schema billingPeriod is written for the ${plan.name} interval`);
+      const offer = offers.find(o => o.price === plan.price);
+      assert.ok(offer, `Stripe charges ${plan.price} for the ${plan.name} plan; /pricing/ offers no such price`);
+      assert.strictEqual(offer.priceCurrency, currency.toUpperCase());
+      assert.strictEqual(offer.priceSpecification.price, plan.price);
+      assert.strictEqual(offer.priceSpecification.billingPeriod, plan.period,
+        `the ${plan.name} Offer is billed ${offer.priceSpecification.billingPeriod}, Stripe every ${plan.interval}`);
+    }
+    for (const offer of offers)
+      assert.ok(charged.some(p => p.price === offer.price),
+        `/pricing/ offers ${offer.price}, which no plan in create-checkout-session.js charges`);
   });
 
   test('every article is reachable from three other articles, not one', () => {

@@ -9,8 +9,16 @@
 // The session id is the authorisation. A cs_… id is a long unguessable token
 // Stripe hands only to the buyer's own redirect — the same bearer-token model
 // as Stripe's own success pages — so holding it is proof enough for these
-// three fields. Everything else on the session (line items, metadata, the
-// subscription id) deliberately stays server-side.
+// fields. Everything else on the session (line items, the subscription id, the
+// rest of the metadata) deliberately stays server-side.
+//
+// #542 added a fourth, and it is the narrowest widening that would do: `plan`,
+// one of exactly two words, read off the metadata the checkout call wrote. The
+// order card on /checkout/done/ printed "$999/mo" as a constant, which is a
+// sentence rather than a fact the moment a yearly plan exists — and the file's
+// own rule two paragraphs up is that the page must never invent a number.
+// Nothing else from the metadata crosses: the domain, the company and the
+// buyer's target sentence stay where they are.
 //
 // Env-gated like every Stripe call here: no key, 503, and the page keeps its
 // generic confirmation copy — a missing env var must never blank the page a
@@ -53,6 +61,9 @@ exports.handler = async function(event) {
       amount_total: typeof session.amount_total === 'number' ? session.amount_total : null,
       currency: session.currency || 'usd',
       email: (session.customer_details && session.customer_details.email) || session.customer_email || null,
+      // Absent means monthly, which is what the checkout call writes: it sends
+      // no `plan` for the default, so an older session reads correctly too.
+      plan: ((session.metadata || {}).plan === 'year') ? 'year' : 'month',
     }),
   };
 };

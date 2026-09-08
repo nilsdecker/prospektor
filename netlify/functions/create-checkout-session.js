@@ -1,10 +1,12 @@
 // Opens Stripe Checkout — for the pricing tile's one-field buy form and for
 // the /checkout/ payment step alike.
 //
-// One product, one price: a Prospektor workspace, $999/month,
-// as a subscription (CEO decision, 16 Aug 2026). The price is inline
-// price_data so no dashboard product needs to exist; promotion codes are on
-// so founding-client rates are coupons the operator creates in the Stripe
+// One product, two ways to pay for it: a Prospektor workspace, $999/month or
+// $9,990/year, as a subscription (CEO decision, 16 Aug 2026; the yearly plan
+// is #542, the operator's call on 7 Sep 2026 — "let's do the two months free
+// thing for prepayment for the year"). Both prices are inline price_data so
+// no dashboard product needs to exist; promotion codes are on so
+// founding-client rates are coupons the operator creates in the Stripe
 // dashboard, never a code change.
 //
 // Env-gated: with no STRIPE_SECRET_KEY this returns 503 and every caller
@@ -33,6 +35,30 @@ const { companyDomainFromEmail, cleanDomain } = require('../lib/email-domain');
 const { languageOf, LANGUAGES } = require('../../lib/i18n');
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+// The two plans, and the only place either figure is written (#542). Yearly is
+// ten months' money for twelve months of workspace — $9,990 against $11,988,
+// which is the "two months free" the operator asked for; /terms/ §02 says the
+// price is then fixed for that year. Both are inline `price_data`, so adding a
+// plan is a row here and never a product somebody has to remember to create in
+// the Stripe dashboard — which is what keeps the figure on /pricing/ and the
+// figure that leaves a card the same number by construction. Exported because
+// `test/seo.test.js` reads this table and asserts the page's schema against it.
+const PLANS = {
+  month: { unit_amount: '99900', interval: 'month' },
+  year: { unit_amount: '999000', interval: 'year' },
+};
+exports.PLANS = PLANS;
+
+// A plan the table does not hold — a missing one, a typo, anything a browser
+// can be made to send — is monthly. So the field can never charge a price this
+// file does not carry, the same way `languageOf` keeps `locale` from steering
+// a URL. `hasOwnProperty` rather than a truthiness test, so `constructor` is
+// not a plan.
+const planOf = value => {
+  const name = String(value == null ? '' : value).trim();
+  return Object.prototype.hasOwnProperty.call(PLANS, name) ? name : 'month';
+};
 
 exports.handler = async function(event) {
   const key = process.env.STRIPE_SECRET_KEY;
@@ -70,6 +96,11 @@ exports.handler = async function(event) {
   const language = languageOf(data.locale);
   const lang = language && language !== 'en' ? LANGUAGES.find(l => l.code === language) : null;
   const prefix = lang ? lang.prefix : '';
+  // #542: monthly or yearly. Monthly is the default and writes nothing extra —
+  // the same posture the language field takes — so a monthly purchase is the
+  // Stripe request this function always sent, byte for byte.
+  const plan = planOf(data.plan);
+  const price = PLANS[plan];
 
   // Required now, where it used to be optional. Stripe can collect an address
   // itself, but an address Stripe collects is one nothing has checked — and
@@ -132,8 +163,8 @@ exports.handler = async function(event) {
     mode: 'subscription',
     'line_items[0][quantity]': '1',
     'line_items[0][price_data][currency]': 'usd',
-    'line_items[0][price_data][unit_amount]': '99900',
-    'line_items[0][price_data][recurring][interval]': 'month',
+    'line_items[0][price_data][unit_amount]': price.unit_amount,
+    'line_items[0][price_data][recurring][interval]': price.interval,
     'line_items[0][price_data][product_data][name]': 'Prospektor — one workspace',
     allow_promotion_codes: 'true',
     // {CHECKOUT_SESSION_ID} is Stripe's template literal — Stripe substitutes
@@ -149,7 +180,7 @@ exports.handler = async function(event) {
   // through checkout and come out the other side as consent. Absent means
   // exactly what an unticked box means: nothing is recorded anywhere.
   const marketing = data.marketing === true ? 'yes' : '';
-  for (const [k, v] of [['domain', website], ['company', company], ['goal', goal], ['marketing', marketing], ['language', lang ? lang.code : '']]) {
+  for (const [k, v] of [['domain', website], ['company', company], ['goal', goal], ['marketing', marketing], ['language', lang ? lang.code : ''], ['plan', plan === 'month' ? '' : plan]]) {
     if (v) {
       params.set('metadata[' + k + ']', v);
       params.set('subscription_data[metadata][' + k + ']', v);

@@ -1,4 +1,4 @@
-// checkout-session-status hands /checkout/done/ the three facts its
+// checkout-session-status hands /checkout/done/ the four facts its
 // confirmation shows — and nothing else. These tests are mostly about what
 // it refuses to say.
 const { test, describe, beforeEach } = require('node:test');
@@ -44,15 +44,43 @@ describe('checkout-session-status', () => {
     stubFetch([['api.stripe.com', { status: 200, body: SESSION }]]);
     const r = await get({ session_id: 'cs_test_abcdefghij' });
     assert.equal(r.statusCode, 200);
-    assert.deepEqual(body(r), { paid: true, amount_total: 1, currency: 'usd', email: 'buyer@acme.com' });
+    assert.deepEqual(body(r), { paid: true, amount_total: 1, currency: 'usd', email: 'buyer@acme.com', plan: 'month' });
   });
 
   test('never leaks the rest of the session — metadata, subscription id, anything', async () => {
     stubFetch([['api.stripe.com', { status: 200, body: SESSION }]]);
     const r = await get({ session_id: 'cs_test_abcdefghij' });
-    assert.deepEqual(Object.keys(body(r)).sort(), ['amount_total', 'currency', 'email', 'paid']);
+    assert.deepEqual(Object.keys(body(r)).sort(), ['amount_total', 'currency', 'email', 'paid', 'plan']);
     assert.ok(!r.body.includes('secret goal sentence'));
     assert.ok(!r.body.includes('sub_123'));
+  });
+
+  // #542: the one field the metadata was widened by, and the only one. The
+  // order card on /checkout/done/ used to print "$999/mo" as a constant; a
+  // yearly buyer would have read a number they were not charged.
+  test('says which plan was bought, and reads anything but "year" as monthly', async () => {
+    for (const [metadata, want] of [
+      [{ plan: 'year' }, 'year'],
+      [{ plan: 'month' }, 'month'],
+      [{}, 'month'],                       // every session sold before #542
+      [{ plan: 'YEAR' }, 'month'],
+      [{ plan: ['year'] }, 'month'],
+      [undefined, 'month'],
+    ]) {
+      stubFetch([['api.stripe.com', { status: 200, body: Object.assign({}, SESSION, { metadata }) }]]);
+      const r = await get({ session_id: 'cs_test_abcdefghij' });
+      assert.equal(body(r).plan, want, `metadata=${JSON.stringify(metadata)}`);
+    }
+  });
+
+  test('the plan is the ONLY thing that crosses from the metadata', async () => {
+    stubFetch([['api.stripe.com', { status: 200, body: Object.assign({}, SESSION, {
+      metadata: { plan: 'year', goal: 'secret goal sentence', domain: 'targetco.example', company: 'Target Co' },
+    }) }]]);
+    const r = await get({ session_id: 'cs_test_abcdefghij' });
+    assert.equal(body(r).plan, 'year');
+    for (const leak of ['secret goal sentence', 'targetco.example', 'Target Co'])
+      assert.ok(!r.body.includes(leak), `${leak} must stay server-side`);
   });
 
   test('an unknown or non-session id is a 404, not an error page', async () => {
