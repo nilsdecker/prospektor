@@ -593,7 +593,17 @@ const check = (claim, ok, detail) => { R.push({ claim, ok, detail }); console.lo
                        'https://prospektor.ai/who-to-pitch/', 'https://prospektor.ai/what-to-send/',
                        'https://prospektor.ai/pricing/',
                        'https://prospektor.ai/privacy/',
-                       'https://prospektor.ai/terms/', 'https://prospektor.ai/resources/',
+                       'https://prospektor.ai/terms/',
+                       // #109. The data processing addendum — a legal page like
+                       // /terms/ and /privacy/, ranked for the same reason
+                       // /contact/ is. It reached the sitemap and test/drive.js
+                       // on 7 Sep and this list on 8 Sep, which cost two red
+                       // claims in between: this block is compared as an
+                       // ordered PREFIX, so the page that follows it fell out
+                       // of alignment and everything after it stopped looking
+                       // like a guide or an article.
+                       'https://prospektor.ai/dpa/',
+                       'https://prospektor.ai/resources/',
                        'https://prospektor.ai/help/',
                        // #456. Ordered as sitemap.njk lists it — this block is
                        // compared as a PREFIX, in order, so a page appended to
