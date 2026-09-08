@@ -1629,7 +1629,7 @@ const check = (n, c, x) => { if (c) { pass++; console.log('  ok  ', n); } else {
     await page.close();
   }
 
-  // 16 — the yearly plan (#542). The operator's call on 7 Sep 2026: two months
+  // 17 — the yearly plan (#542). The operator's call on 7 Sep 2026: two months
   //      free for prepaying a year. Four things this drives that no static
   //      assertion can: that the switch actually swaps the figure a buyer
   //      reads, that the choice reaches the checkout call, that the DEFAULT is

@@ -238,6 +238,62 @@ visitor's press.
   never state something false. Studio-side, `DATA-HANDLING.md` §2 and §5 carry
   the same correction.
 
+## The price contract — two plans, one table, and the default sends nothing (#542)
+
+A workspace is $999 a month or **$9,990 a year** — ten months' money for twelve
+months, which is the operator's *"two months free thing for prepayment for the
+year"* (7 Sep 2026) — and `/terms/` §02 says the yearly price is fixed for that
+year. Four surfaces carry a figure and exactly one of them decides it.
+
+- **`PLANS` in `netlify/functions/create-checkout-session.js` is the only place
+  either figure is written.** Both are inline `price_data`, so a plan is a row
+  in that table and never a product somebody has to remember to create in the
+  Stripe dashboard — which is what keeps the number on `/pricing/` and the
+  number that leaves a card the same number by construction.
+  `test/seo.test.js` reads the exported table and asserts **both ways**: a plan
+  with no `Offer` on `/pricing/`, and an `Offer` no plan backs, each fail.
+  `test/llms.test.js` reads every figure `/llms.txt` quotes against the same
+  page. Adding a third plan is a row and a second `Offer`; forgetting either
+  half is red.
+- **A plan the table does not hold is monthly, and monthly writes nothing.**
+  `planOf` whitelists against the table itself (`hasOwnProperty`, so
+  `constructor` is not a plan), and the default adds no metadata, exactly as
+  English adds no `locale` — so a monthly purchase is the Stripe request this
+  function always sent, byte for byte, and nothing a browser can be made to
+  send charges a price this repo does not carry.
+- **One primary action per screen, so the switch is a segmented control and
+  never a second buy button** (the style skill, rule 8). Both figures and both
+  sentences are written into the page by the build, in the reader's language;
+  `plan.js` only decides which of them is hidden. A switch therefore cannot say
+  a price the build did not write, ships no sentence of its own to translate,
+  and degrades — no JS, no keys, a crawler — to the monthly page it has always
+  been. `plan.js` loads **after** the page's own script, because deferred
+  scripts run in document order and `buy.js` has to be listening for the `plan`
+  event before a `?plan=` in the URL is announced.
+- **The choice crosses pages as `?plan=`, never as storage.** That is the path
+  a yearly buyer takes when there are no Stripe keys and `/pricing/`'s CTA is a
+  link rather than a form — and it declares nothing to `consent.js`'s
+  inventory, because nothing is kept on the visitor's device.
+- **`/checkout/done/` shows what was bought, not what is usual.** It printed
+  `$999/mo` as a constant until #542; `checkout-session-status` now answers
+  `plan`, which is **the only** thing that crosses from a session's metadata —
+  the domain, the company and the buyer's target sentence stay server-side, and
+  `test/checkout-session-status.test.js` pins that they do.
+- **The billing gate is interval-agnostic, and that was verified rather than
+  assumed.** `stripe-webhook.js` keys on the event type and the address and
+  reads nothing about money; the studio's #68 cascade gates on suspension
+  reasons. A yearly renewal is the same five events twelve months apart.
+  `test/stripe-webhook.test.js` drives a yearly invoice through both halves, so
+  a future line that starts reading an interval, an amount or a price id turns
+  red.
+- **Switching an existing workspace between plans is a mailto, and the copy
+  says so** — `/pricing/`'s FAQ and `/terms/` §02 both name `hello@`. It stops
+  being a sentence and starts being a button when billing is self-serve, and
+  not before.
+- **Nothing counts plans.** A third one can only turn the suite red by having
+  no `Offer`, no `billingPeriod`, or a figure `/llms.txt` contradicts — the
+  #131 rule, that friction points at the defect and never at the work.
+
 ## The language contract — the English sentence is the key (#114, #535)
 
 Every page a visitor reads — the funnel (`/`, `/pricing/`, `/checkout/`,
